@@ -43,14 +43,14 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='message-text' color={'#f558a4'} size={size} />
         ),
-      }} name="Message" component={FriendsScreen} />
+      }} name="Message" component={MessageScreen} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
         ),
-      }} name="Contact" component={MessageScreen} />
+      }} name="Contact" component={FriendsScreen} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Profile',
