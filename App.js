@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 const Tab = createBottomTabNavigator();
-import FriendsScreen from './screens/friends-screen';
+import ContactScreen from './screens/contact-screen';
 import MessageScreen from './screens/message-screen';
 import ProfileScreen from './screens/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,31 +15,43 @@ function MyTab() {
       screenOptions={{
         headerStyle: {
           flexDirection: 'row',
-          justifyContent: 'center',
           backgroundColor: '#f558a4',
+          height: 50,
         },
-        headerRight: () => (
-          <View style={{ flexDirection: 'row', width: '100%' }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 15 }}>
-              <MaterialCommunityIcons name="magnify" color="white" size={30} />
+        headerLeft: () => (
+          <View style={{ flexDirection: 'row', width: '100%', marginLeft: 10 }}>
+            <View style={{
+              flexDirection: 'row',
+              gap: 5,
+
+
+            }}>
+              <MaterialCommunityIcons name="magnify" color="white" size={20} />
               <TextInput
                 placeholder="Search"
                 placeholderTextColor="white"
                 // value={searchKeyword}
                 // onSubmitEditing={() => navigation.navigate('SearchEngine', { keyword: searchKeyword })}
                 // onChangeText={text => setSearchKeyword(text)}
-                style={{ height: 25, fontSize: 20, color: 'white' }}
+                style={{ height: 20, fontSize: 17, color: 'white' }}
               />
-              <MaterialCommunityIcons name="plus" color="white" size={30} style={{
-                marginLeft: 50
-              }} />
             </View>
           </View>
         ),
+        headerRight: () => (
+          <View style={{
+            marginRight: 15
+          }}>
+            <MaterialCommunityIcons name="plus" color="white" size={20} style={{
+              marginLeft: 20
+            }} />
+          </View>
+        )
       }}>
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Message',
+        tabBarActiveTintColor: '#f558a4',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='message-text' color={'#f558a4'} size={size} />
         ),
@@ -47,13 +59,15 @@ function MyTab() {
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
+        tabBarActiveTintColor: '#f558a4',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
         ),
-      }} name="Contact" component={FriendsScreen} />
+      }} name="Contact" component={ContactScreen} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Profile',
+        tabBarActiveTintColor: '#f558a4',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='account' color={'#f558a4'} size={size} />
         ),

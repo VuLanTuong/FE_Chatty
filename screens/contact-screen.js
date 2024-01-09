@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image } from 'react-native';
 import { Divider } from 'react-native-paper';
-import { ScrollView } from 'react-native-web';
+import { ScrollView } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export function FriendsScreen() {
+export function ContactScreen() {
     const [selectedOption, setSelectedOption] = useState('friends');
 
     const [friendIds, setFriendIds] = useState([]);
@@ -112,22 +113,28 @@ export function FriendsScreen() {
     };
     const groupedFriends = groupFriendsByLetter();
     return (
-        <ScrollView>
-            <View>
-                <View>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
-                        <TouchableOpacity
-                            style={{ marginRight: 10 }}
-                            onPress={() => handleOptionSelect('friends')}
-                        >
-                            <Text style={{ fontWeight: selectedOption === 'friends' ? 'bold' : 'normal', fontSize: 17 }}>Friends</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleOptionSelect('groups')}>
-                            <Text style={{ fontWeight: selectedOption === 'groups' ? 'bold' : 'normal', fontSize: 17 }}>Groups</Text>
-                        </TouchableOpacity>
-                    </View>
+        <View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+                <TouchableOpacity
+                    style={{ marginRight: 10 }}
+                    onPress={() => handleOptionSelect('friends')}
+                >
+                    <Text style={{ fontWeight: selectedOption === 'friends' ? 'bold' : 'normal', fontSize: 17 }}>Friends</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleOptionSelect('groups')}>
+                    <Text style={{ fontWeight: selectedOption === 'groups' ? 'bold' : 'normal', fontSize: 17 }}>Groups</Text>
+                </TouchableOpacity>
+            </View>
 
+            <View style={{
+                height: '100%',
+            }}>
+                <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{
+                    height: '100%'
+
+                }}>
                     <View style={[styles.dividerForMenu]} />
+
 
                     {selectedOption === 'friends' && (
                         <View>
@@ -171,75 +178,84 @@ export function FriendsScreen() {
 
 
                             <View style={{
-                                width: '20%',
+                                width: '25%',
                                 backgroundColor: '#b6b6ba',
                                 borderRadius: 20,
                                 height: 30,
                                 flexDirection: 'row',
                                 gap: 20
                             }}>
+
                                 <Text style={{
                                     marginLeft: 10,
                                     fontWeight: 'bold',
-                                    marginTop: 5
+                                    marginTop: 5,
+                                    textAlign: 'center',
                                 }}>All</Text>
 
 
                                 {/* api to get number of friends */}
                                 <Text style={{
                                     marginLeft: 5,
-                                    marginTop: 5
+                                    marginTop: 5,
+                                    textAlign: 'center',
                                 }}>100</Text>
+
+
                             </View>
 
                             <View style={styles.dividerForMenu} />
 
-                            <ScrollView>
-                                <View>
-                                    {Object.keys(groupedFriends).map((letter) => (
-                                        <View key={letter}>
-                                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
-                                            {groupedFriends[letter].map((friend) => (
-                                                <View key={friend.id}
-                                                    style={{
-                                                        flexDirection: 'row',
-                                                        gap: 10,
-                                                        marginTop: 10,
-                                                        marginLeft: 10
-                                                    }}>
-                                                    <View style={{
+
+                            <View>
+                                {Object.keys(groupedFriends).map((letter) => (
+                                    <View key={letter}>
+                                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
+                                        {groupedFriends[letter].map((friend) => (
+                                            <View key={friend.id}
+                                                style={{
+                                                    flexDirection: 'row',
+                                                    gap: 10,
+                                                    marginTop: 10,
+                                                    marginLeft: 10
+                                                }}>
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    gap: 20
+                                                }}>
+
+                                                    {/* onPress to go to message screen with friend */}
+                                                    <Pressable style={{
                                                         flexDirection: 'row',
                                                         gap: 20
                                                     }}>
+                                                        {/* // api to get avatar */}
+                                                        <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
+                                                            width: 50,
+                                                            height: 50,
+                                                            borderRadius: 50
 
-                                                        {/* onPress to go to message screen with friend */}
-                                                        <Pressable style={{
-                                                            flexDirection: 'row',
-                                                            gap: 20
-                                                        }}>
-                                                            {/* // api to get avatar */}
-                                                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
-                                                                width: 50,
-                                                                height: 50,
-                                                                borderRadius: 50
+                                                        }} />
 
-                                                            }} />
+                                                        <Text style={{
+                                                            marginTop: 10,
 
-                                                            <Text style={{
-                                                                marginTop: 10,
-
-                                                                fontSize: 20
-                                                            }}>{friend.fullName}</Text>
-                                                        </Pressable>
-                                                    </View>
+                                                            fontSize: 20
+                                                        }}>{friend.fullName}</Text>
+                                                    </Pressable>
                                                 </View>
-                                            ))}
-                                        </View>
-                                    ))}
-                                </View>
-                            </ScrollView>
+                                            </View>
+                                        ))}
+                                    </View>
+                                ))}
+                            </View>
+
                         </View>
-                    )}
+
+
+                    )
+                    }
+
                     {selectedOption === 'groups' && (
                         <View>
                             <Divider style={{
@@ -251,7 +267,47 @@ export function FriendsScreen() {
                                 marginLeft: 280
 
                             }} />
-                            {/* api to get all of groups */}
+                            <View style={{
+                                flexDirection: 'row',
+                                gap: 10
+                            }}>
+                                <Pressable style={{
+                                    flexDirection: 'row',
+                                    marginTop: 10,
+                                    marginLeft: 10
+
+                                }}>
+                                    <View style={{
+                                        height: 50,
+                                        width: 50,
+                                        borderRadius: 50,
+                                        backgroundColor: '#fc83dc'
+                                    }}>
+                                        <MaterialCommunityIcons name="plus" color="white" size={30} style={{
+                                            marginLeft: 10,
+                                            marginTop: 10
+                                        }} />
+                                    </View>
+
+                                    <Text style={{
+                                        marginLeft: 10,
+                                        marginTop: 10,
+                                        fontSize: 18,
+                                        fontWeight: 650
+                                    }}>New Group</Text>
+
+
+                                </Pressable>
+
+                            </View>
+                            <Divider style={styles.divider} />
+                            {/* api to get all of groups and number of group */}
+                            <Text style={{
+                                marginTop: 5,
+                                marginLeft: 5,
+                                fontSize: 17,
+                                fontWeight: 'bold'
+                            }}>Join group (15) </Text>
                             {groups.map((group) => (
                                 <View key={group.id}
                                     style={{
@@ -260,6 +316,7 @@ export function FriendsScreen() {
                                         marginTop: 10,
                                         marginLeft: 10
                                     }}>
+
                                     <View style={{
                                         flexDirection: 'row',
                                         gap: 20
@@ -287,16 +344,18 @@ export function FriendsScreen() {
                             ))}
                         </View>
                     )}
-                </View>
+                </ScrollView>
             </View>
-        </ScrollView>
+
+
+
+
+
+        </View>
 
 
     );
 };
-
-export default FriendsScreen;
-
 const styles = StyleSheet.create({
     divider: {
         height: 4,
@@ -315,3 +374,4 @@ const styles = StyleSheet.create({
     },
 
 });
+export default ContactScreen;
