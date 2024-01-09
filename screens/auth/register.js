@@ -11,6 +11,29 @@ const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+
+  const validate = () => {
+    if (phoneNumber.length === 0 || password.length === 0 || confirmPassword.length === 0) {
+      alert('Please fill all the fields');
+      return false;
+    }
+    if (password !== confirmPassword) {
+      alert('Passwords do not match');
+      return false;
+    }
+    return true;
+ };
+
+ const handleSignUp = async () => {
+    if (validate()) {
+      const data = await readFile('../../data/db.json', 'utf8');
+      const jsonData = JSON.parse(data);
+      const newUser = { phoneNumber, password };
+      jsonData.users.push(newUser);
+      writeFile('file.json', JSON.stringify(jsonData));
+      navigation.navigate("Login");
+    }
+ };
   
   return (
     <ScrollView style={styles.container}>
@@ -60,7 +83,7 @@ const Login = ({ navigation }) => {
       </View>
 
       <View style={styles.btnContainer}>
-        <Button mode="contained" style={styles.btn}>
+        <Button mode="contained" style={styles.btn} onPress={handleSignUp}>
           Register
         </Button>
       </View>

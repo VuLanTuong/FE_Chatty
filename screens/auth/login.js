@@ -14,46 +14,29 @@ const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
+  const [loginError, setLoginError] = useState(false);
 
   const onPressCheckbox = () => {
     setChecked(!checked);
   };
 
-  // const onLogin = () => {
-  //   const usersJson = require("../../data/db.json");
-  //   const users = usersJson.users;
-  //   users.find((user) => {
-  //     console.log(phoneNumber, password)
-  //     console.log(user.phoneNumber, user.password)
-  //     if (user.phoneNumber === phoneNumber && user.password === password) {
-  //       Alert.alert("Login success");
-  //       console.log("Login success");
-  //     } else {
-  //       Alert.alert("Login failed");
-  //     }
-
-  //   });
-  // };
   const onLogin = () => {
     const usersJson = require("../../data/db.json");
     const users = usersJson.users;
     let userFound = false;
-
+    console.log(typeof phoneNumber, typeof password)
+    console.log(typeof users[0].phoneNumber, typeof users[0].password)
     for (let i = 0; i < users.length; i++) {
       const user = users[i];
-      console.log(phoneNumber, password);
-      console.log(user.phoneNumber, user.password);
       if (user.phoneNumber === phoneNumber && user.password === password) {
         navigation.navigate("Home");
-        Alert.alert("Login success");
-        console.log("Login success");
         userFound = true;
         break;
       }
     }
 
     if (!userFound) {
-      Alert.alert("Login failed");
+      setLoginError(true);
     }
   };
 
@@ -75,7 +58,7 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, loginError && styles.errorInput]}
           label="Phone"
           underlineColorAndroid="transparent"
           keyboardType="numeric"
@@ -85,7 +68,7 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, loginError && styles.errorInput]}
           label="Password"
           underlineColorAndroid="transparent"
           secureTextEntry
@@ -148,6 +131,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
   },
+  errorInput: {
+    backgroundColor: "#ffcccc",
+    paddingLeft: 10,
+ },
   checkContainer: {
     flexDirection: "row",
     alignItems: "center",

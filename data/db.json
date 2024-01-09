@@ -2,8 +2,8 @@
     "users": [
         {
             "id": 1,
-            "phoneNumber": 1,
-            "password": 1,
+            "phoneNumber": "1",
+            "password": "1",
             "fullName": "Nguyen A",
             "nickName": "Nguyen A",
             "dateOfBirth": "20/12/2000",
@@ -18,8 +18,8 @@
         },
         {
             "id": 2,
-            "phoneNumber": 2,
-            "password": 1,
+            "phoneNumber": "2",
+            "password": "1",
             "fullName": "Le B",
             "nickName": "Nguyen B",
             "dateOfBirth": "27/01/1998",
@@ -32,8 +32,8 @@
         },
         {
             "id": 3,
-            "phoneNumber": 3,
-            "password": 1,
+            "phoneNumber": "3",
+            "password": "1",
             "fullName": "An C",
             "nickName": "Nguyen C",
             "dateOfBirth": "27/01/1995",
@@ -46,8 +46,8 @@
         },
         {
             "id": 4,
-            "phoneNumber": 4,
-            "password": 1,
+            "phoneNumber": "4",
+            "password": "1",
             "fullName": "Nguyen D",
             "nickName": "Nguyen D",
             "dateOfBirth": "27/01/1998",
@@ -60,8 +60,8 @@
         },
         {
             "id": 5,
-            "phoneNumber": 5,
-            "password": 1,
+            "phoneNumber": "5",
+            "password": "1",
             "fullName": "Vu E",
             "nickName": "Nguyen E",
             "dateOfBirth": "27/01/1998",
@@ -74,8 +74,8 @@
         },
         {
             "id": 6,
-            "phoneNumber": 6,
-            "password": 1,
+            "phoneNumber": "6",
+            "password": "1",
             "fullName": "Tran F",
             "nickName": "Tran F",
             "dateOfBirth": "27/01/1998",
@@ -88,8 +88,8 @@
         },
         {
             "id": 7,
-            "phoneNumber": 7,
-            "password": 1,
+            "phoneNumber": "7",
+            "password": "1",
             "fullName": "Tran Tu",
             "nickName": "Tran Tu",
             "dateOfBirth": "27/01/1998",
