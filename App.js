@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+
 const Tab = createBottomTabNavigator();
+
+import LoginScreen from './screens/auth/login';
+import RegisterScreen from './screens/auth/register';
+
 import FriendsScreen from './screens/friends-screen';
 import MessageScreen from './screens/message-screen';
 import ProfileScreen from './screens/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+
+const Stack = createNativeStackNavigator();
 
 function MyTab() {
   return (
@@ -62,12 +71,22 @@ function MyTab() {
   )
 }
 
+function AppNavigator() {
+  return (
+     <NavigationContainer>
+       <Stack.Navigator>
+         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
+         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }}/>
+         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }}/>
+       </Stack.Navigator>
+     </NavigationContainer>
+  );
+ }
+
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <MyTab />
-    </NavigationContainer>
+  <AppNavigator />
   );
 }
 
