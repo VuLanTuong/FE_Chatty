@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { TextInput, Button, Title, Paragraph } from "react-native-paper";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const register = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -28,46 +28,47 @@ const register = ({ navigation }) => {
 
   const checkPhoneNumber = async (phoneNumber) => {
     try {
-       const response = await fetch(`http://localhost:3000/users?phoneNumber=${phoneNumber}`);
-       const result = await response.json();
-       if (response.ok) {
-         return result.length;        
-       } else {
-         throw new Error(result.error);
-       }
+      const response = await fetch(
+        `http://localhost:3000/users?phoneNumber=${phoneNumber}`
+      );
+      const result = await response.json();
+      if (response.ok) {
+        return result.length;
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
-       console.error(error);
-       return false;
+      console.error(error);
+      return false;
     }
-   };
+  };
 
-   const handleSignUp = async () => {
+  const handleSignUp = async () => {
     try {
       const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
-       if (isPhoneNumberExists || !validate()) {
+      if (isPhoneNumberExists || !validate()) {
         setIsSignUpError(true);
-         return;
-       }
-   
-       const response = await fetch('http://localhost:3000/users', {
-         method: 'POST',
-         headers: {
-           'Content-Type': 'application/json',
-         },
-         body: JSON.stringify({ phoneNumber, password }),
-       });
-   
-       if (response.ok) {
-         navigation.navigate('Login');
-       } else {
-         const error = await response.json();
-         alert(error.error);
-       }
+        return;
+      }
+      const response = await fetch("http://localhost:3000/users", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phoneNumber, password }),
+      });
+
+      if (response.ok) {
+        navigation.navigate("Login");
+      } else {
+        const error = await response.json();
+        alert(error.error);
+      }
     } catch (error) {
-       console.error(error);
-       alert('Something went wrong. Please try again.');
+      console.error(error);
+      alert("Something went wrong. Please try again.");
     }
-   };
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -162,7 +163,7 @@ const styles = StyleSheet.create({
   errorInput: {
     backgroundColor: "#ffcccc",
     paddingLeft: 10,
-   },
+  },
   btnContainer: {
     marginTop: 10,
     alignItems: "center",
