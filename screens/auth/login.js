@@ -21,23 +21,29 @@ const Login = ({ navigation }) => {
   };
 
   const onLogin = () => {
-    const usersJson = require("../../data/db.json");
-    const users = usersJson.users;
-    let userFound = false;
-    console.log(typeof phoneNumber, typeof password)
-    console.log(typeof users[0].phoneNumber, typeof users[0].password)
-    for (let i = 0; i < users.length; i++) {
-      const user = users[i];
-      if (user.phoneNumber === phoneNumber && user.password === password) {
-        navigation.navigate("Home");
-        userFound = true;
-        break;
-      }
-    }
+    fetch("http://localhost:3000/users", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        // Kiểm tra tài khoản từ cơ sở dữ liệu json-server
+        // và đặt giá trị cho userFound dựa trên kết quả
+        const userFound = data.find(
+          (user) =>
+            user.phoneNumber === phoneNumber && user.password === password
+        );
 
-    if (!userFound) {
-      setLoginError(true);
-    }
+        if (userFound) {
+          // Đăng nhập thành công
+          navigation.navigate("Home");
+        } else {
+          // Đăng nhập thất bại
+          setLoginError(true);
+        }
+      });
   };
 
   return (
@@ -134,7 +140,7 @@ const styles = StyleSheet.create({
   errorInput: {
     backgroundColor: "#ffcccc",
     paddingLeft: 10,
- },
+  },
   checkContainer: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,40 +1,74 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView, } from "react-native";
-import {
-  TextInput,
-  Button,
-  Title,
-  Paragraph,
-} from "react-native-paper";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { TextInput, Button, Title, Paragraph } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Login = ({ navigation }) => {
+const register = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSignUpError, setIsSignUpError] = useState(false);
 
   const validate = () => {
-    if (phoneNumber.length === 0 || password.length === 0 || confirmPassword.length === 0) {
-      alert('Please fill all the fields');
+    if (
+      phoneNumber.length === 0 ||
+      phoneNumber.length > 10 ||
+      password.length === 0 ||
+      confirmPassword.length === 0
+    ) {
+      setIsSignUpError(true);
       return false;
     }
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setIsSignUpError(true);
       return false;
     }
     return true;
- };
+  };
 
- const handleSignUp = async () => {
-    if (validate()) {
-      const data = await readFile('../../data/db.json', 'utf8');
-      const jsonData = JSON.parse(data);
-      const newUser = { phoneNumber, password };
-      jsonData.users.push(newUser);
-      writeFile('file.json', JSON.stringify(jsonData));
-      navigation.navigate("Login");
+  const checkPhoneNumber = async (phoneNumber) => {
+    try {
+       const response = await fetch(`http://localhost:3000/users?phoneNumber=${phoneNumber}`);
+       const result = await response.json();
+       if (response.ok) {
+         return result.length;        
+       } else {
+         throw new Error(result.error);
+       }
+    } catch (error) {
+       console.error(error);
+       return false;
     }
- };
-  
+   };
+
+   const handleSignUp = async () => {
+    try {
+      const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
+       if (isPhoneNumberExists || !validate()) {
+        setIsSignUpError(true);
+         return;
+       }
+   
+       const response = await fetch('http://localhost:3000/users', {
+         method: 'POST',
+         headers: {
+           'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ phoneNumber, password }),
+       });
+   
+       if (response.ok) {
+         navigation.navigate('Login');
+       } else {
+         const error = await response.json();
+         alert(error.error);
+       }
+    } catch (error) {
+       console.error(error);
+       alert('Something went wrong. Please try again.');
+    }
+   };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.text}>
@@ -53,7 +87,7 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isSignUpError && styles.errorInput]}
           label="Phone"
           underlineColorAndroid="transparent"
           keyboardType="numeric"
@@ -63,7 +97,7 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isSignUpError && styles.errorInput]}
           label="Password"
           underlineColorAndroid="transparent"
           secureTextEntry
@@ -73,7 +107,7 @@ const Login = ({ navigation }) => {
       </View>
       <View style={styles.inputContainer}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, isSignUpError && styles.errorInput]}
           label="Confirm Password"
           underlineColorAndroid="transparent"
           secureTextEntry
@@ -125,6 +159,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
   },
+  errorInput: {
+    backgroundColor: "#ffcccc",
+    paddingLeft: 10,
+   },
   btnContainer: {
     marginTop: 10,
     alignItems: "center",
@@ -133,7 +171,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     borderRadius: 25,
-  }
+  },
 });
 
-export default Login;
+export default register;
