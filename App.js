@@ -3,22 +3,21 @@ import { StyleSheet, Text, View, TextInput } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-const Tab = createBottomTabNavigator();
-<<<<<<< HEAD
-import ContactScreen from './screens/contact-screen';
-=======
 
+import ContactScreen from './screens/contact/contact-screen';
 import LoginScreen from './screens/auth/login';
 import RegisterScreen from './screens/auth/register';
 
-import FriendsScreen from './screens/friends-screen';
->>>>>>> trong
+// import FriendsScreen from './screens/friends-screen';
+
 import MessageScreen from './screens/message-screen';
-import ProfileScreen from './screens/profile-screen';
+import ProfileScreen from './screens/user-profile/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { FriendRequest } from './screens/contact/friend-request';
+import DetailProfile from './screens/user-profile/detail-profile';
 
-
+const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function MyTab() {
@@ -36,8 +35,6 @@ function MyTab() {
             <View style={{
               flexDirection: 'row',
               gap: 5,
-
-
             }}>
               <MaterialCommunityIcons name="magnify" color="white" size={20} />
               <TextInput
@@ -76,7 +73,7 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
         ),
-      }} name="Contact" component={ContactScreen} />
+      }} name="Contact" component={ContactStack} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Profile',
@@ -84,27 +81,55 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='account' color={'#f558a4'} size={size} />
         ),
-      }} name="Profile" component={ProfileScreen} />
+        headerShown: false
+      }} name="Profile" component={ProfileStack} />
     </Tab.Navigator >
   )
 }
 
 function AppNavigator() {
   return (
-     <NavigationContainer>
-       <Stack.Navigator>
-         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }}/>
-         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }}/>
-         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }}/>
-       </Stack.Navigator>
-     </NavigationContainer>
+    <NavigationContainer>
+      <Stack.Navigator>
+        {/* <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
+        <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
- }
+}
+
+
+const ContactStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='contact' component={ContactScreen} options={{
+        headerShown: false
+      }} />
+      <Stack.Screen name='FriendRequest' component={FriendRequest} options={{
+        headerShown: false
+      }} />
+    </Stack.Navigator>
+  )
+}
+
+const ProfileStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='ProfileScreen' component={ProfileScreen} options={{
+        headerShown: false
+      }}></Stack.Screen>
+      <Stack.Screen name='DetailProfile' component={DetailProfile} options={{
+        headerShown: false
+      }} />
+    </Stack.Navigator>
+  )
+}
 
 
 export default function App() {
   return (
-  <AppNavigator />
+    <AppNavigator />
   );
 }
 

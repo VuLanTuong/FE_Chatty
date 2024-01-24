@@ -4,7 +4,7 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export function ContactScreen() {
+export function ContactScreen({ navigation }) {
     const [selectedOption, setSelectedOption] = useState('friends');
 
     const [friendIds, setFriendIds] = useState([]);
@@ -126,13 +126,14 @@ export function ContactScreen() {
                 </TouchableOpacity>
             </View>
 
-            <View style={{
-                height: '100%',
-            }}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{
-                    height: '100%'
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{
+                height: '100%'
 
+            }}>
+                <View style={{
+                    height: '100%',
                 }}>
+
                     <View style={[styles.dividerForMenu]} />
 
 
@@ -152,7 +153,9 @@ export function ContactScreen() {
                                 flexDirection: 'column',
                                 gap: 7,
                             }}>
-                                <Pressable>
+                                <Pressable onPress={() => {
+                                    navigation.navigate('FriendRequest')
+                                }}>
                                     <Text style={{
                                         marginLeft: 20,
                                         fontSize: 16
@@ -344,8 +347,9 @@ export function ContactScreen() {
                             ))}
                         </View>
                     )}
-                </ScrollView>
-            </View>
+
+                </View>
+            </ScrollView>
 
 
 

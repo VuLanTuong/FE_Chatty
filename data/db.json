@@ -148,5 +148,14 @@
       "time": "20/12/2020",
       "status": "viewed"
     }
+  ],
+  "friend-request": [
+    {
+      "id": 1,
+      "receiver": 1,
+      "sender": 2,
+      "introduce": "hi t ne",
+      "status": "viewed"
+    }
   ]
 }

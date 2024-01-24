@@ -1,23 +1,33 @@
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import { Divider } from "react-native-paper";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({ navigation }) {
     return (
-        <View>
+        <View style={{
+
+        }}>
             <View style={{
-                marginTop: 10,
-                marginLeft: 10,
+                backgroundColor: '#f558a4',
                 flexDirection: 'row',
                 width: '100%',
+                gap: 15,
+                height: 50
             }}>
                 {/* // onPress to view detail of the user */}
                 <Pressable style={{
                     flexDirection: 'row',
+
+                }} onPress={() => {
+                    navigation.navigate('DetailProfile')
+
                 }}>
                     <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
-                        width: 50,
-                        height: 50,
-                        borderRadius: 50
+                        width: 40,
+                        height: 40,
+                        borderRadius: 50,
+                        marginTop: 5,
+                        border: '1px solid white',
+                        marginLeft: 5
 
                     }} />
 
@@ -29,20 +39,23 @@ export default function ProfileScreen() {
                     }}>
                         <Text style={{
                             fontSize: 17,
-                            fontWeight: 'bold'
+                            fontWeight: 'bold',
+                            color: 'white'
 
                         }}>Username</Text>
-                        <Text>View profile</Text>
+                        <Text style={{
+                            color: 'white'
+                        }}>View profile</Text>
                     </View>
 
                 </Pressable>
-
             </View>
-            <Divider style={styles.divider} />
+            {/* <Divider style={styles.divider} /> */}
             <View >
                 <Pressable>
                     <Text style={{
-                        marginLeft: 10
+                        marginLeft: 10,
+                        marginTop: 10
                     }}>Data and file</Text>
                 </Pressable>
                 <Divider style={styles.dividerForMenu} />
@@ -66,9 +79,9 @@ export default function ProfileScreen() {
 }
 const styles = StyleSheet.create({
     divider: {
-        height: 4,
+        height: 2,
         backgroundColor: '#bebec2',
-        marginTop: 10,
+        marginTop: 5,
         marginBottom: 10,
     },
     dividerForMenu: {
