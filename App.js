@@ -105,7 +105,11 @@ const MessageStack = () => {
     <Stack.Navigator>
       <Stack.Screen name='Message' component={MessageScreen} options={{
         headerShown: false
+<<<<<<< HEAD
       }}></Stack.Screen>
+=======
+      }} />
+>>>>>>> trong
       <Stack.Screen name='Chat' component={ChatScreen} options={{
         headerShown: false
       }} />
