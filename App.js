@@ -10,7 +10,8 @@ import RegisterScreen from './screens/auth/register';
 
 // import FriendsScreen from './screens/friends-screen';
 
-import MessageScreen from './screens/message-screen';
+import MessageScreen from './screens/conversation/message-screen';
+import ChatScreen from './screens/conversation/chat-screen';
 import ProfileScreen from './screens/user-profile/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -65,7 +66,7 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='message-text' color={'#f558a4'} size={size} />
         ),
-      }} name="Message" component={MessageScreen} />
+      }} name="Message" component={MessageStack} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
@@ -99,6 +100,18 @@ function AppNavigator() {
   );
 }
 
+const MessageStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='Message' component={MessageScreen} options={{
+        headerShown: false
+      }}></Stack.Screen>
+      <Stack.Screen name='Chat' component={ChatScreen} options={{
+        headerShown: false
+      }} />
+    </Stack.Navigator>
+  )
+}
 
 const ContactStack = () => {
   return (
