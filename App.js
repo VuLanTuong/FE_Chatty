@@ -7,6 +7,18 @@ import MessageScreen from './screens/message-screen';
 import ProfileScreen from './screens/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+<<<<<<< Updated upstream
+=======
+import { FriendRequest } from './screens/contact/friend-request';
+import DetailProfile from './screens/user-profile/detail-profile';
+import ContextMenu from './screens/context-menu/context-menu';
+import AddFriend from './screens/context-menu/add-friend';
+import AddGroup from './screens/context-menu/add-group';
+import FindFriend from './screens/context-menu/find-friend';
+
+const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+>>>>>>> Stashed changes
 
 function MyTab() {
   return (
@@ -76,6 +88,84 @@ function MyTab() {
   )
 }
 
+<<<<<<< Updated upstream
+=======
+function AppNavigator() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator>
+        {/* <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
+        <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
+        <Stack.Screen name='AddFriend' component={AddFriend} options={{
+
+        }} />
+        <Stack.Screen name='AddGroup' component={AddGroup} options={{
+
+        }} />
+        <Stack.Screen name='FindFriend' component={FindFriend} options={{
+
+        }} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+const MessageStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='Message' component={MessageScreen} options={{
+        headerShown: false
+      }} />
+      <Stack.Screen name='Chat' component={ChatScreen} options={{
+        headerShown: false
+      }} />
+    </Stack.Navigator>
+  )
+}
+
+const ContactStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='contact' component={ContactScreen} options={{
+        headerShown: false
+      }} />
+      <Stack.Screen name='FriendRequest' component={FriendRequest} options={{
+        headerShown: false
+      }} />
+
+    </Stack.Navigator>
+  )
+}
+
+
+
+
+
+
+const ProfileStack = () => {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen name='ProfileScreen' component={ProfileScreen} options={{
+        headerShown: false
+      }}></Stack.Screen>
+      <Stack.Screen name='DetailProfile' component={DetailProfile} options={{
+        headerShown: false
+      }} />
+    </Stack.Navigator>
+  )
+}
+
+// const ContextMenuStack = () => {
+//   return (
+//     <Stack.Navigator>
+//       <Stack.Screen name='Context' component={ContextMenu} options={{
+//         headerShown: false
+//       }} />
+//     </Stack.Navigator>
+//   )
+// }
+>>>>>>> Stashed changes
 
 export default function App() {
   return (
