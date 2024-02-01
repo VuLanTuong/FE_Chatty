@@ -1,14 +1,20 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-const Tab = createBottomTabNavigator();
-import ContactScreen from './screens/contact-screen';
-import MessageScreen from './screens/message-screen';
-import ProfileScreen from './screens/profile-screen';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
+import React, { useState } from 'react';
+import ContactScreen from './screens/contact/contact-screen';
+import LoginScreen from './screens/auth/login';
+import RegisterScreen from './screens/auth/register';
+
+// import FriendsScreen from './screens/friends-screen';
+
+import MessageScreen from './screens/conversation/message-screen';
+import ChatScreen from './screens/conversation/chat-screen';
+import ProfileScreen from './screens/user-profile/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-<<<<<<< Updated upstream
-=======
 import { FriendRequest } from './screens/contact/friend-request';
 import DetailProfile from './screens/user-profile/detail-profile';
 import ContextMenu from './screens/context-menu/context-menu';
@@ -18,7 +24,7 @@ import FindFriend from './screens/context-menu/find-friend';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
->>>>>>> Stashed changes
+
 
 function MyTab() {
   return (
@@ -35,8 +41,6 @@ function MyTab() {
             <View style={{
               flexDirection: 'row',
               gap: 5,
-
-
             }}>
               <MaterialCommunityIcons name="magnify" color="white" size={20} />
               <TextInput
@@ -52,12 +56,15 @@ function MyTab() {
         ),
         headerRight: () => (
           <View style={{
-            marginRight: 15
+            marginRight: 20,
+            marginTop: 280,
+            height: 320,
+            width: 120
           }}>
-            <MaterialCommunityIcons name="plus" color="white" size={20} style={{
-              marginLeft: 20
-            }} />
+            <ContextMenu />
           </View>
+
+
         )
       }}>
       <Tab.Screen options={{
@@ -67,7 +74,7 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='message-text' color={'#f558a4'} size={size} />
         ),
-      }} name="Message" component={MessageScreen} />
+      }} name="Message" component={MessageStack} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
@@ -75,7 +82,7 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
         ),
-      }} name="Contact" component={ContactScreen} />
+      }} name="Contact" component={ContactStack} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Profile',
@@ -83,13 +90,12 @@ function MyTab() {
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='account' color={'#f558a4'} size={size} />
         ),
-      }} name="Profile" component={ProfileScreen} />
+        headerShown: false
+      }} name="Profile" component={ProfileStack} />
     </Tab.Navigator >
   )
 }
 
-<<<<<<< Updated upstream
-=======
 function AppNavigator() {
   return (
     <NavigationContainer>
@@ -98,13 +104,10 @@ function AppNavigator() {
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
         <Stack.Screen name='AddFriend' component={AddFriend} options={{
-
         }} />
         <Stack.Screen name='AddGroup' component={AddGroup} options={{
-
         }} />
         <Stack.Screen name='FindFriend' component={FindFriend} options={{
-
         }} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -141,8 +144,6 @@ const ContactStack = () => {
 
 
 
-
-
 const ProfileStack = () => {
   return (
     <Stack.Navigator>
@@ -165,13 +166,12 @@ const ProfileStack = () => {
 //     </Stack.Navigator>
 //   )
 // }
->>>>>>> Stashed changes
+
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <MyTab />
-    </NavigationContainer>
+    <AppNavigator />
+
   );
 }
 

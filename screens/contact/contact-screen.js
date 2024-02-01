@@ -4,41 +4,55 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export function ContactScreen() {
+export function ContactScreen({ navigation }) {
     const [selectedOption, setSelectedOption] = useState('friends');
-
-    const [friendIds, setFriendIds] = useState([]);
+    const [friendIds, setFriendIds] = useState();
     const [friends, setFriends] = useState([]);
-
     const [groups, setGroups] = useState([]);
     useEffect(() => {
         // find id list of friends
         async function fetchFriendIds() {
             // use redux to get current user
-            const response = await fetch('http://localhost:3000/users/1');
+            const response = await fetch('http://localhost:3000/users?id=1');
             const currentUser = await response.json();
-            console.log(currentUser);
-            setFriendIds(currentUser.listFriend);
+            const userTemp = currentUser[0];
 
+
+            setFriendIds(userTemp.listFriend);
             // pass list friend id to fetchFriendsInfo
-            fetchFriendsInfo(currentUser.listFriend);
+            fetchFriendsInfo(userTemp.listFriend);
         }
 
         async function findFriendById(friendId) {
-            const response = await fetch(`http://localhost:3000/users/${friendId}`);
+            const response = await fetch(`http://localhost:3000/users?id=${friendId}`);
             const friendInfo = await response.json();
-            console.log(friendInfo);
             return friendInfo;
         }
 
         // recieve list friend id and return list friend info
         async function fetchFriendsInfo(friendIds) {
-            const friends = await Promise.all(friendIds.map(
+            // const friendsTemp = await Promise.all(friendIds.map(
+            //     friendId => findFriendById(friendId)
+
+            // ));
+
+
+            const friendsTemp = await Promise.all(friendIds.map(
                 friendId => findFriendById(friendId)
             ));
-
+            console.log(friendsTemp);
             // sort friends by full name
-            const sortedFriends = friends.sort((a, b) => a.fullName.localeCompare(b.fullName));
+
+            const flattenedFriends = friendsTemp.flat();
+
+            const uniqueFriends = flattenedFriends.filter(
+                (friend, index, self) => self.findIndex(f => f.id === friend.id) === index
+            );
+
+            console.log(uniqueFriends); // Single array without duplicates
+
+            // Sort friends by full name
+            const sortedFriends = uniqueFriends.sort((a, b) => a.fullName.localeCompare(b.fullName));
             setFriends(sortedFriends);
 
             return friends;
@@ -60,15 +74,13 @@ export function ContactScreen() {
 
 
             const sortedGroup = groupedConversations.sort((a, b) => a.nameGroup.localeCompare(b.nameGroup));
-
-
             setGroups(sortedGroup);
 
             return conversations;
         }
 
         async function findFriendById(friendId) {
-            const response = await fetch(`http://localhost:3000/users/${friendId}`);
+            const response = await fetch(`http://localhost:3000/users?id${friendId}`);
             const friendInfo = await response.json();
             console.log(friendInfo);
             return friendInfo;
@@ -126,13 +138,14 @@ export function ContactScreen() {
                 </TouchableOpacity>
             </View>
 
-            <View style={{
-                height: '100%',
-            }}>
-                <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{
-                    height: '100%'
+            <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{
+                height: '100%'
 
+            }}>
+                <View style={{
+                    height: '100%',
                 }}>
+
                     <View style={[styles.dividerForMenu]} />
 
 
@@ -152,7 +165,9 @@ export function ContactScreen() {
                                 flexDirection: 'column',
                                 gap: 7,
                             }}>
-                                <Pressable>
+                                <Pressable onPress={() => {
+                                    navigation.navigate('FriendRequest')
+                                }}>
                                     <Text style={{
                                         marginLeft: 20,
                                         fontSize: 16
@@ -344,8 +359,9 @@ export function ContactScreen() {
                             ))}
                         </View>
                     )}
-                </ScrollView>
-            </View>
+
+                </View>
+            </ScrollView>
 
 
 

@@ -32,6 +32,7 @@ export default function ContextMenu({ }) {
                                 setIsContextMenuOpen(false);
                                 navigation.navigate('FindFriend')
                             }}>
+
                                 <Text style={{
                                     marginTop: 5
                                 }}>Add friend</Text>
