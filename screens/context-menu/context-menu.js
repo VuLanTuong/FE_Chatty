@@ -28,14 +28,21 @@ export default function ContextMenu({ }) {
                     </MenuTrigger>
                     <MenuOptions customStyles={menuOptionsStyles}>
                         <MenuOption onSelect={() => handleMenuItemSelect('Option 1')}>
-                            <Pressable onPress={() => { navigation.navigate('FindFriend') }}>
+                            <Pressable onPress={() => {
+                                setIsContextMenuOpen(false);
+                                navigation.navigate('FindFriend')
+                            }}>
+
                                 <Text style={{
                                     marginTop: 5
                                 }}>Add friend</Text>
                             </Pressable>
                         </MenuOption>
                         <MenuOption onSelect={() => handleMenuItemSelect('Option 2')}>
-                            <Pressable>
+                            <Pressable onPress={() => {
+                                setIsContextMenuOpen(false);
+                                navigation.navigate('AddGroup')
+                            }}>
                                 <Text style={{
                                     marginTop: 5
                                 }}>Add group</Text>

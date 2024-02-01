@@ -18,12 +18,13 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { FriendRequest } from './screens/contact/friend-request';
 import DetailProfile from './screens/user-profile/detail-profile';
 import ContextMenu from './screens/context-menu/context-menu';
-import AddFriend from './screens/contact/add-friend';
-import AddGroup from './screens/contact/add-group';
-import FindFriend from './screens/contact/find-friend';
+import AddFriend from './screens/context-menu/add-friend';
+import AddGroup from './screens/context-menu/add-group';
+import FindFriend from './screens/context-menu/find-friend';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
+
 
 function MyTab() {
   return (
@@ -102,6 +103,12 @@ function AppNavigator() {
         {/* <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
+        <Stack.Screen name='AddFriend' component={AddFriend} options={{
+        }} />
+        <Stack.Screen name='AddGroup' component={AddGroup} options={{
+        }} />
+        <Stack.Screen name='FindFriend' component={FindFriend} options={{
+        }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -112,11 +119,7 @@ const MessageStack = () => {
     <Stack.Navigator>
       <Stack.Screen name='Message' component={MessageScreen} options={{
         headerShown: false
-<<<<<<< HEAD
-      }}></Stack.Screen>
-=======
       }} />
->>>>>>> trong
       <Stack.Screen name='Chat' component={ChatScreen} options={{
         headerShown: false
       }} />
@@ -139,24 +142,7 @@ const ContactStack = () => {
 }
 
 
-const ContextMenuScreen = () => {
-  return (
-    <Stack.Navigator>
-      <Stack.Screen name='AddFriend' component={AddFriend} options={{
-        headerShown: false
-      }} />
-      <Stack.Screen name='AddGroup' component={AddGroup} options={{
-        headerShown: false
-      }} />
-      <Stack.Screen name='FindFriend' component={FindFriend} options={{
-        headerShown: false
-      }} />
-    </Stack.Navigator>
-  )
 
-}
-
-ContextMenuScreen
 
 const ProfileStack = () => {
   return (
@@ -180,6 +166,7 @@ const ProfileStack = () => {
 //     </Stack.Navigator>
 //   )
 // }
+
 
 export default function App() {
   return (
