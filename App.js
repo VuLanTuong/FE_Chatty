@@ -104,10 +104,33 @@ function AppNavigator() {
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
         <Stack.Screen name='AddFriend' component={AddFriend} options={{
+
         }} />
         <Stack.Screen name='AddGroup' component={AddGroup} options={{
+          headerTitle: 'Add Group',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
         }} />
         <Stack.Screen name='FindFriend' component={FindFriend} options={{
+          headerTitle: 'Find New Friend',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
         }} />
       </Stack.Navigator>
     </NavigationContainer>
@@ -183,3 +206,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+
