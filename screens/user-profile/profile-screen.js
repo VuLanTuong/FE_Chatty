@@ -52,6 +52,15 @@ export default function ProfileScreen({ navigation }) {
             </View>
             {/* <Divider style={styles.divider} /> */}
             <View >
+                <Pressable onPress={() => {
+                    navigation.navigate('ChangePassword')
+                }}>
+                    <Text style={{
+                        marginLeft: 10,
+                        marginTop: 10
+                    }}>Change password</Text>
+                </Pressable>
+                <Divider style={styles.dividerForMenu} />
                 <Pressable>
                     <Text style={{
                         marginLeft: 10,

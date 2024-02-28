@@ -95,7 +95,7 @@ const Login = ({ navigation }) => {
         </Button>
       </View>
       <View style={styles.forgetContainer}>
-        <TouchableRipple onPress={() => {}}>
+        <TouchableRipple onPress={() => { }}>
           <Caption style={styles.forgetText}>Forgot password?</Caption>
         </TouchableRipple>
       </View>

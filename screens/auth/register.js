@@ -4,15 +4,20 @@ import { TextInput, Button, Title, Paragraph } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const register = ({ navigation }) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
+
+
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
 
   const validate = () => {
     if (
-      phoneNumber.length === 0 ||
-      phoneNumber.length > 10 ||
+      phone.length === 0 ||
+      phone.length > 10 ||
       password.length === 0 ||
       confirmPassword.length === 0
     ) {
@@ -26,39 +31,48 @@ const register = ({ navigation }) => {
     return true;
   };
 
-  const checkPhoneNumber = async (phoneNumber) => {
-    try {
-      const response = await fetch(
-        `http://localhost:3000/users?phoneNumber=${phoneNumber}`
-      );
-      const result = await response.json();
-      if (response.ok) {
-        return result.length;
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  };
+  // CHECK PHONE NUMBER EXIST
+
+  // const checkPhoneNumber = async (phone) => {
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:3000/users?phoneNumber=${phoneNumber}`
+  //     );
+  //     const result = await response.json();
+  //     if (response.ok) {
+  //       return result.length;
+  //     } else {
+  //       throw new Error(result.error);
+  //     }
+  //   } catch (error) {
+  //     console.error(error);
+  //     return false;
+  //   }
+  // };
 
   const handleSignUp = async () => {
     try {
-      const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
-      if (isPhoneNumberExists || !validate()) {
-        setIsSignUpError(true);
-        return;
-      }
-      const response = await fetch("http://localhost:3000/users", {
+      // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
+      // if (isPhoneNumberExists || !validate()) {
+      //   setIsSignUpError(true);
+      //   return;
+      // }
+      const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phoneNumber, password }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone,
+          password,
+          dateOfBirth
+        }),
       });
 
       if (response.ok) {
+        console.log("ok");
         navigation.navigate("Login");
       } else {
         const error = await response.json();
@@ -89,11 +103,43 @@ const register = ({ navigation }) => {
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, isSignUpError && styles.errorInput]}
+          label="Name"
+          underlineColorAndroid="transparent"
+          keyboardType="default"
+          value={name}
+          onChangeText={(text) => setName(text)}
+        />
+      </View>
+      <View style={styles.inputContainer}>
+
+        <TextInput
+          style={[styles.input, isSignUpError && styles.errorInput]}
+          label="Email"
+          underlineColorAndroid="transparent"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+        />
+
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, isSignUpError && styles.errorInput]}
           label="Phone"
           underlineColorAndroid="transparent"
           keyboardType="numeric"
-          value={phoneNumber}
-          onChangeText={(text) => setPhoneNumber(text)}
+          value={phone}
+          onChangeText={(text) => setPhone(text)}
+        />
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={[styles.input, isSignUpError && styles.errorInput]}
+          label="Date of birth"
+          underlineColorAndroid="transparent"
+          keyboardType="default"
+          value={dateOfBirth}
+          onChangeText={(text) => setDateOfBirth(text)}
         />
       </View>
       <View style={styles.inputContainer}>
