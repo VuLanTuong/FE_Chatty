@@ -61,7 +61,7 @@ export default function ContextMenu({ }) {
                                 marginTop: 5
                             }}>Option 4</Text>
                         </MenuOption>
-                        <MenuOption>
+                        <MenuOption onSelect={() => handleMenuItemSelect('Close')}>
                             {/* <MaterialCommunityIcons name="close" color="black" size={20} style={{ marginLeft: 95, marginTop: 15, marginRight: -20 }} /> */}
                             <Text style={{
                                 fontWeight: 600,

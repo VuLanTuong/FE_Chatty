@@ -9,6 +9,7 @@ import {
   TouchableRipple,
   Checkbox,
 } from "react-native-paper";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");

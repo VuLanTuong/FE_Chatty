@@ -1,24 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit"
 const initialState = {
-    status: "", // The status of the response.
-    message: "", // A message related to the response.
-    data: {
-        token: {
-            access_token: "", // The access token for authentication.
-            refresh_token: "", // The refresh token for authentication.
-        },
-        user: {
-            _id: "", // The user's ID.
-            name: "", // The user's name.
-            email: "", // The user's email.
-            phone: "", // The user's phone number.
-            dateOfBirth: "", // The user's date of birth.
-            bio: "", // The user's bio.
-            gender: "", // The user's gender.
-            avatar: "", // The user's avatar image URL.
-            background: "", // The user's background image URL.
-            friends: [], // An array of the user's friends.
-        },
+    user: {
+        _id: "", // The user's ID.
+        name: "", // The user's name.
+        email: "", // The user's email.
+        phone: "", // The user's phone number.
+        dateOfBirth: "", // The user's date of birth.
+        bio: "", // The user's bio.
+        gender: "", // The user's gender.
+        avatar: "", // The user's avatar image URL.
+        background: "", // The user's background image URL.
+        friends: [], // An array of the user's friends.
     },
 };
 
@@ -27,9 +19,8 @@ export const userSlice = createSlice({
     initialState,
     reducers: {
         login: (state, action) => {
-            state.status = action.payload.status
-            state.message = action.payload.message
-            state.data = action.payload.data
+
+            state.user = action.payload.user
             // console.log(state.data.user);
 
         },

@@ -1,7 +1,9 @@
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import { Divider } from "react-native-paper";
-
+import { useSelector } from "react-redux";
 export default function ProfileScreen({ navigation }) {
+    const user = useSelector((state) => state.user.user);
+    console.log(user);
     return (
         <View style={{
 
@@ -42,7 +44,7 @@ export default function ProfileScreen({ navigation }) {
                             fontWeight: 'bold',
                             color: 'white'
 
-                        }}>Username</Text>
+                        }}>{user.name}</Text>
                         <Text style={{
                             color: 'white'
                         }}>View profile</Text>
