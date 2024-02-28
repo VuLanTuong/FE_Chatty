@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Image, TextInput } from 'react-native';
 import { Divider, Checkbox, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-
+import { useSelector } from "react-redux";
 export default function DetailProfile({ navigation }) {
     const [isEditing, setIsEditing] = useState(false);
     const [userName, setUserName] = useState('User name');
@@ -10,6 +10,7 @@ export default function DetailProfile({ navigation }) {
     const [dob, setDob] = useState('01/01/1990');
     const [phoneNumber, setPhoneNumber] = useState('079 432 5642');
 
+    const user = useSelector((state) => state.user.user);
     const handleEditPress = () => {
         setIsEditing(true);
     };
@@ -18,6 +19,14 @@ export default function DetailProfile({ navigation }) {
         setIsEditing(false);
 
     };
+
+    const formatDateOfBirth = (date) => {
+        const d = new Date(date);
+        const year = d.getFullYear();
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        return `${day}/${month}/${year}`;
+    }
 
     return (
         <View>
@@ -31,11 +40,30 @@ export default function DetailProfile({ navigation }) {
             {/* Form to change information */}
             <View style={styles.container}>
                 <View style={styles.profileContainer}>
-                    <Image
-                        source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }}
-                        style={styles.profileImage}
-                    />
-                    <Text style={styles.userName}>{userName}</Text>
+                    {/* <Image source = {{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }}/> */}
+
+                    {
+                        isEditing ? (
+                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} />
+                        ) : (
+                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} />
+                        )
+                    }
+
+
+
+
+                    {
+                        isEditing ? (
+                            <TextInput
+                                style={styles.userName}
+                                value={user.name}
+                                onChangeText={setUserName}
+                            />
+                        ) : (
+                            <Text style={styles.userName}>{user.name}</Text>
+                        )
+                    }
                 </View>
                 <Divider style={styles.divider} />
 
@@ -56,8 +84,6 @@ export default function DetailProfile({ navigation }) {
                                     onPress={() => setGender('Male')}
                                     color="#f558a4"
                                     value='Male'
-
-
                                 />
                                 <Text style={styles.checkboxLabel}>Male</Text>
                                 <RadioButton
@@ -74,6 +100,7 @@ export default function DetailProfile({ navigation }) {
                                 <Text style={styles.checkboxLabel}>Other</Text>
                             </View>
                         ) : (
+
                             <Text style={{
                                 marginLeft: 50,
                                 marginTop: 10
@@ -89,13 +116,13 @@ export default function DetailProfile({ navigation }) {
                                 style={{
                                     marginLeft: 7
                                 }}
-                                value={dob}
+                                value={formatDateOfBirth(user.dateOfBirth)}
                                 onChangeText={setDob}
                             />
                         ) : (
                             <Text style={{
                                 marginLeft: 15
-                            }}>{dob}</Text>
+                            }}>{formatDateOfBirth(user.dateOfBirth)}</Text>
                         )}
                     </View>
                     <Divider style={styles.divider} />
@@ -107,13 +134,13 @@ export default function DetailProfile({ navigation }) {
                                 style={{
                                     marginLeft: -10
                                 }}
-                                value={phoneNumber}
+                                value={user.phone}
                                 onChangeText={setPhoneNumber}
                             />
                         ) : (
                             <Text style={{
                                 marginLeft: -2
-                            }}>{phoneNumber}</Text>
+                            }}>{user.phone}</Text>
                         )}
                     </View>
 
@@ -130,7 +157,7 @@ export default function DetailProfile({ navigation }) {
                     )}
                 </View>
             </View>
-        </View>
+        </View >
     );
 }
 const styles = StyleSheet.create({

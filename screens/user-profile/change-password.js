@@ -12,6 +12,7 @@ import {
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from "react-redux";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ChangePassword({ navigation }) {
     const [oldPassword, setOldPassword] = useState('');
@@ -21,8 +22,18 @@ export default function ChangePassword({ navigation }) {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
-    const user = useSelector((state) => state.user.data.token.access_token);
-    console.log(user);
+
+    const getData = async () => {
+        try {
+            const access_token = await AsyncStorage.getItem('access-token');
+            if (access_token !== null) {
+                return access_token;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
 
 
     const toggleOldPasswordVisibility = () => {
@@ -37,50 +48,42 @@ export default function ChangePassword({ navigation }) {
         setShowConfirmNewPassword((prevState) => !prevState);
     };
 
-    const ChangePassword = () => {
-        if (newPassword !== confirmNewPassword) {
-            Toast.show({
-                type: 'error',
-                text1: 'New password and confirm new password do not match',
+    const changePassword = async (oldPassword, newPassword) => {
+        const accessToken = await getData();
+        console.log("Bearer" + accessToken);
+        try {
+            const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/changePassword", {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + accessToken,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    oldPassword: oldPassword,
+                    newPassword: newPassword
+                })
             });
-        }
-        fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/changePassword", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + `${user}`
-            },
-            body: JSON.stringify({
-                oldPassword: oldPassword,
-                newPassword: newPassword,
-            }),
 
-        }).then((response) => {
             if (response.ok) {
                 Toast.show({
                     type: 'success',
                     text1: 'Change password successfully!',
                 });
                 navigation.navigate("ProfileScreen");
-
-            }
-            else {
+            } else {
                 Toast.show({
                     type: 'error',
                     text1: 'Change password failed!',
                 });
             }
-        })
-
-        // }
-        // else {
-        //     Toast.show({
-        //         type: 'error',
-        //         text1: 'Change password failed!',
-        //     });
-        // }
-
-    }
+        } catch (error) {
+            console.log("Error:", error);
+            Toast.show({
+                type: 'error',
+                text1: 'An error occurred while changing password!',
+            });
+        }
+    };
 
     return (
         <View>
@@ -159,7 +162,7 @@ export default function ChangePassword({ navigation }) {
             </View>
 
             <Pressable style={styles.saveButton} onPress={() => {
-                ChangePassword()
+                changePassword(oldPassword, newPassword)
 
             }}>
                 <MaterialCommunityIcons

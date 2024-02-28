@@ -26,9 +26,8 @@ const MessageScreen = ({ navigation }) => {
   const dispatch = useDispatch()
 
   // get current user
-  const user = useSelector((state) => state.user.data);
+  const user = useSelector((state) => state.user);
   console.log(user);
-
 
   return (
     <ScrollView style={styles.container}>

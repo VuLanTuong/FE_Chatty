@@ -11,7 +11,7 @@ import {
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { login } from "../../rtk/user-slice";
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -22,6 +22,16 @@ const Login = ({ navigation }) => {
   const dispatch = useDispatch();
   const onPressCheckbox = () => {
     setChecked(!checked);
+  };
+
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('access-token', value);
+
+      console.log("saved" + await AsyncStorage.getItem('access-token'));;
+    } catch (e) {
+      console.error(e);
+    }
   };
   const onLogin = () => {
     fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login", {
@@ -37,11 +47,13 @@ const Login = ({ navigation }) => {
       .then((response) => response.json())
       .then((data) => {
         dispatch(login({
-          status: data.status,
-          message: data.message,
-          data: data.data
-        }));
+          user: data.data.user
+
+        })
+        );
         if (data.status === "success") {
+          console.log(data.data.token.access_token);
+          storeData(data.data.token.access_token)
           navigation.navigate("Home");
         } else {
           // Đăng nhập thất bại
