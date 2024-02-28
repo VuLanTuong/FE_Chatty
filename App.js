@@ -5,11 +5,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
 import React, { useState } from 'react';
 import ContactScreen from './screens/contact/contact-screen';
-import LoginScreen from './screens/auth/login';
+import LoginScreen from './screens/auth/testapi.login';
 import RegisterScreen from './screens/auth/register';
-
+import { Provider } from 'react-redux';
 // import FriendsScreen from './screens/friends-screen';
-
+import store from './rtk/store';
 import MessageScreen from './screens/conversation/message-screen';
 import ChatScreen from './screens/conversation/chat-screen';
 import ProfileScreen from './screens/user-profile/profile-screen';
@@ -21,6 +21,7 @@ import ContextMenu from './screens/context-menu/context-menu';
 import AddFriend from './screens/context-menu/add-friend';
 import AddGroup from './screens/context-menu/add-group';
 import FindFriend from './screens/context-menu/find-friend';
+import ChangePassword from './screens/user-profile/change-password';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -100,8 +101,8 @@ function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        {/* <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} /> */}
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
         <Stack.Screen name='AddFriend' component={AddFriend} options={{
 
@@ -140,7 +141,7 @@ function AppNavigator() {
 const MessageStack = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen name='Message' component={MessageScreen} options={{
+      <Stack.Screen name='MessageScreen' component={MessageScreen} options={{
         headerShown: false
       }} />
       <Stack.Screen name='Chat' component={ChatScreen} options={{
@@ -176,6 +177,9 @@ const ProfileStack = () => {
       <Stack.Screen name='DetailProfile' component={DetailProfile} options={{
         headerShown: false
       }} />
+      <Stack.Screen name='ChangePassword' component={ChangePassword} options={{
+        headerShown: false
+      }} />
     </Stack.Navigator>
   )
 }
@@ -193,7 +197,10 @@ const ProfileStack = () => {
 
 export default function App() {
   return (
-    <AppNavigator />
+
+    <Provider store={store}>
+      <AppNavigator />
+    </Provider>
 
   );
 }

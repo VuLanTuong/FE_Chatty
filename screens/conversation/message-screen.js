@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
-const MessageScreen = ({navigation}) => {
+const MessageScreen = ({ navigation }) => {
   const data = [{
     id: 1,
     name: 'jenifer',
@@ -9,60 +10,67 @@ const MessageScreen = ({navigation}) => {
     time: '4:00 PM',
     image: 'https://img.lazcdn.com/g/shop/bcdcd66a784bdd39a5063f150a128122.png_960x960q80.png_.webp',
     notification: 1,
-    },
-    {
-      id: 1,
+  },
+  {
+    id: 1,
     name: 'tom',
     message: '<3',
     time: '1:00 PM',
     image: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg',
     notification: 1,
-    },
+  },
   ]
 
-  const showStoriCircle = () => {};
+  const showStoriCircle = () => { };
+
+  const dispatch = useDispatch()
+
+  // get current user
+  const user = useSelector((state) => state.user.data);
+  console.log(user);
+
 
   return (
     <ScrollView style={styles.container}>
       <FlatList
-      numColumns={1}
-      horizontal={false}
-      data={data}
-      renderItem={({item}) => (
-        <View style={styles.container}>      
-      <TouchableOpacity style={styles.conversation}
-      onPress={() => navigation.navigate('Chat')}
-      >
-        <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
-          <Image style={styles.image} source={{uri: item.image}}/>
-        </TouchableOpacity>
-        <View style={{
-            flex: 1,
-            justifyContent: 'center',
-          }}>
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',            
-          }}>
-            <Text numberOfLines={1} style={styles.username}>{item.name}</Text>
-            <View style={styles.time}>{item.time}</View>
-          </View>   
-          <View style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',            
-          }}>
-            <Text style={styles.message}>{item.message}</Text> 
-          </View>      
-        </View>
-      </TouchableOpacity>
-    </View>
-      )}
-      
+        numColumns={1}
+        horizontal={false}
+        data={data}
+        renderItem={({ item }) => (
+          <View style={styles.container}>
+            <TouchableOpacity style={styles.conversation}
+              onPress={() => navigation.navigate('Chat')}
+            >
+              <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
+                <Image style={styles.image} source={{ uri: item.image }} />
+              </TouchableOpacity>
+              <View style={{
+                flex: 1,
+                justifyContent: 'center',
+              }}>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
+                  <Text numberOfLines={1} style={styles.username}>{item.name}</Text>
+                  <View style={styles.time}>{item.time}</View>
+                </View>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}>
+                  <Text style={styles.message}>{item.message}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
       />
-       
-      
+
+
     </ScrollView>
-    
+
   );
 }
 const styles = StyleSheet.create({
@@ -77,7 +85,7 @@ const styles = StyleSheet.create({
     paddingRight: 20,
     paddingLeft: 10
   },
-  imageContainer:{
+  imageContainer: {
     marginRight: 15,
     borderRadius: 25,
     height: 50,
