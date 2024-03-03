@@ -5,7 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
 import React, { useState } from 'react';
 import ContactScreen from './screens/contact/contact-screen';
-import LoginScreen from './screens/auth/testapi.login';
+// import LoginScreen from './screens/auth/testapi.login';
+import LoginScreen from './screens/auth/login';
 import RegisterScreen from './screens/auth/register';
 import { Provider } from 'react-redux';
 // import FriendsScreen from './screens/friends-screen';
@@ -198,10 +199,10 @@ const ProfileStack = () => {
 export default function App() {
   return (
 
-    <Provider store={store}>
-      <AppNavigator />
-    </Provider>
-
+    // <Provider store={store}>
+    //   <AppNavigator />
+    // </Provider>
+    <ChatScreen/>
   );
 }
 

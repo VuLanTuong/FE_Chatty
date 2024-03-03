@@ -76,6 +76,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+    borderBottomColor: '#f558a4',
+    borderBottomWidth: 1,
   },
   conversation: {
     flexDirection: 'row',
