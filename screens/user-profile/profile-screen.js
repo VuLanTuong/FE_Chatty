@@ -1,9 +1,23 @@
 import { View, Text, Pressable, StyleSheet, Image } from "react-native";
 import { Divider } from "react-native-paper";
 import { useSelector } from "react-redux";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function ProfileScreen({ navigation }) {
     const user = useSelector((state) => state.user.user);
     console.log(user);
+
+    const removeToken = async () => {
+        console.log("log out");
+        try {
+            await AsyncStorage.removeItem('access-token');
+            console.log("removed");
+            console.log(AsyncStorage.getItem("access-token"));
+            navigation.navigate('Login')
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     return (
         <View style={{
 
@@ -23,7 +37,7 @@ export default function ProfileScreen({ navigation }) {
                     navigation.navigate('DetailProfile')
 
                 }}>
-                    <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
+                    <Image source={{ uri: user.avatar }} style={{
                         width: 40,
                         height: 40,
                         borderRadius: 50,
@@ -63,11 +77,11 @@ export default function ProfileScreen({ navigation }) {
                     }}>Change password</Text>
                 </Pressable>
                 <Divider style={styles.dividerForMenu} />
-                <Pressable>
+                <Pressable onPress={() => removeToken()}>
                     <Text style={{
                         marginLeft: 10,
                         marginTop: 10
-                    }}>Data and file</Text>
+                    }}>Log out</Text>
                 </Pressable>
                 <Divider style={styles.dividerForMenu} />
 

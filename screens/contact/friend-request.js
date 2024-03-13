@@ -3,29 +3,176 @@ import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, TextInput }
 import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {getAccessToken} from '../user-profile/getAccessToken';
+import { findFriendById } from '../../service/friend.util';
 
 export function FriendRequest({ navigation }) {
-    const [requests, setRequest] = useState([]);
+    const [requests, setRequests] = useState([]);
+    const [isAcpRequest, setIsAcptrRequest] = useState(false);
+
+
+    // .then((response) => response.json())
+    // .then((data) => {
+    //     if (data.status === 'fail') {
+    //         console.log("fail");
+    //         return;
+    //     }
+    //     console.log('response', data);
+    //     console.log(data.data);
+    //     return Promise.resolve(data.data);
+    // })
+    // .catch((error) => {
+    //     console.log('Error:', error);
+    // });
+    // };
+
+    // const cancelAddFriend = async () => {
+    //     const accessToken = await getAccessToken();
+    //     console.log(user._id);
+    //     fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${user._id}`, {
+    //         method: "POST",
+    //         headers: {
+    //             "Content-Type": "application/json",
+    //             Authorization: "Bearer " + accessToken
+    //         }
+
+
+    //     })
+    //         .then(response => {
+    //             console.log(response.status);
+    //             if (!response.ok) {
+    //                 console.log('error');
+    //                 setIsSendRequest(true)
+    //                 return;
+    //             }
+    //             console.log('success');
+    //             setIsSendRequest(false);
+
+
+    //         }
+    //         )
+
+    // }
+    async function fetchFriendRequest() {
+        try {
+            const accessToken = await getAccessToken();
+            const response = await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/requests', {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + accessToken
+                }
+            });
+
+            const data = await response.json();
+            console.log(data);
+
+            const findFriendPromises = data.data.map(async (request) => {
+                console.log(request);
+
+                const friend = await findFriendById(request.userId);
+                console.log(friend);
+                return friend;
+            })
+
+            const friends = await Promise.all(findFriendPromises);
+            console.log(friends);
+            setRequests(friends);
+        } catch (error) {
+            console.log('Error:', error);
+            throw error;
+        }
+    }
+
 
     useEffect(() => {
-        async function fetchFriendRequest() {
-            // use redux to get current user
-            const response = await fetch('http://localhost:3000/friend-request');
-            const allRequest = await response.json();
-            const temp = allRequest.filter(
-                (request) => request.receiver === 1
-            )
-            console.log(temp);
-            setRequest(temp);
-        }
 
         fetchFriendRequest();
 
+    }, [])
+
+
+    const addFriend = async (id) => {
+        const accessToken = await getAccessToken();
+
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/accept/${id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + accessToken
+            }
+        }
+        ).then(response => {
+            console.log(response.status);
+            if (!response.ok) {
+                console.log('error');
+                setIsAcptrRequest(false);
+                return;
+            }
+            console.log('success');
+            setIsAcptrRequest(true);
+
+
+        }
+
+
+        )
+
     }
 
-    )
 
 
+    const handleAddFriend = async (id) => {
+        try {
+            console.log(id);
+            await addFriend(id);
+            // const newRequests = requests.filter(request => request._id !== id);
+            // setRequests(newRequests);
+            // setRequests(requests.filter(request => request._id !== id));
+            // fetchFriendRequest();
+            // console.log("running");
+        } catch (error) {
+            console.log('Error:', error);
+        }
+    }
+
+
+
+    const cancelAddFriend = async () => {
+        const accessToken = await getAccessToken();
+        console.log(user._id);
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${user._id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + accessToken
+            }
+
+
+        })
+            .then(response => {
+                console.log(response.status);
+                if (!response.ok) {
+                    console.log('error');
+                    setIsAcptrRequest(false)
+                    return;
+                }
+                console.log('success');
+                setIsAcptrRequest(true);
+
+
+            }
+            )
+
+    }
+
+    const viewProfileOfUser = (id) => {
+        const friend = findFriendById(id);
+        if (friend) {
+            navigation.navigate('FriendProfile', { friend: friend });
+        }
+
+    }
 
     return (
         // <View>
@@ -75,8 +222,10 @@ export function FriendRequest({ navigation }) {
                 </Pressable>
 
             </View>
+
             {requests.map((request) => (
-                <View key={request.id}
+                // request = findFriendById(request._id)
+                <View key={request._id}
                     style={{
                         flexDirection: 'column',
                         gap: 10,
@@ -91,9 +240,9 @@ export function FriendRequest({ navigation }) {
                         <Pressable style={{
                             flexDirection: 'row',
                             gap: 20
-                        }}>
+                        }} onPress={() => viewProfileOfUser(request._id)}>
                             {/* // api to get avatar */}
-                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
+                            <Image source={{ uri: request.avatar }} style={{
                                 width: 50,
                                 height: 50,
                                 borderRadius: 50
@@ -113,7 +262,7 @@ export function FriendRequest({ navigation }) {
                                     marginTop: 10,
 
                                     fontSize: 15
-                                }}>Sender</Text>
+                                }}>{request.name}</Text>
 
 
 
@@ -144,7 +293,7 @@ export function FriendRequest({ navigation }) {
                             backgroundColor: '#f558a4',
                             marginLeft: 60,
 
-                        }}>
+                        }} onPress={() => handleAddFriend(request.friend._id)}>
                             <Text style={{
                                 color: 'white',
                                 marginLeft: 40,
@@ -172,6 +321,6 @@ export function FriendRequest({ navigation }) {
         </View>
     )
 
-
 }
+
 export default FriendRequest;

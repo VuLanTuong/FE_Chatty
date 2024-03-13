@@ -21,6 +21,15 @@ const Login = ({ navigation }) => {
     setChecked(!checked);
   };
 
+
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('access-token', value);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const onLogin = () => {
     fetch("http://localhost:3000/users", {
       method: "GET",

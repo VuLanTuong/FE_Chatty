@@ -13,7 +13,9 @@ import {
   MaterialCommunityIcons,
   Octicons,
 } from "@expo/vector-icons";
+import { useNavigation } from '@react-navigation/native';
 const ChatScreen = ({ navigation }) => {
+
   const [isFocused, setIsFocused] = useState(false);
   const [messages, setMessages] = useState([]);
   useEffect(() => {
@@ -180,11 +182,11 @@ const ChatScreen = ({ navigation }) => {
                   paddingVertical: 5,
                 }}
               >
-                <Text 
-                style={{
-                  fontSize: 16,
-                
-                }}>{item.text}</Text>
+                <Text
+                  style={{
+                    fontSize: 16,
+
+                  }}>{item.text}</Text>
               </View>
               {item.user._id === 1 && (
                 <Image
@@ -217,21 +219,21 @@ const ChatScreen = ({ navigation }) => {
             alignItems: "center",
             flexDirection: "row",
             paddingVertical: 15,
-           
+
           }}
         >
           <View
             style={{
               flexDirection: "row",
-              flex: 1,              
+              flex: 1,
               paddingVertical: 10,
               alignItems: "center",
-              justifyContent: "space-between",   
-               
+              justifyContent: "space-between",
+
             }}
           >
             <TouchableOpacity
-              style={{                          
+              style={{
               }}
             >
               <MaterialCommunityIcons
@@ -243,20 +245,20 @@ const ChatScreen = ({ navigation }) => {
             <TextInput
               placeholder="Message..."
               style={{
-                fontSize: 20,                
+                fontSize: 20,
               }}
-              onChangeText={() => {}}
+              onChangeText={() => { }}
               onFocus={() => setIsFocused(true)}
               onBlur={() => setIsFocused(false)}
             />
             <TouchableOpacity
-              style={{                
+              style={{
               }}
             >
               <AntDesign name="ellipsis1" size={24} color="black" />
             </TouchableOpacity>
             <TouchableOpacity
-              style={{                
+              style={{
               }}
             >
               <Octicons name="image" size={24} color="black" />

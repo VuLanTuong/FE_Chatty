@@ -5,8 +5,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
 import React, { useState } from 'react';
 import ContactScreen from './screens/contact/contact-screen';
-// import LoginScreen from './screens/auth/testapi.login';
-import LoginScreen from './screens/auth/login';
+import LoginScreen from './screens/auth/testapi.login';
+// import LoginScreen from './screens/auth/login';
 import RegisterScreen from './screens/auth/register';
 import { Provider } from 'react-redux';
 // import FriendsScreen from './screens/friends-screen';
@@ -23,6 +23,14 @@ import AddFriend from './screens/context-menu/add-friend';
 import AddGroup from './screens/context-menu/add-group';
 import FindFriend from './screens/context-menu/find-friend';
 import ChangePassword from './screens/user-profile/change-password';
+import FriendProfile from './screens/friend-profile/friendProfile';
+import Toast from 'react-native-toast-message';
+import { useEffect } from 'react';
+import getAccessToken from './screens/user-profile/getAccessToken';
+import { useDispatch } from "react-redux";
+import { login } from "./rtk/user-slice";
+
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -134,6 +142,20 @@ function AppNavigator() {
 
           }
         }} />
+        <Stack.Screen name='FriendProfile' component={FriendProfile} options={{
+          headerTitle: 'Profile',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
+        }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -185,6 +207,8 @@ const ProfileStack = () => {
   )
 }
 
+
+
 // const ContextMenuStack = () => {
 //   return (
 //     <Stack.Navigator>
@@ -195,14 +219,55 @@ const ProfileStack = () => {
 //   )
 // }
 
+const getMe = async (token) => {
+  fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
+    method: "GET",
+    headers: {
+      // "Content-Type": "application/json",
+      "Authorization": "Bearer " + token,
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.status === 'fail') {
+        console.log("fail");
+        return;
+      }
+      console.log('response', data);
+      return data.data;
+    })
+    .catch((error) => {
+      console.log('Error:', error);
+    });
+};
+
 
 export default function App() {
-  return (
+  // // const dispatch = useDispatch();
+  // useEffect(() => {
+  //   getAccessToken().then((token) => {
+  //     if (token) {
+  //       console.log(token);
+  //       const user = getMe(token).then((user) => {
+  //         console.log(user);
+  //         // dispatch(login({
+  //         //   user: user.data
+  //         // }))
+  //       })
+  //     }
+  //   })
+  // }, [])
 
-    // <Provider store={store}>
-    //   <AppNavigator />
-    // </Provider>
-    <ChatScreen/>
+
+  return (
+    <Provider store={store}>
+      {/* <ChatScreen /> */}
+      <AppNavigator />
+      <Toast ref={(ref) => Toast.setRef(ref)} />
+    </Provider>
+
+
+
   );
 }
 
