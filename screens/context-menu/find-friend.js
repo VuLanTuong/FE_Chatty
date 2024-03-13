@@ -2,8 +2,50 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useState } from 'react';
+import {getAccessToken} from '../user-profile/getAccessToken';
+import { ErrorToast, SuccessToast } from 'react-native-toast-message';
+import Toast from 'react-native-toast-message';
+const FindFriend = ({ navigation }) => {
+    const [phoneNumber, setPhoneNumber] = useState('');
 
-const FindFriend = () => {
+    const findFriend = async () => {
+        const token = await getAccessToken();
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/findByPhone/${phoneNumber}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === 'fail') {
+                    console.log("fail");
+                    Toast.show({
+                        type: 'error',
+                        text1: 'User Not found',
+                        position: 'top',
+                        visibilityTime: 2000,
+
+                    });
+                    return;
+                }
+                console.log('response', data);
+                navigation.navigate('FriendProfile', { friend: data.data });
+            })
+            .catch((error) => {
+                console.log('Error:', error);
+                ErrorToast.show({
+                    type: 'error',
+                    position: 'bottom',
+                    text1: 'Error',
+                    text2: 'User not found',
+                    visibilityTime: 2000,
+                    autoHide: true,
+                })
+            });
+    };
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
@@ -14,9 +56,11 @@ const FindFriend = () => {
                     mode='outlined'
                     placeholder='Enter phone number'
                     style={styles.input}
+                    value={phoneNumber}
+                    onChangeText={(text) => setPhoneNumber(text)}
                 />
             </View>
-            <Pressable style={styles.searchButton}>
+            <Pressable onPress={() => findFriend()} style={styles.searchButton}>
                 <MaterialCommunityIcons name='magnify' color='black' size={25} />
             </Pressable>
         </View>

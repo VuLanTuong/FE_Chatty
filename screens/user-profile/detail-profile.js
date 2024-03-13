@@ -1,22 +1,98 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, TextInput } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, TextInput, Platform } from 'react-native';
 import { Divider, Checkbox, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSelector } from "react-redux";
+import { launchImageLibrary } from 'react-native-image-picker';
+import { getAccessToken } from './getAccessToken';
+import ImagePicker from 'react-native-image-picker';
+import { useDispatch } from "react-redux";
+import { login } from "../../rtk/user-slice";
 export default function DetailProfile({ navigation }) {
-    const [isEditing, setIsEditing] = useState(false);
-    const [userName, setUserName] = useState('User name');
-    const [gender, setGender] = useState('Female');
-    const [dob, setDob] = useState('01/01/1990');
-    const [phoneNumber, setPhoneNumber] = useState('079 432 5642');
 
+    const dispatch = useDispatch();
     const user = useSelector((state) => state.user.user);
+    const [isEditing, setIsEditing] = useState(false);
+    const [name, setName] = useState(user.name);
+    const [gender, setGender] = useState(user.gender);
+    const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth);
+    const [phoneNumber, setPhoneNumber] = useState(user.phone);
+    const [photo, setPhoto] = useState('');
+    const [email, setEmail] = useState(user.email);
+
+    console.log(name);
+
     const handleEditPress = () => {
         setIsEditing(true);
     };
 
-    const handleSavePress = () => {
+
+    const getMe = async () => {
+        const accessToken = await getAccessToken();
+        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
+            method: 'GET',
+            headers: {
+                "Authorization": "Bearer " + accessToken,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                dispatch(login({
+                    user: data.data.user
+
+                })
+                )
+            })
+
+    }
+
+    const handleSavePress = async () => {
         setIsEditing(false);
+        console.log(name);
+        console.log(dateOfBirth);
+        console.log(gender);
+
+
+        const dateString = dateOfBirth;
+
+
+        const dateObject = new Date(dateString);
+
+        // Use the Date object methods to format the date as required
+        const formattedDate = dateObject.toDateString();
+
+        console.log(formattedDate);
+
+
+
+        // handleUploadPhoto();
+        const accessToken = await getAccessToken();
+        console.log('access token', accessToken);
+        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateMe', {
+            method: 'PUT',
+            headers: {
+                "Authorization": "Bearer " + accessToken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                name: name,
+                dateOfBirth: formattedDate,
+                gender: gender
+
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+
+                dispatch(login({
+                    user: data.data
+
+                }))
+            })
+            .catch((error) => {
+                console.log('error', error);
+            });
 
     };
 
@@ -27,6 +103,78 @@ export default function DetailProfile({ navigation }) {
         const day = d.getDate();
         return `${day}/${month}/${year}`;
     }
+
+    const handleChoosePhoto = () => {
+        console.log("choose photo");
+        const options = {
+            mediaType: 'photo',
+            includeBase64: false,
+        };
+
+        launchImageLibrary(options, (response) => {
+
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+            } else if (response.error) {
+                console.log('Image picker error: ', response.error);
+            } else {
+                let imageUri = response.uri || response.assets?.[0]?.uri;
+                console.log(response);
+                setPhoto(imageUri);
+            }
+
+        });
+    };
+
+    // const createFormData = (photo) => {
+    //     const avatar = new FormData();
+    //     // console.log(photo.uri);
+
+    //     avatar.append('avatar', {
+    //         name: "avatar",
+    //         type: "file/jpg/png/jpeg",
+    //         uri: Platform.OS === 'ios' ? photo.uri.replace('file://', '') : photo.uri,
+    //     });
+    //     console.log(avatar);
+    //     return avatar;
+    // };
+
+    const handleUploadPhoto = async () => {
+        const accessToken = await getAccessToken();
+
+        // const avatar = new FormData();
+
+
+        console.log(photo);
+
+
+        // avatar.append('avatar', { photo });
+
+        // console.log('avatar', avatar);
+        console.log('access token', accessToken);
+
+        console.log('photo', photo);
+
+
+        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateAvatar', {
+            method: 'PUT',
+            headers: {
+                Authorization: "Bearer " + accessToken,
+
+                // 'Content-Type': 'multipart/form-data'
+            },
+            type: 'application/json',
+            body: { avatar: photo },
+        })
+            .then((response) => response.json())
+            .then((response) => {
+                console.log('response', response);
+            })
+            .catch((error) => {
+                console.log('error', error);
+            });
+    };
+
 
     return (
         <View>
@@ -44,21 +192,33 @@ export default function DetailProfile({ navigation }) {
 
                     {
                         isEditing ? (
-                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} />
+                            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+
+                                <Pressable onPress={() => handleChoosePhoto()}>
+                                    <Image source={{ uri: user.avatar }} style={styles.profileImage} />
+                                </Pressable>
+                            </View>
                         ) : (
-                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} />
+                            <Image source={{ uri: user.avatar }} style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 50,
+                                marginTop: 5,
+                                border: '1px solid white',
+                                marginLeft: 5
+                            }} />
                         )
                     }
-
-
 
 
                     {
                         isEditing ? (
                             <TextInput
                                 style={styles.userName}
-                                value={user.name}
-                                onChangeText={setUserName}
+                                value={name}
+                                onChangeText={newName => setName(newName)}
+
+
                             />
                         ) : (
                             <Text style={styles.userName}>{user.name}</Text>
@@ -80,16 +240,17 @@ export default function DetailProfile({ navigation }) {
                                 marginLeft: 25
                             }}>
                                 <RadioButton
-                                    status={gender === 'Male' ? 'checked' : 'unchecked'}
-                                    onPress={() => setGender('Male')}
+                                    status={gender === 'Male' || gender === 'male' ? 'checked' : 'unchecked'}
+                                    onPress={() => setGender('male')}
                                     color="#f558a4"
                                     value='Male'
                                 />
                                 <Text style={styles.checkboxLabel}>Male</Text>
                                 <RadioButton
-                                    status={gender === 'Female' ? 'checked' : 'unchecked'}
-                                    onPress={() => setGender('Female')}
+                                    status={gender === 'Female' || gender === 'female' ? 'checked' : 'unchecked'}
+                                    onPress={() => setGender('female')}
                                     color="#f558a4"
+                                    value='Female'
                                 />
                                 <Text style={styles.checkboxLabel}>Female</Text>
                                 <RadioButton
@@ -117,7 +278,7 @@ export default function DetailProfile({ navigation }) {
                                     marginLeft: 7
                                 }}
                                 value={formatDateOfBirth(user.dateOfBirth)}
-                                onChangeText={setDob}
+                                onChangeText={newDateOfBirth => setDateOfBirth(newDateOfBirth)}
                             />
                         ) : (
                             <Text style={{
@@ -129,19 +290,16 @@ export default function DetailProfile({ navigation }) {
 
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Phone Number</Text>
-                        {isEditing ? (
-                            <TextInput
-                                style={{
-                                    marginLeft: -10
-                                }}
-                                value={user.phone}
-                                onChangeText={setPhoneNumber}
-                            />
-                        ) : (
-                            <Text style={{
-                                marginLeft: -2
-                            }}>{user.phone}</Text>
-                        )}
+                        <Text style={{
+                            marginLeft: -2
+                        }}>{user.phone}</Text>
+                    </View>
+                    <View style={styles.infoRow}>
+                        <Text style={styles.infoLabel}>Email</Text>
+
+                        <Text style={{
+                            marginLeft: -2
+                        }}>{user.email}</Text>
                     </View>
 
                     {isEditing ? (

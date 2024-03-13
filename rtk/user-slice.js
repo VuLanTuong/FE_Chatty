@@ -10,8 +10,9 @@ const initialState = {
         gender: "", // The user's gender.
         avatar: "", // The user's avatar image URL.
         background: "", // The user's background image URL.
-        friends: [], // An array of the user's friends.
+        // An array of the user's friends.
     },
+    friends: []
 };
 
 export const userSlice = createSlice({
@@ -21,9 +22,13 @@ export const userSlice = createSlice({
         login: (state, action) => {
 
             state.user = action.payload.user
-            // console.log(state.data.user);
+            console.log(state.user);
 
         },
+        setFriend: (state, action) => {
+            console.log(action.payload);
+            state.friends = action.payload.friends
+        }
         // updated: (state, action) => {
         //     const commentIndx = state.comment.findIndex(comment =>
         //         comment.id === action.payload.commentId)
@@ -48,5 +53,5 @@ export const userSlice = createSlice({
     }
 })
 
-export const { login, updated, add, deleteComment } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend } = userSlice.actions;
 export default userSlice.reducer

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import {
   TextInput,
@@ -10,8 +10,10 @@ import {
   Checkbox,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
-import { login } from "../../rtk/user-slice";
+import { login, setFriend } from "../../rtk/user-slice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
+import { findFriendById } from "../../service/friend.util";
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -24,15 +26,104 @@ const Login = ({ navigation }) => {
     setChecked(!checked);
   };
 
-  const storeData = async (value) => {
-    try {
-      await AsyncStorage.setItem('access-token', value);
-
-      console.log("saved" + await AsyncStorage.getItem('access-token'));;
-    } catch (e) {
-      console.error(e);
-    }
+  const getMe = async (token) => {
+    fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
+      method: "GET",
+      headers: {
+        // "Content-Type": "application/json",
+        "Authorization": "Bearer " + token,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status === 'fail') {
+          console.log("fail");
+          return;
+        }
+        console.log('response', data);
+        return data.data;
+      })
+      .catch((error) => {
+        console.log('Error:', error);
+      });
   };
+
+
+
+
+
+  useEffect(() => {
+    const token = getAccessToken().then((token) => {
+      if (token) {
+        console.log(token);
+        const user = fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
+          method: "GET",
+          headers: {
+            "Authorization": "Bearer " + token,
+          },
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.status === 'fail') {
+              console.log("fail");
+              return;
+            }
+            console.log('response', data);
+            return data.data;
+          })
+          .catch((error) => {
+            console.log('Error:', error);
+          })
+        const temp = user.then((user) => {
+          console.log(user);
+
+          dispatch(login({
+            user: user,
+          }))
+          console.log(user);
+          fetchAllFriend();
+
+          // const friendList = findFriendById(user._id).then((friend) => {
+          //   console.log(friend);
+          //   const list = friend.friend;
+          //   dispatch(setFriend({
+          //     friends: list
+          //   }))
+          //   log
+          // })
+          navigation.navigate("Home");
+        })
+
+      }
+    })
+
+
+  }, [])
+
+
+  async function fetchAllFriend() {
+    console.log("fetch all friend");
+    // use redux to get current user
+    const accessToken = await getAccessToken()
+    await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + accessToken,
+      },
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        dispatch(setFriend({
+          friends:
+            data.data
+        })
+
+        );
+        console.log("ok");
+      });
+  }
+
   const onLogin = () => {
     fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login", {
       method: "POST",
@@ -48,12 +139,11 @@ const Login = ({ navigation }) => {
       .then((data) => {
         dispatch(login({
           user: data.data.user
-
         })
         );
         if (data.status === "success") {
           console.log(data.data.token.access_token);
-          storeData(data.data.token.access_token)
+          storeToken(data.data.token.access_token)
           navigation.navigate("Home");
         } else {
           // Đăng nhập thất bại

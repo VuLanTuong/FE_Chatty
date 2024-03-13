@@ -1,18 +1,40 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { TextInput, Button, Title, Paragraph } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { useDispatch } from "react-redux";
+import { login } from "../../rtk/user-slice";
+import DatePicker from 'react-native-date-picker'
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-
-
+  const [date, setDate] = useState("");
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [open, setOpen] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
+
+  const dispatch = useDispatch();
+
+  const showDatePicker = () => {
+    setDatePickerVisibility(true);
+
+  };
+
+  const hideDatePicker = () => {
+    setDatePickerVisibility(false);
+    console.log(isDatePickerVisible);
+  };
+
+  const handleConfirm = (date) => {
+    console.warn("A date has been picked: ", date);
+    hideDatePicker();
+  };
+
+
 
   const validate = () => {
     if (
@@ -49,7 +71,15 @@ const register = ({ navigation }) => {
   //     return false;
   //   }
   // };
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('access-token', value);
 
+      console.log("saved" + await AsyncStorage.getItem('access-token'));;
+    } catch (e) {
+      console.error(e);
+    }
+  };
   const handleSignUp = async () => {
     try {
       // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
@@ -73,7 +103,12 @@ const register = ({ navigation }) => {
 
       if (response.ok) {
         console.log("ok");
-        navigation.navigate("Login");
+        storeData(data.data.token.access_token)
+        dispatch(login({
+          user: data.data.user
+        }))
+
+        navigation.navigate("Home");
       } else {
         const error = await response.json();
         alert(error.error);
@@ -133,14 +168,64 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
+        {/* <Pressable onPress={showDatePicker}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Date of birth"
+            underlineColorAndroid="transparent"
+            keyboardType="default"
+            value={dateOfBirth}
+            onFocus={showDatePicker}
+            editable={false}
+          />
+        </Pressable>
+        {isDatePickerVisible && (
+          <DatePicker
+            modal
+            open={open}
+            date={dateOfBirth}
+            onConfirm={(dateOfBirthte) => {
+              setDatePickerVisibility(false)
+              setDateOfBirth(date)
+            }}
+            onCancel={() => {
+              setDatePickerVisibility(false)
+            }}
+          />
+        )} */}
+
+        {/* <Pressable onPress={showDatePicker}>
+          <Text>Date of birth</Text>
+        </Pressable>
+        <DatePicker
+          modal
+          open={open}
+          date={date}
+          onConfirm={(date) => {
+            setDatePickerVisibility(false)
+            setDate(date)
+          }}
+          onCancel={() => {
+            setDatePickerVisibility(false)
+          }}
+        /> */}
+
+        {/* 
+        <Button title="Show Date Picker" onPress={showDatePicker} />
+        <DateTimePickerModal
+          date={date}
+          isVisible={isDatePickerVisible}
+          mode="date"
+          onConfirm={handleConfirm}
+          onCancel={hideDatePicker}
+        /> */}
+        <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
           label="Date of birth"
           underlineColorAndroid="transparent"
-          keyboardType="default"
-          value={dateOfBirth}
-          onChangeText={(text) => setDateOfBirth(text)}
-        />
+          value={date}
+          onChangeText={(text) => setDate(text)} />
+
+
       </View>
       <View style={styles.inputContainer}>
         <TextInput
