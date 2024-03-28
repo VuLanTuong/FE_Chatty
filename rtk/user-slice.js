@@ -28,6 +28,10 @@ export const userSlice = createSlice({
         setFriend: (state, action) => {
             console.log(action.payload);
             state.friends = action.payload.friends
+        },
+        changeAvatar: (state, action) => {
+
+            state.user.avatar = action.payload.avatar
         }
         // updated: (state, action) => {
         //     const commentIndx = state.comment.findIndex(comment =>
@@ -53,5 +57,5 @@ export const userSlice = createSlice({
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar } = userSlice.actions;
 export default userSlice.reducer

@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
+import { getAccessToken } from "../user-profile/getAccessToken";
+import { getAllConversation } from "../../service/conversation.util";
 
 const MessageScreen = ({ navigation }) => {
   const data = [{
@@ -22,6 +24,7 @@ const MessageScreen = ({ navigation }) => {
   ]
 
   const showStoriCircle = () => { };
+  const [conversations, setConversations] = useState([]);
 
   const dispatch = useDispatch()
 
@@ -29,14 +32,31 @@ const MessageScreen = ({ navigation }) => {
   const user = useSelector((state) => state.user);
   console.log(user);
 
+  const getConversations = async () => {
+    const temp = await getAllConversation();
+    console.log(temp);
+    setConversations(temp)
+  }
+
+
+  useEffect(() => {
+    console.log("effect");
+    getConversations().then(() => {
+      console.log("is get");
+
+    })
+
+  }, [])
+
+  console.log(conversations);
   return (
     <ScrollView style={styles.container}>
       <FlatList
         numColumns={1}
         horizontal={false}
-        data={data}
+        data={conversations}
         renderItem={({ item }) => (
-          <View style={styles.container}>
+          <View style={styles.container} key={item.id}>
             <TouchableOpacity style={styles.conversation}
               onPress={() => navigation.navigate('Chat')}
             >

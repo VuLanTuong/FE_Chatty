@@ -29,6 +29,7 @@ import { useEffect } from 'react';
 import getAccessToken from './screens/user-profile/getAccessToken';
 import { useDispatch } from "react-redux";
 import { login } from "./rtk/user-slice";
+import ForgotPassword from './screens/auth/forgot-password';
 
 
 
@@ -112,6 +113,20 @@ function AppNavigator() {
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{
+          headerTitle: 'Forgot password',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
+        }} />
         <Stack.Screen name="Home" component={MyTab} options={{ headerShown: false }} />
         <Stack.Screen name='AddFriend' component={AddFriend} options={{
 

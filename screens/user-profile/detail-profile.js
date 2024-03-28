@@ -7,7 +7,11 @@ import { launchImageLibrary } from 'react-native-image-picker';
 import { getAccessToken } from './getAccessToken';
 import ImagePicker from 'react-native-image-picker';
 import { useDispatch } from "react-redux";
-import { login } from "../../rtk/user-slice";
+import { login, changeAvatar } from "../../rtk/user-slice";
+import Toast from 'react-native-toast-message';
+
+
+
 export default function DetailProfile({ navigation }) {
 
     const dispatch = useDispatch();
@@ -63,10 +67,6 @@ export default function DetailProfile({ navigation }) {
         const formattedDate = dateObject.toDateString();
 
         console.log(formattedDate);
-
-
-
-        // handleUploadPhoto();
         const accessToken = await getAccessToken();
         console.log('access token', accessToken);
         fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateMe', {
@@ -121,6 +121,7 @@ export default function DetailProfile({ navigation }) {
                 let imageUri = response.uri || response.assets?.[0]?.uri;
                 console.log(response);
                 setPhoto(imageUri);
+                handleUploadPhoto(imageUri);
             }
 
         });
@@ -139,7 +140,7 @@ export default function DetailProfile({ navigation }) {
     //     return avatar;
     // };
 
-    const handleUploadPhoto = async () => {
+    const handleUploadPhoto = async (imageUri) => {
         const accessToken = await getAccessToken();
 
         // const avatar = new FormData();
@@ -153,22 +154,37 @@ export default function DetailProfile({ navigation }) {
         // console.log('avatar', avatar);
         console.log('access token', accessToken);
 
-        console.log('photo', photo);
+        console.log('photo', imageUri);
 
 
-        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateAvatar', {
+        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateAvatarV2', {
+            // fetch('http://localhost:8555/api/v1/users/updateAvatarV2', {
             method: 'PUT',
             headers: {
                 Authorization: "Bearer " + accessToken,
 
-                // 'Content-Type': 'multipart/form-data'
+                "Content-Type": "application/json",
             },
-            type: 'application/json',
-            body: { avatar: photo },
+            // type: 'application/json',
+            body: JSON.stringify({ avatar: imageUri }),
         })
-            .then((response) => response.json())
+
             .then((response) => {
                 console.log('response', response);
+                return response.json()
+
+            })
+            .then(data => {
+                dispatch(changeAvatar({ avatar: imageUri }))
+                Toast.show({
+                    type: 'success',
+                    text1: 'Change avatar successful',
+                    position: 'top',
+                    visibilityTime: 2000,
+
+                });
+
+                console.log(data);
             })
             .catch((error) => {
                 console.log('error', error);
@@ -199,14 +215,16 @@ export default function DetailProfile({ navigation }) {
                                 </Pressable>
                             </View>
                         ) : (
-                            <Image source={{ uri: user.avatar }} style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 50,
-                                marginTop: 5,
-                                border: '1px solid white',
-                                marginLeft: 5
-                            }} />
+                            <Pressable onPress={() => handleChoosePhoto()}>
+                                <Image source={{ uri: user.avatar }} style={{
+                                    width: 40,
+                                    height: 40,
+                                    borderRadius: 50,
+                                    marginTop: 5,
+                                    border: '1px solid white',
+                                    marginLeft: 5
+                                }} />
+                            </Pressable>
                         )
                     }
 
