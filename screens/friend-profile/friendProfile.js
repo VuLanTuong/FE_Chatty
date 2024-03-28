@@ -8,7 +8,8 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { useDispatch } from "react-redux"
 import { setFriend } from "../../rtk/user-slice";
 import { findFriendById } from '../../service/friend.util';
-export default function FriendProfile({ route }) {
+import { getAllConversation } from '../../service/conversation.util';
+export default function FriendProfile({ route, navigation }) {
     const user = route.params.friend;
     console.log(user);
 
@@ -51,7 +52,8 @@ export default function FriendProfile({ route }) {
 
     }
 
-    function getFriendOfUser() {
+    const getFriendOfUser = async () => {
+        console.log(user);
         findFriendById(user._id).then((friend) => {
             if (friend) {
                 console.log(friend);
@@ -72,8 +74,15 @@ export default function FriendProfile({ route }) {
     }
 
     useEffect(() => {
-        getFriendOfUser();
-        checkIsFriend();
+        getFriendOfUser().then(() => {
+            console.log("get friend");
+        })
+        fetchFriends().then(() => {
+            checkIsFriend().then(() => {
+                console.log("running");
+            })
+        })
+
     }, []);
 
 
@@ -137,20 +146,16 @@ export default function FriendProfile({ route }) {
 
     }
 
-
-
-
     const handleCancelSendRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user._id);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${user._id}`, {
+        console.log(user);
+        console.log(friend);
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${friend._id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer " + accessToken
             }
-
-
         })
             .then(response => {
                 console.log(response.status);
@@ -219,6 +224,11 @@ export default function FriendProfile({ route }) {
     }
 
 
+    const handleSendMessage = () => {
+        // navigation.navigate('Chat')
+
+    }
+
 
 
     return (
@@ -284,7 +294,7 @@ export default function FriendProfile({ route }) {
                                 <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
                                     <Text style={styles.textStyle}>Cancel Request</Text>
                                 </Pressable>
-                                <Pressable style={styles.button}>
+                                <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                     <Text style={styles.textStyle}>Send Message</Text>
                                 </Pressable>
                             </View>
@@ -305,7 +315,7 @@ export default function FriendProfile({ route }) {
                                         <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
                                             <Text style={styles.textStyle}>Reject Request</Text>
                                         </Pressable>
-                                        <Pressable style={styles.button}>
+                                        <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                             <Text style={styles.textStyle}>Send Message</Text>
                                         </Pressable>
                                     </View>
@@ -322,7 +332,7 @@ export default function FriendProfile({ route }) {
                                         <Pressable style={styles.button} onPress={() => sendRequest()}>
                                             <Text style={styles.textStyle}>Add Friend</Text>
                                         </Pressable>
-                                        <Pressable style={styles.button}>
+                                        <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                             <Text style={styles.textStyle}>Send Message</Text>
                                         </Pressable>
 
@@ -342,7 +352,7 @@ export default function FriendProfile({ route }) {
                         justifyContent: 'center',
                         alignItems: 'center',
                     }}>
-                        <Pressable style={styles.button}>
+                        <Pressable style={styles.button} onPress={handleSendMessage()}>
                             <Text style={styles.textStyle}>Send Message</Text>
                         </Pressable>
                         <Pressable style={styles.button} onPress={() => handleUnfriend()}>
@@ -362,7 +372,7 @@ export default function FriendProfile({ route }) {
 const styles = StyleSheet.create({
     button: {
         height: 40,
-        width: '40%',
+        width: '20%',
         backgroundColor: '#f558a4',
         borderRadius: 20,
         justifyContent: 'center',
@@ -371,7 +381,7 @@ const styles = StyleSheet.create({
     },
     textStyle: {
         color: 'white',
-        fontSize: '17',
+        fontSize: '15',
         textAlign: 'center',
         justifyContent: 'center',
         alignItems: 'center'

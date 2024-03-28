@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useState } from 'react';
-import {getAccessToken} from '../user-profile/getAccessToken';
+import { getAccessToken } from '../user-profile/getAccessToken';
 import { ErrorToast, SuccessToast } from 'react-native-toast-message';
 import Toast from 'react-native-toast-message';
 const FindFriend = ({ navigation }) => {
@@ -36,14 +36,6 @@ const FindFriend = ({ navigation }) => {
             })
             .catch((error) => {
                 console.log('Error:', error);
-                ErrorToast.show({
-                    type: 'error',
-                    position: 'bottom',
-                    text1: 'Error',
-                    text2: 'User not found',
-                    visibilityTime: 2000,
-                    autoHide: true,
-                })
             });
     };
     return (
