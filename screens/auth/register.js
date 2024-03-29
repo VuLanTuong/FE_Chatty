@@ -6,13 +6,17 @@ import { useDispatch } from "react-redux";
 import { login } from "../../rtk/user-slice";
 import DatePicker from 'react-native-date-picker'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+
+
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [date, setDate] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [open, setOpen] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
@@ -29,8 +33,9 @@ const register = ({ navigation }) => {
     console.log(isDatePickerVisible);
   };
 
-  const handleConfirm = (date) => {
+  const handleDateChange  = (selectedDate) => {
     console.warn("A date has been picked: ", date);
+    setDateOfBirth(selectedDate);
     hideDatePicker();
   };
 
@@ -168,62 +173,12 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputContainer}>
-        {/* <Pressable onPress={showDatePicker}>
-          <TextInput
-            style={[styles.input, isSignUpError && styles.errorInput]}
-            label="Date of birth"
-            underlineColorAndroid="transparent"
-            keyboardType="default"
-            value={dateOfBirth}
-            onFocus={showDatePicker}
-            editable={false}
-          />
-        </Pressable>
-        {isDatePickerVisible && (
-          <DatePicker
-            modal
-            open={open}
-            date={dateOfBirth}
-            onConfirm={(dateOfBirthte) => {
-              setDatePickerVisibility(false)
-              setDateOfBirth(date)
-            }}
-            onCancel={() => {
-              setDatePickerVisibility(false)
-            }}
-          />
-        )} */}
-
-        {/* <Pressable onPress={showDatePicker}>
-          <Text>Date of birth</Text>
-        </Pressable>
-        <DatePicker
-          modal
-          open={open}
-          date={date}
-          onConfirm={(date) => {
-            setDatePickerVisibility(false)
-            setDate(date)
-          }}
-          onCancel={() => {
-            setDatePickerVisibility(false)
-          }}
-        /> */}
-
-        {/* 
-        <Button title="Show Date Picker" onPress={showDatePicker} />
-        <DateTimePickerModal
-          date={date}
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        /> */}
-        <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
+      
+        {/* <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
           label="Date of birth"
           underlineColorAndroid="transparent"
           value={date}
-          onChangeText={(text) => setDate(text)} />
+          onChangeText={(text) => setDate(text)} /> */}
 
 
       </View>

@@ -173,7 +173,7 @@ const Login = ({ navigation }) => {
           style={[styles.input, loginError && styles.errorInput]}
           label="Phone"
           underlineColorAndroid="transparent"
-          keyboardType="numeric"
+          keyboardType="phone-pad"
           value={phoneNumber}
           onChangeText={(text) => setPhoneNumber(text)}
         />
