@@ -4,17 +4,18 @@ import { TextInput, Button, Title, Paragraph, RadioButton } from "react-native-p
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { login } from "../../rtk/user-slice";
-import DatePicker from 'react-native-date-picker'
+import DatePicker from 'react-datepicker'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from 'react-native-toast-message';
 
+import "react-datepicker/dist/react-datepicker.css";
 
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [open, setOpen] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -194,6 +195,12 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputContainer}>
+      <DatePicker
+      selected={date}
+      onChange={(date) => setDate(date)}
+      dateFormat="dd/MM/yyyy"
+      placeholderText="Select a date"
+    />
         {/* <Pressable onPress={showDatePicker}>
           <TextInput
             style={[styles.input, isSignUpError && styles.errorInput]}
