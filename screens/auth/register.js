@@ -4,17 +4,18 @@ import { TextInput, Button, Title, Paragraph, RadioButton } from "react-native-p
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { login } from "../../rtk/user-slice";
-import DatePicker from 'react-native-date-picker'
+import DatePicker from 'react-datepicker'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Toast from 'react-native-toast-message';
 
+import "react-datepicker/dist/react-datepicker.css";
 
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState(new Date());
+  const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [open, setOpen] = useState(false)
@@ -148,7 +149,7 @@ const register = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.text}>
         <Title style={styles.title}>Register</Title>
       </View>
@@ -196,6 +197,37 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputContainer}>
+      <DatePicker
+      selected={date}
+      onChange={(date) => setDate(date)}
+      dateFormat="yyyy-MM-dd"
+      placeholderText="Select a date"
+    />
+        {/* <Pressable onPress={showDatePicker}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Date of birth"
+            underlineColorAndroid="transparent"
+            keyboardType="default"
+            value={dateOfBirth}
+            onFocus={showDatePicker}
+            editable={false}
+          />
+        </Pressable>
+        {isDatePickerVisible && (
+          <DatePicker
+            modal
+            open={open}
+            date={dateOfBirth}
+            onConfirm={(dateOfBirthte) => {
+              setDatePickerVisibility(false)
+              setDateOfBirth(date)
+            }}
+            onCancel={() => {
+              setDatePickerVisibility(false)
+            }}
+          />
+        )} */}
 
         <View style={styles.genderCheck}>
           <RadioButton
@@ -214,6 +246,7 @@ const register = ({ navigation }) => {
           <Text style={styles.checkboxLabel}>Female</Text>
         </View>
 
+        {/*
         <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
           label="Date of birth"
           underlineColorAndroid="transparent"
@@ -251,7 +284,7 @@ const register = ({ navigation }) => {
           Register
         </Button>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
