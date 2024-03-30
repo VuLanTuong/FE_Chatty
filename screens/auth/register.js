@@ -147,7 +147,7 @@ const register = ({ navigation }) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.text}>
         <Title style={styles.title}>Register</Title>
       </View>
@@ -198,7 +198,7 @@ const register = ({ navigation }) => {
       <DatePicker
       selected={date}
       onChange={(date) => setDate(date)}
-      dateFormat="dd/MM/yyyy"
+      dateFormat="yyyy-MM-dd"
       placeholderText="Select a date"
     />
         {/* <Pressable onPress={showDatePicker}>
@@ -306,7 +306,7 @@ const register = ({ navigation }) => {
           Register
         </Button>
       </View>
-    </ScrollView>
+    </View>
   );
 };
 
