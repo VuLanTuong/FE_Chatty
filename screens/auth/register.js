@@ -17,6 +17,7 @@ const register = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [date, setDate] = useState(new Date());
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [open, setOpen] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
@@ -35,8 +36,9 @@ const register = ({ navigation }) => {
     console.log(isDatePickerVisible);
   };
 
-  const handleConfirm = (date) => {
+  const handleDateChange  = (selectedDate) => {
     console.warn("A date has been picked: ", date);
+    setDateOfBirth(selectedDate);
     hideDatePicker();
   };
 
@@ -227,31 +229,6 @@ const register = ({ navigation }) => {
           />
         )} */}
 
-        {/* <Pressable onPress={showDatePicker}>
-          <Text>Date of birth</Text>
-        </Pressable>
-        <DatePicker
-          modal
-          open={open}
-          date={date}
-          onConfirm={(date) => {
-            setDatePickerVisibility(false)
-            setDate(date)
-          }}
-          onCancel={() => {
-            setDatePickerVisibility(false)
-          }}
-        /> */}
-
-        {/* 
-        <Button title="Show Date Picker" onPress={showDatePicker} />
-        <DateTimePickerModal
-          date={date}
-          isVisible={isDatePickerVisible}
-          mode="date"
-          onConfirm={handleConfirm}
-          onCancel={hideDatePicker}
-        /> */}
         <View style={styles.genderCheck}>
           <RadioButton
             status={gender === 'Male' || gender === 'male' ? 'checked' : 'unchecked'}
@@ -269,11 +246,12 @@ const register = ({ navigation }) => {
           <Text style={styles.checkboxLabel}>Female</Text>
         </View>
 
+        {/*
         <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
           label="Date of birth"
           underlineColorAndroid="transparent"
           value={date}
-          onChangeText={(text) => setDate(text)} />
+          onChangeText={(text) => setDate(text)} /> */}
 
 
       </View>
