@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert, Pressable } from "react-native";
 import {
   TextInput,
   Button,
@@ -14,6 +14,7 @@ import { login, setFriend } from "../../rtk/user-slice";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
+import Toast from 'react-native-toast-message';
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
@@ -41,10 +42,24 @@ const Login = ({ navigation }) => {
           return;
         }
         console.log('response', data);
+        Toast.show({
+          type: 'success',
+          text1: 'Login successful',
+          position: 'top',
+          visibilityTime: 2000,
+
+        });
         return data.data;
       })
       .catch((error) => {
         console.log('Error:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Email and password correct',
+          position: 'top',
+          visibilityTime: 2000,
+        });
+        setLoginError(true)
       });
   };
 
@@ -125,31 +140,53 @@ const Login = ({ navigation }) => {
   }
 
   const onLogin = () => {
-    fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        phone: phoneNumber,
-        password: password,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        dispatch(login({
-          user: data.data.user
-        })
-        );
-        if (data.status === "success") {
-          console.log(data.data.token.access_token);
-          storeToken(data.data.token.access_token)
-          navigation.navigate("Home");
-        } else {
-          // Đăng nhập thất bại
-          setLoginError(true);
-        }
+    if (phoneNumber && password) {
+      fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phone: phoneNumber,
+          password: password,
+        }),
+      })
+        .then((response) => { return response.json() })
+        .then((data) => {
+          if (data.status === "success") {
+            console.log(data.data.token.access_token);
+            storeToken(data.data.token.access_token)
+            Toast.show({
+              type: 'error',
+              text1: 'Login correct',
+              position: 'top',
+              visibilityTime: 4000,
+            });
+            dispatch(login({
+              user: data.data.user
+            })
+            );
+            navigation.navigate("Home");
+          } else {
+            Toast.show({
+              type: 'error',
+              text1: 'Email and password incorrect',
+              position: 'top',
+              visibilityTime: 4000,
+            });
+            setLoginError(true);
+          }
+        });
+    }
+    else {
+      Toast.show({
+        type: 'error',
+        text1: 'Please enter your phone number and password',
+        position: 'top',
+        visibilityTime: 4000,
       });
+
+    }
   };
 
   return (
@@ -188,22 +225,16 @@ const Login = ({ navigation }) => {
           onChangeText={(text) => setPassword(text)}
         />
       </View>
-      <View style={styles.checkContainer}>
-        <Checkbox
-          status={checked ? "checked" : "unchecked"}
-          onPress={onPressCheckbox}
-        />
-        <Paragraph style={styles.checkText}>Remember me</Paragraph>
-      </View>
+
       <View style={styles.btnContainer}>
         <Button mode="contained" style={styles.btn} onPress={() => onLogin()}>
           Login
         </Button>
       </View>
       <View style={styles.forgetContainer}>
-        <TouchableRipple onPress={() => { }}>
-          <Caption style={styles.forgetText}>Forgot password?</Caption>
-        </TouchableRipple>
+        <Pressable onPress={() => { navigation.navigate('ForgotPassword') }}>
+          <Text style={styles.forgetText}>Forgot password?</Text>
+        </Pressable>
       </View>
     </ScrollView>
   );

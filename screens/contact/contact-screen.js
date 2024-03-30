@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { setFriend } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
+import { findFriendById } from '../../service/friend.util';
 export function ContactScreen({ navigation }) {
 
     const dispatch = useDispatch();
@@ -16,6 +17,15 @@ export function ContactScreen({ navigation }) {
 
     const [groups, setGroups] = useState([]);
 
+    const userProfile = async (id) => {
+        console.log(id);
+        const friendTemp = await findFriendById(id);
+        console.log(friendTemp);
+        navigation.navigate('FriendProfile', { friend: friendTemp })
+
+    }
+
+
 
 
     // find id list of friends
@@ -23,7 +33,7 @@ export function ContactScreen({ navigation }) {
     async function fetchAllFriend() {
         // use redux to get current user
         const accessToken = await getAccessToken();
-        const dispatch = useDispatch();
+
         await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends", {
             method: "GET",
             headers: {
@@ -139,24 +149,44 @@ export function ContactScreen({ navigation }) {
 
 
     // group friends by a starting letter
+    // const groupFriendsByLetter = (friends) => {
+    //     console.log(friends);
+    //     const friendGroupByName = friends.reduce((result, friend) => {
+    //         // get first letter of each friend
+    //         const letter = friend.name.charAt(0).toUpperCase();
+    //         if (!result[letter]) {
+    //             result[letter] = [];
+    //         }
+    //         console.log(result);
+    //         console.log(letter);
+    //         console.log(result['A'])
+    //         // add friend to group
+    //         // result is a list of friends
+    //         // result[letter] is a list of friends with the same starting letter
+    //         result[letter].push(friend);
+    //         return result;
+    //     }, {});
+    //     return friendGroupByName;
+    // };
+
+
     const groupFriendsByLetter = (friends) => {
-        console.log(friends);
         const friendGroupByName = friends.reduce((result, friend) => {
-            // get first letter of each friend
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
             }
-            console.log(result);
-            console.log(letter);
-            console.log(result['A'])
-            // add friend to group
-            // result is a list of friends
-            // result[letter] is a list of friends with the same starting letter
             result[letter].push(friend);
             return result;
         }, {});
-        return friendGroupByName;
+
+        // Sort the friend groups alphabetically
+        const sortedFriendGroups = {};
+        Object.keys(friendGroupByName).sort().forEach((letter) => {
+            sortedFriendGroups[letter] = friendGroupByName[letter];
+        });
+
+        return sortedFriendGroups;
     };
 
 
@@ -268,6 +298,7 @@ export function ContactScreen({ navigation }) {
                                     <View key={letter}>
                                         <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
                                         {groupedFriends[letter].map((friend) => (
+                                            // <Pressable onPress={() => userProfile(friend)}>
                                             <View key={friend.id}
                                                 style={{
                                                     flexDirection: 'row',
@@ -275,6 +306,7 @@ export function ContactScreen({ navigation }) {
                                                     marginTop: 10,
                                                     marginLeft: 10
                                                 }}>
+
                                                 <View style={{
                                                     flexDirection: 'row',
                                                     gap: 20
@@ -284,7 +316,7 @@ export function ContactScreen({ navigation }) {
                                                     <Pressable style={{
                                                         flexDirection: 'row',
                                                         gap: 20
-                                                    }}>
+                                                    }} onPress={() => userProfile(friend.userId)}>
                                                         {/* // api to get avatar */}
                                                         <Image source={{ uri: user.avatar }} style={{
                                                             width: 50,
@@ -301,6 +333,7 @@ export function ContactScreen({ navigation }) {
                                                     </Pressable>
                                                 </View>
                                             </View>
+                                            // </Pressable>
                                         ))}
                                     </View>
                                 ))}

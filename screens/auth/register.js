@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
-import { TextInput, Button, Title, Paragraph } from "react-native-paper";
+import { TextInput, Button, Title, Paragraph, RadioButton } from "react-native-paper";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useDispatch } from "react-redux";
 import { login } from "../../rtk/user-slice";
 import DatePicker from 'react-native-date-picker'
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-
+import Toast from 'react-native-toast-message';
 
 
 const register = ({ navigation }) => {
@@ -20,6 +20,8 @@ const register = ({ navigation }) => {
   const [open, setOpen] = useState(false)
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
+  const [gender, setGender] = useState("female");
+  const [noti, setNoti] = useState('')
 
   const dispatch = useDispatch();
 
@@ -55,6 +57,10 @@ const register = ({ navigation }) => {
       setIsSignUpError(true);
       return false;
     }
+    if (phoneExist(phone)) {
+      setIsSignUpError(true);
+      return false;
+    }
     return true;
   };
 
@@ -86,42 +92,59 @@ const register = ({ navigation }) => {
     }
   };
   const handleSignUp = async () => {
-    try {
-      // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
-      // if (isPhoneNumberExists || !validate()) {
-      //   setIsSignUpError(true);
-      //   return;
-      // }
-      const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          password,
-          dateOfBirth
-        }),
+    // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
+    // if (isPhoneNumberExists || !validate()) {
+    //   setIsSignUpError(true);
+    //   return;
+    // }
+    const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        email,
+        phone,
+        password,
+        dateOfBirth: date,
+        gender,
+      })
+    }).then((response) => {
+      console.log(response);
+      return response.json()
+
+    }).then((data) => {
+      if (data.status === 'fail') {
+        return Toast.show({
+          type: 'error',
+          text1: data.message,
+          position: 'top',
+          visibilityTime: 2000,
+
+        });
+      }
+      console.log(data);
+
+
+      storeData(data.data.token.access_token)
+      dispatch(login({
+        user: data.data.user
+      }))
+      Toast.show({
+        type: 'success',
+        text1: 'Register successfull',
+        position: 'top',
+        visibilityTime: 2000,
+
       });
 
-      if (response.ok) {
-        console.log("ok");
-        storeData(data.data.token.access_token)
-        dispatch(login({
-          user: data.data.user
-        }))
+      navigation.navigate("Home");
+    }).catch((error) => {
+      console.log(error.message);
 
-        navigation.navigate("Home");
-      } else {
-        const error = await response.json();
-        alert(error.error);
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Something went wrong. Please try again.");
-    }
+    })
+
   };
 
   return (
@@ -173,13 +196,33 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.inputContainer}>
-      
-        {/* <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
+
+        <View style={styles.genderCheck}>
+          <RadioButton
+            status={gender === 'Male' || gender === 'male' ? 'checked' : 'unchecked'}
+            onPress={() => setGender('male')}
+            color="#f558a4"
+            value='Male'
+          />
+          <Text style={styles.checkboxLabel}>Male</Text>
+          <RadioButton
+            status={gender === 'Female' || gender === 'female' ? 'checked' : 'unchecked'}
+            onPress={() => setGender('female')}
+            olor="#f558a4"
+            value='Female'
+          />
+          <Text style={styles.checkboxLabel}>Female</Text>
+        </View>
+
+        <TextInput style={[styles.input, isSignUpError && styles.errorInput]}
           label="Date of birth"
           underlineColorAndroid="transparent"
           value={date}
           onChangeText={(text) => setDate(text)} /> */}
 
+
+      </View>
+      <View style={styles.inputContainer}>
 
       </View>
       <View style={styles.inputContainer}>
@@ -259,6 +302,13 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
   },
+  checkboxLabel: {
+    marginTop: 7
+  },
+  genderCheck: {
+    flexDirection: 'row',
+    gap: "10px"
+  }
 });
 
 export default register;
