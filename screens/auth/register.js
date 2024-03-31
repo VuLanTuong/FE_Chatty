@@ -260,6 +260,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     paddingHorizontal: 10,
     paddingTop: 40,
+    gap: 10,
   },
   text: {
     alignItems: "left",
