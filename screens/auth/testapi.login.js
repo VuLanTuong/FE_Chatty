@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   signupLink: {
-    color: "#3f51b5",
+    color: "#f558a4",
     fontWeight: "bold",
   },
   inputContainer: {
@@ -295,13 +295,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 50,
     borderRadius: 25,
+    backgroundColor: "#f558a4",
   },
   forgetContainer: {
     marginTop: 10,
     alignItems: "center",
   },
   forgetText: {
-    color: "#3f51b5",
+    color: "#f558a4",
   },
 });
 
