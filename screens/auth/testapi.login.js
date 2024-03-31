@@ -15,13 +15,19 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
 import Toast from 'react-native-toast-message';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
   const [loginError, setLoginError] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
 
 
+  const toggleNewPasswordVisibility = () => {
+    setShowNewPassword((prevState) => !prevState);
+  };
   const dispatch = useDispatch();
   const onPressCheckbox = () => {
     setChecked(!checked);
@@ -115,6 +121,11 @@ const Login = ({ navigation }) => {
 
   }, [])
 
+  const handlePhoneNumber = (text) => {
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setPhoneNumber(numericValue);
+  };
+
 
   async function fetchAllFriend() {
     console.log("fetch all friend");
@@ -157,8 +168,8 @@ const Login = ({ navigation }) => {
             console.log(data.data.token.access_token);
             storeToken(data.data.token.access_token)
             Toast.show({
-              type: 'error',
-              text1: 'Login correct',
+              type: 'success',
+              text1: 'Login successful',
               position: 'top',
               visibilityTime: 4000,
             });
@@ -166,6 +177,7 @@ const Login = ({ navigation }) => {
               user: data.data.user
             })
             );
+            setPassword("")
             navigation.navigate("Home");
           } else {
             Toast.show({
@@ -210,20 +222,35 @@ const Login = ({ navigation }) => {
           style={[styles.input, loginError && styles.errorInput]}
           label="Phone"
           underlineColorAndroid="transparent"
-          keyboardType="phone-pad"
+          keyboardType="numeric"
           value={phoneNumber}
-          onChangeText={(text) => setPhoneNumber(text)}
+          maxLength={10}
+          onChangeText={handlePhoneNumber}
         />
       </View>
-      <View style={styles.inputContainer}>
+      <View style={{
+        marginBottom: 5,
+        flexDirection: 'row'
+      }}>
         <TextInput
           style={[styles.input, loginError && styles.errorInput]}
           label="Password"
           underlineColorAndroid="transparent"
-          secureTextEntry
+          secureTextEntry={!showNewPassword}
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
+        <Pressable
+          onPress={toggleNewPasswordVisibility}
+          style={styles.iconContainer}
+        >
+          <MaterialCommunityIcons
+            name={!showNewPassword ? 'eye-off' : 'eye'}
+            size={20}
+            style={styles.eyeIcon}
+          />
+        </Pressable>
+
       </View>
 
       <View style={styles.btnContainer}>
@@ -273,6 +300,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
+    width: '100%'
   },
   errorInput: {
     backgroundColor: "#ffcccc",
@@ -300,9 +328,19 @@ const styles = StyleSheet.create({
   forgetContainer: {
     marginTop: 10,
     alignItems: "center",
+
   },
   forgetText: {
     color: "#f558a4",
+    fontWeight: 500,
+    fontSize: 15
+  },
+  iconContainer: {
+    marginRight: 20,
+    position: 'absolute',
+    right: 0,
+    top: '40%'
+
   },
 });
 

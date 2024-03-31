@@ -19,12 +19,23 @@ export default function ForgotPassword({ navigation }) {
     const [isChangePassword, setIsChangePassword] = useState(false)
     const [otp, setOtp] = useState('');
 
+    const [message, setMessage] = useState('')
+
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
 
+    const showToast = () => {
+        Toast.show({
+            type: 'success',
+            text1: 'Check email to recieve otp',
+            visibilityTime: 2000,
+        });
+    };
+
     const handleOtpChange = (text) => {
-        setOtp(text);
+        const numericValue = text.replace(/[^0-9]/g, '');
+        setOtp(numericValue)
     };
 
     const handleVerifyOtp = async () => {
@@ -46,7 +57,6 @@ export default function ForgotPassword({ navigation }) {
                     text1: data.message,
                     position: 'top',
                     visibilityTime: 4000,
-
                 });
 
                 if (data.status === 'success') {
@@ -69,8 +79,6 @@ export default function ForgotPassword({ navigation }) {
         console.log(newPassword);
         console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
-
-
             await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/resetPassword", {
                 method: "POST",
                 headers: {
@@ -130,22 +138,10 @@ export default function ForgotPassword({ navigation }) {
                     console.log(resend);
                     if (!resend) {
                         setModalVisible(!isModalVisible);
-                        Toast.show({
-                            type: 'success',
-                            text1: data.message,
-                            position: 'top',
-                            visibilityTime: 4000,
-
-                        });
+                        setMessage(data.message)
                     }
                     else {
-                        Toast.show({
-                            type: 'success',
-                            text1: data.message,
-                            position: 'top',
-                            visibilityTime: 4000,
-
-                        });
+                        setMessage(data.message)
                     }
 
                 })
@@ -166,7 +162,6 @@ export default function ForgotPassword({ navigation }) {
     console.log(isModalVisible);
     return (
         <View style={styles.container}>
-
             <View style={styles.inputContainer}>
                 <TextInput
                     style={[styles.input]}
@@ -184,7 +179,8 @@ export default function ForgotPassword({ navigation }) {
                         height: 50,
                         width: '50%',
                         marginTop: 20,
-                        alignSelf: 'center'
+                        alignSelf: 'center',
+                        borderRadius: 30
                     }}
                     onPress={() => handleSendOTP(false)}
                 >
@@ -201,6 +197,7 @@ export default function ForgotPassword({ navigation }) {
 
                 <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
                     <View style={styles.modalContainer}>
+
                         <Text style={styles.modalText}>Enter OTP:</Text>
                         <TextInput
                             style={styles.otpInput}
@@ -209,6 +206,15 @@ export default function ForgotPassword({ navigation }) {
                             maxLength={6}
                             keyboardType="numeric"
                         />
+                        <Text style={{
+                            color: 'red',
+                            fontStyle: 'italic',
+                            fontWeight: '500',
+                            marginTop: 5,
+                            marginBottom: 5
+
+
+                        }}>*{message}</Text>
                         <View style={{
                             flexDirection: 'row',
                             gap: 50,
@@ -238,10 +244,13 @@ export default function ForgotPassword({ navigation }) {
 
                 <Modal isVisible={isChangePassword}>
                     <View style={styles.modalContainer}>
-                        <View style={styles.inputContainerChangePassword}>
+                        <View style={{
+                            marginBottom: 5,
+                            flexDirection: 'row'
+                        }}>
                             <TextInput
-                                style={styles.input}
-                                label="New password"
+                                style={[styles.input]}
+                                label="Password"
                                 underlineColorAndroid="transparent"
                                 secureTextEntry={!showNewPassword}
                                 value={newPassword}
@@ -252,17 +261,20 @@ export default function ForgotPassword({ navigation }) {
                                 style={styles.iconContainer}
                             >
                                 <MaterialCommunityIcons
-                                    name={showNewPassword ? 'eye-off' : 'eye'}
+                                    name={!showNewPassword ? 'eye-off' : 'eye'}
                                     size={20}
                                     style={styles.eyeIcon}
                                 />
                             </Pressable>
-                        </View>
 
-                        <View style={styles.inputContainerChangePassword}>
+                        </View>
+                        <View style={{
+                            marginBottom: 5,
+                            flexDirection: 'row'
+                        }}>
                             <TextInput
-                                style={styles.input}
-                                label="Confirm new password"
+                                style={[styles.input]}
+                                label="Confirm Password"
                                 underlineColorAndroid="transparent"
                                 secureTextEntry={!showConfirmNewPassword}
                                 value={confirmNewPassword}
@@ -273,11 +285,12 @@ export default function ForgotPassword({ navigation }) {
                                 style={styles.iconContainer}
                             >
                                 <MaterialCommunityIcons
-                                    name={showConfirmNewPassword ? 'eye-off' : 'eye'}
+                                    name={!showConfirmNewPassword ? 'eye-off' : 'eye'}
                                     size={20}
                                     style={styles.eyeIcon}
                                 />
                             </Pressable>
+
                         </View>
 
                         <Pressable style={styles.saveButton} onPress={() => {
@@ -307,35 +320,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#fff",
-        paddingHorizontal: 10,
         paddingTop: 70,
+        paddingHorizontal: 10
     },
-    text: {
-        alignItems: "left",
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        paddingBottom: 20,
-    },
-    signupContainer: {
-        marginTop: 10,
-        alignItems: "left",
-        marginBottom: 20,
-    },
-    signupText: {
-        fontSize: 14,
-    },
-    signupLink: {
-        color: "#3f51b5",
-        fontWeight: "bold",
-    },
+
     inputContainer: {
         marginBottom: 15,
     },
     input: {
         backgroundColor: "#f5f5f5",
-        paddingLeft: 10,
     },
     checkContainer: {
         flexDirection: "row",
@@ -366,6 +359,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 20,
         borderRadius: 10,
+        gap: 5
     },
     modalText: {
         fontSize: 18,
@@ -377,6 +371,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         padding: 10,
         marginBottom: 10,
+        fontSize: 20,
+        fontWeight: 500
     },
     inputContainerChangePassword: {
         marginBottom: 15,
@@ -388,7 +384,9 @@ const styles = StyleSheet.create({
         marginLeft: 15
     },
     iconContainer: {
-        marginRight: 20
+        marginRight: 20,
+        position: 'absolute',
+        right: 0,
 
     },
     eyeIcon: {
@@ -397,7 +395,7 @@ const styles = StyleSheet.create({
         marginLeft: 10
     },
     saveButton: {
-        width: 340,
+        width: '100%',
         height: 40,
         backgroundColor: '#f5a4c6',
         borderRadius: 5,
