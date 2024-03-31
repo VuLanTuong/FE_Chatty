@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import DateTimePicker from "react-native-ui-datepicker";
 import dayjs from "dayjs";
 import "react-datepicker/dist/react-datepicker.css";
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -27,11 +28,27 @@ const register = ({ navigation }) => {
   const [gender, setGender] = useState("female");
 
   const [showModal, setShowModal] = useState(false);
+
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const toggleModal = () => {
     setShowModal(!showModal);
   };
 
+  const toggleNewPasswordVisibility = () => {
+    setShowNewPassword((prevState) => !prevState);
+  };
+
+  const toggleConfirmNewPasswordVisibility = () => {
+    setShowConfirmNewPassword((prevState) => !prevState);
+  };
   const dispatch = useDispatch();
+
+  const handlePhoneNumber = (text) => {
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setPhone(numericValue);
+  };
+
 
   const validate = () => {
     if (
@@ -87,56 +104,68 @@ const register = ({ navigation }) => {
     //   setIsSignUpError(true);
     //   return;
     // }
-    const response = await fetch(
-      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          phone,
-          password,
-          dateOfBirth: date.format("YYYY-MM-DD"),
-          gender,
-        }),
-      }
-    )
-      .then((response) => {
-        console.log(response);
-        return response.json();
-      })
-      .then((data) => {
-        if (data.status === "fail") {
-          return Toast.show({
-            type: "error",
-            text1: data.message,
+
+    if (confirmPassword === password) {
+      const response = await fetch(
+        "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            phone,
+            password,
+            dateOfBirth: date.format("YYYY-MM-DD"),
+            gender,
+          }),
+        }
+      )
+        .then((response) => {
+          console.log(response);
+          return response.json();
+        })
+        .then((data) => {
+          if (data.status === "fail") {
+            return Toast.show({
+              type: "error",
+              text1: data.message,
+              position: "top",
+              visibilityTime: 2000,
+            });
+          }
+          console.log(data);
+
+          storeData(data.data.token.access_token);
+          dispatch(
+            login({
+              user: data.data.user,
+            })
+          );
+          Toast.show({
+            type: "success",
+            text1: "Register successfull",
             position: "top",
             visibilityTime: 2000,
           });
-        }
-        console.log(data);
 
-        storeData(data.data.token.access_token);
-        dispatch(
-          login({
-            user: data.data.user,
-          })
-        );
-        Toast.show({
-          type: "success",
-          text1: "Register successfull",
-          position: "top",
-          visibilityTime: 2000,
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.log(error.message);
         });
-
-        navigation.navigate("Home");
-      })
-      .catch((error) => {
-        console.log(error.message);
+    }
+    else {
+      Toast.show({
+        type: "error",
+        text1: "Password and confirm password not match",
+        position: "top",
+        visibilityTime: 2000,
       });
+    }
+
   };
 
   return (
@@ -166,7 +195,10 @@ const register = ({ navigation }) => {
         />
       </View>
       <View style={styles.genderCheck}>
-        <Text>Gender</Text>
+        <Text style={{
+          marginTop: 8,
+          marginLeft: 5
+        }}>Gender</Text>
         <RadioButton
           status={
             gender === "Male" || gender === "male" ? "checked" : "unchecked"
@@ -187,7 +219,7 @@ const register = ({ navigation }) => {
         <Text style={styles.checkboxLabel}>Female</Text>
       </View>
       <View style={styles.inputContainer}>
-      <Pressable onPress={toggleModal} style={styles.modalButton}>
+        <Pressable onPress={toggleModal} style={styles.modalButton}>
           <TextInput
             label={"Date of birth"}
             value={date.format("YYYY-MM-DD")}
@@ -200,10 +232,10 @@ const register = ({ navigation }) => {
               date={date}
               onChange={(params) => setDate(params.date)}
             />
-            <Button style={{backgroundColor: '#f558a4'}} onPress={toggleModal}>OK</Button>
+            <Button style={{ backgroundColor: '#f558a4' }} onPress={toggleModal}>OK</Button>
           </View>
         </Modal>
-      </View>      
+      </View>
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, isSignUpError && styles.errorInput]}
@@ -221,28 +253,56 @@ const register = ({ navigation }) => {
           underlineColorAndroid="transparent"
           keyboardType="numeric"
           value={phone}
-          onChangeText={(text) => setPhone(text)}
+          onChangeText={handlePhoneNumber}
         />
       </View>
-      <View style={styles.inputContainer}>
+      <View style={{
+        marginBottom: 5,
+        flexDirection: 'row'
+      }}>
         <TextInput
           style={[styles.input, isSignUpError && styles.errorInput]}
           label="Password"
           underlineColorAndroid="transparent"
-          secureTextEntry
+          secureTextEntry={!showNewPassword}
           value={password}
           onChangeText={(text) => setPassword(text)}
         />
+        <Pressable
+          onPress={toggleNewPasswordVisibility}
+          style={styles.iconContainer}
+        >
+          <MaterialCommunityIcons
+            name={!showNewPassword ? 'eye-off' : 'eye'}
+            size={20}
+            style={styles.eyeIcon}
+          />
+        </Pressable>
+
       </View>
-      <View style={styles.inputContainer}>
+      <View style={{
+        marginBottom: 5,
+        flexDirection: 'row'
+      }}>
         <TextInput
           style={[styles.input, isSignUpError && styles.errorInput]}
           label="Confirm Password"
           underlineColorAndroid="transparent"
-          secureTextEntry
+          secureTextEntry={!showConfirmNewPassword}
           value={confirmPassword}
           onChangeText={(text) => setConfirmPassword(text)}
         />
+        <Pressable
+          onPress={toggleConfirmNewPasswordVisibility}
+          style={styles.iconContainer}
+        >
+          <MaterialCommunityIcons
+            name={!showConfirmNewPassword ? 'eye-off' : 'eye'}
+            size={20}
+            style={styles.eyeIcon}
+          />
+        </Pressable>
+
       </View>
 
       <View style={styles.btnContainer}>
@@ -288,6 +348,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
+    width: '100%'
   },
   errorInput: {
     backgroundColor: "#ffcccc",
@@ -321,6 +382,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 4,
     borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  iconContainer: {
+    marginRight: 20,
+    position: 'absolute',
+    right: 0,
+    top: '40%'
+
   },
 });
 
