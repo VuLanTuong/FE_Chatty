@@ -141,7 +141,7 @@ export default function ForgotPassword({ navigation }) {
                         setMessage(data.message)
                     }
                     else {
-                        setMessage(data.message)
+                        setMessage("Resend OTP success \n" + data.message)
                     }
 
                 })
@@ -215,6 +215,15 @@ export default function ForgotPassword({ navigation }) {
 
 
                         }}>*{message}</Text>
+                        <Text style={{
+                            color: 'red',
+                            fontStyle: 'italic',
+                            fontWeight: '500',
+                            marginTop: 5,
+                            marginBottom: 5
+
+
+                        }}>*OTP is a 6-digit number </Text>
                         <View style={{
                             flexDirection: 'row',
                             gap: 50,
