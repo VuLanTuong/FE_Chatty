@@ -51,23 +51,17 @@ const register = ({ navigation }) => {
 
 
   const validate = () => {
-    if (
-      phone.length === 0 ||
-      phone.length > 10 ||
-      password.length === 0 ||
-      confirmPassword.length === 0
-    ) {
-      setIsSignUpError(true);
-      return false;
+    const phoneRegex = /^(03|05|07|08|09|01[2689])([0-9]{8})\b/;
+
+    if (!phone.match(phoneRegex)) {
+      console.log("phone invalid");
+      return false
     }
     if (password !== confirmPassword) {
       setIsSignUpError(true);
       return false;
     }
-    if (phoneExist(phone)) {
-      setIsSignUpError(true);
-      return false;
-    }
+
     return true;
   };
 
@@ -105,68 +99,82 @@ const register = ({ navigation }) => {
     //   return;
     // }
 
-    if (confirmPassword === password) {
-      const response = await fetch(
-        "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            name,
-            email,
-            phone,
-            password,
-            dateOfBirth: date.format("YYYY-MM-DD"),
-            gender,
-          }),
-        }
-      )
-        .then((response) => {
-          console.log(response);
-          return response.json();
-        })
-        .then((data) => {
-          if (data.status === "fail") {
-            return Toast.show({
-              type: "error",
-              text1: data.message,
+    if (phone.match(/^(03|05|07|08|09|01[2689])([0-9]{8})\b/)) {
+      if (confirmPassword === password) {
+
+
+        const response = await fetch(
+          "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name,
+              email,
+              phone,
+              password,
+              dateOfBirth: date.format("YYYY-MM-DD"),
+              gender,
+            }),
+          }
+        )
+          .then((response) => {
+            console.log(response);
+            return response.json();
+          })
+          .then((data) => {
+            if (data.status === "fail") {
+              return Toast.show({
+                type: "error",
+                text1: data.message,
+                position: "top",
+                visibilityTime: 2000,
+              });
+            }
+            console.log(data);
+
+            storeData(data.data.token.access_token);
+            dispatch(
+              login({
+                user: data.data.user,
+              })
+            );
+            Toast.show({
+              type: "success",
+              text1: "Register successfull",
               position: "top",
               visibilityTime: 2000,
             });
-          }
-          console.log(data);
 
-          storeData(data.data.token.access_token);
-          dispatch(
-            login({
-              user: data.data.user,
-            })
-          );
-          Toast.show({
-            type: "success",
-            text1: "Register successfull",
-            position: "top",
-            visibilityTime: 2000,
+            navigation.navigate("Home");
+          })
+          .catch((error) => {
+            console.log(error.message);
           });
-
-          navigation.navigate("Home");
-        })
-        .catch((error) => {
-          console.log(error.message);
+      }
+      else {
+        Toast.show({
+          type: "error",
+          text1: "Password and confirm password not match",
+          position: "top",
+          visibilityTime: 4000,
         });
+      }
     }
     else {
       Toast.show({
         type: "error",
-        text1: "Password and confirm password not match",
+        text1: "Phone must be valid in Viet Nam",
         position: "top",
-        visibilityTime: 2000,
+        visibilityTime: 4000,
       });
     }
+  }
 
-  };
+
+
 
   return (
     <View style={styles.container}>
@@ -253,6 +261,7 @@ const register = ({ navigation }) => {
           underlineColorAndroid="transparent"
           keyboardType="numeric"
           value={phone}
+          maxLength={10}
           onChangeText={handlePhoneNumber}
         />
       </View>

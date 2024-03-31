@@ -21,16 +21,10 @@ export default function ForgotPassword({ navigation }) {
 
     const [message, setMessage] = useState('')
 
+    const [errPassword, setErrPassword] = useState('')
+
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
-    };
-
-    const showToast = () => {
-        Toast.show({
-            type: 'success',
-            text1: 'Check email to recieve otp',
-            visibilityTime: 2000,
-        });
     };
 
     const handleOtpChange = (text) => {
@@ -79,42 +73,44 @@ export default function ForgotPassword({ navigation }) {
         console.log(newPassword);
         console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
-            await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/resetPassword", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    email: email,
-                    password: newPassword
-                })
-            }).then((response) => {
-                console.log(response);
-                return response.json()
-            }).then((data) => {
-                if (data.status === 'success') {
+            if (newPassword.length >= 6) {
+                await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/resetPassword", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: newPassword
+                    })
+                }).then((response) => {
+                    console.log(response);
+                    return response.json()
+                }).then((data) => {
+                    if (data.status === 'success') {
+                        Toast.show({
+                            type: 'success',
+                            text1: 'Change password successfully!',
+                        });
+                        setIsChangePassword(!isChangePassword)
+                        navigation.navigate("Login");
+                    }
+
+                }).catch((error) => {
+                    console.log(error);
                     Toast.show({
-                        type: 'success',
-                        text1: 'Change password successfully!',
+                        type: 'error',
+                        text1: 'Change password failed!',
                     });
-                    setIsChangePassword(!isChangePassword)
-                    navigation.navigate("Login");
-                }
 
-            }).catch((error) => {
-                console.log(error);
-                Toast.show({
-                    type: 'error',
-                    text1: 'Change password failed!',
-                });
-
-            })
+                })
+            }
+            else {
+                setErrPassword("Password must be have >= 6 digits")
+            }
         }
         else {
-            Toast.show({
-                type: 'error',
-                text1: 'New password and confirm password not match',
-            });
+            setErrPassword("New password and confirm password not match")
         }
     }
 
@@ -302,6 +298,14 @@ export default function ForgotPassword({ navigation }) {
 
                         </View>
 
+                        <Text style={{
+                            color: 'red',
+                            fontStyle: 'italic',
+                            fontWeight: '500',
+                            marginTop: 5,
+                            marginBottom: 5,
+                            marginLeft: 5
+                        }}>*{errPassword}</Text>
                         <Pressable style={styles.saveButton} onPress={() => {
                             changePassword()
 
@@ -320,7 +324,7 @@ export default function ForgotPassword({ navigation }) {
                     </View>
                 </Modal>
             </View>
-            ``
+
 
         </View>
     )
