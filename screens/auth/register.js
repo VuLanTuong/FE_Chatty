@@ -14,7 +14,7 @@ import { login } from "../../rtk/user-slice";
 import Toast from "react-native-toast-message";
 import DateTimePicker from "react-native-ui-datepicker";
 import dayjs from "dayjs";
-import "react-datepicker/dist/react-datepicker.css";
+// import "react-datepicker/dist/react-datepicker.css";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 const register = ({ navigation }) => {
@@ -177,149 +177,153 @@ const register = ({ navigation }) => {
 
 
   return (
-    <View style={styles.container}>
-      <View style={styles.text}>
-        <Title style={styles.title}>Register</Title>
-      </View>
-      <View style={styles.signupContainer}>
-        <Paragraph style={styles.signupText}>
-          Do not have an account yet?{" "}
-          <Text
-            style={styles.signupLink}
-            onPress={() => navigation.navigate("Login")}
-          >
-            Log in
-          </Text>
-        </Paragraph>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
-          label="Name"
-          underlineColorAndroid="transparent"
-          keyboardType="default"
-          value={name}
-          onChangeText={(text) => setName(text)}
-        />
-      </View>
-      <View style={styles.genderCheck}>
-        <Text style={{
-          marginTop: 8,
-          marginLeft: 5
-        }}>Gender</Text>
-        <RadioButton
-          status={
-            gender === "Male" || gender === "male" ? "checked" : "unchecked"
-          }
-          onPress={() => setGender("male")}
-          color="#f558a4"
-          value="Male"
-        />
-        <Text style={styles.checkboxLabel}>Male</Text>
-        <RadioButton
-          status={
-            gender === "Female" || gender === "female" ? "checked" : "unchecked"
-          }
-          onPress={() => setGender("female")}
-          color="#f558a4"
-          value="Female"
-        />
-        <Text style={styles.checkboxLabel}>Female</Text>
-      </View>
-      <View style={styles.inputContainer}>
-        <Pressable onPress={toggleModal} style={styles.modalButton}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps='handled'
+    >
+      <View style={styles.container}>
+        <View style={styles.text}>
+          <Title style={styles.title}>Register</Title>
+        </View>
+        <View style={styles.signupContainer}>
+          <Paragraph style={styles.signupText}>
+            Do not have an account yet?{" "}
+            <Text
+              style={styles.signupLink}
+              onPress={() => navigation.navigate("Login")}
+            >
+              Log in
+            </Text>
+          </Paragraph>
+        </View>
+        <View style={styles.inputContainer}>
           <TextInput
-            label={"Date of birth"}
-            value={date.format("YYYY-MM-DD")}
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Name"
+            underlineColorAndroid="transparent"
+            keyboardType="default"
+            value={name}
+            onChangeText={(text) => setName(text)}
           />
-        </Pressable>
-        <Modal isVisible={showModal} onBackdropPress={toggleModal}>
-          <View style={styles.modalContent}>
-            <DateTimePicker
-              mode="single"
-              date={date}
-              onChange={(params) => setDate(params.date)}
+        </View>
+        <View style={styles.genderCheck}>
+          <Text style={{
+            marginTop: 8,
+            marginLeft: 5
+          }}>Gender</Text>
+          <RadioButton
+            status={
+              gender === "Male" || gender === "male" ? "checked" : "unchecked"
+            }
+            onPress={() => setGender("male")}
+            color="#f558a4"
+            value="Male"
+          />
+          <Text style={styles.checkboxLabel}>Male</Text>
+          <RadioButton
+            status={
+              gender === "Female" || gender === "female" ? "checked" : "unchecked"
+            }
+            onPress={() => setGender("female")}
+            color="#f558a4"
+            value="Female"
+          />
+          <Text style={styles.checkboxLabel}>Female</Text>
+        </View>
+        <View style={styles.inputContainer}>
+          <Pressable onPress={toggleModal} style={styles.modalButton}>
+            <TextInput
+              label={"Date of birth"}
+              value={date.format("YYYY-MM-DD")}
             />
-            <Button style={{ backgroundColor: '#f558a4' }} onPress={toggleModal}>OK</Button>
-          </View>
-        </Modal>
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
-          label="Email"
-          underlineColorAndroid="transparent"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={(text) => setEmail(text)}
-        />
-      </View>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
-          label="Phone"
-          underlineColorAndroid="transparent"
-          keyboardType="numeric"
-          value={phone}
-          maxLength={10}
-          onChangeText={handlePhoneNumber}
-        />
-      </View>
-      <View style={{
-        marginBottom: 5,
-        flexDirection: 'row'
-      }}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
-          label="Password"
-          underlineColorAndroid="transparent"
-          secureTextEntry={!showNewPassword}
-          value={password}
-          onChangeText={(text) => setPassword(text)}
-        />
-        <Pressable
-          onPress={toggleNewPasswordVisibility}
-          style={styles.iconContainer}
-        >
-          <MaterialCommunityIcons
-            name={!showNewPassword ? 'eye-off' : 'eye'}
-            size={20}
-            style={styles.eyeIcon}
+          </Pressable>
+          <Modal isVisible={showModal} onBackdropPress={toggleModal}>
+            <View style={styles.modalContent}>
+              <DateTimePicker
+                mode="single"
+                date={date}
+                onChange={(params) => setDate(params.date)}
+              />
+              <Button style={{ backgroundColor: '#f558a4' }} onPress={toggleModal}>OK</Button>
+            </View>
+          </Modal>
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Email"
+            underlineColorAndroid="transparent"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={(text) => setEmail(text)}
           />
-        </Pressable>
-
-      </View>
-      <View style={{
-        marginBottom: 5,
-        flexDirection: 'row'
-      }}>
-        <TextInput
-          style={[styles.input, isSignUpError && styles.errorInput]}
-          label="Confirm Password"
-          underlineColorAndroid="transparent"
-          secureTextEntry={!showConfirmNewPassword}
-          value={confirmPassword}
-          onChangeText={(text) => setConfirmPassword(text)}
-        />
-        <Pressable
-          onPress={toggleConfirmNewPasswordVisibility}
-          style={styles.iconContainer}
-        >
-          <MaterialCommunityIcons
-            name={!showConfirmNewPassword ? 'eye-off' : 'eye'}
-            size={20}
-            style={styles.eyeIcon}
+        </View>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Phone"
+            underlineColorAndroid="transparent"
+            keyboardType="numeric"
+            value={phone}
+            maxLength={10}
+            onChangeText={handlePhoneNumber}
           />
-        </Pressable>
+        </View>
+        <View style={{
+          marginBottom: 5,
+          flexDirection: 'row'
+        }}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Password"
+            underlineColorAndroid="transparent"
+            secureTextEntry={!showNewPassword}
+            value={password}
+            onChangeText={(text) => setPassword(text)}
+          />
+          <Pressable
+            onPress={toggleNewPasswordVisibility}
+            style={styles.iconContainer}
+          >
+            <MaterialCommunityIcons
+              name={!showNewPassword ? 'eye-off' : 'eye'}
+              size={20}
+              style={styles.eyeIcon}
+            />
+          </Pressable>
 
-      </View>
+        </View>
+        <View style={{
+          marginBottom: 5,
+          flexDirection: 'row'
+        }}>
+          <TextInput
+            style={[styles.input, isSignUpError && styles.errorInput]}
+            label="Confirm Password"
+            underlineColorAndroid="transparent"
+            secureTextEntry={!showConfirmNewPassword}
+            value={confirmPassword}
+            onChangeText={(text) => setConfirmPassword(text)}
+          />
+          <Pressable
+            onPress={toggleConfirmNewPasswordVisibility}
+            style={styles.iconContainer}
+          >
+            <MaterialCommunityIcons
+              name={!showConfirmNewPassword ? 'eye-off' : 'eye'}
+              size={20}
+              style={styles.eyeIcon}
+            />
+          </Pressable>
 
-      <View style={styles.btnContainer}>
-        <Button mode="contained" style={styles.btn} onPress={handleSignUp}>
-          Register
-        </Button>
+        </View>
+
+        <View style={styles.btnContainer}>
+          <Button mode="contained" style={styles.btn} onPress={handleSignUp}>
+            Register
+          </Button>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 

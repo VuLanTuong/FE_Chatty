@@ -3,7 +3,7 @@ import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import ContactScreen from './screens/contact/contact-screen';
 import LoginScreen from './screens/auth/testapi.login';
 // import LoginScreen from './screens/auth/login';
@@ -29,7 +29,8 @@ import { useEffect } from 'react';
 import getAccessToken from './screens/user-profile/getAccessToken';
 import { useDispatch } from "react-redux";
 import { login } from "./rtk/user-slice";
-import ForgotPassword from './screens/auth/forgot-password';
+// import ForgotPassword from './screens/auth/forgot-password';
+import ForgotPassword from './screens/auth/forgot-password-for-phone';
 
 
 
@@ -258,6 +259,7 @@ const getMe = async (token) => {
 
 
 export default function App() {
+  const toastRef = useRef();
   // // const dispatch = useDispatch();
   // useEffect(() => {
   //   getAccessToken().then((token) => {
@@ -278,7 +280,7 @@ export default function App() {
     <Provider store={store}>
       {/* <ChatScreen /> */}
       <AppNavigator />
-      <Toast ref={(ref) => Toast.setRef(ref)} />
+      <Toast ref={toastRef} />
     </Provider>
 
 

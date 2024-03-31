@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Button } from 'react-native';
-import Modal from 'react-native-modal';
+import { View, Text, Pressable, StyleSheet, Button, Modal } from 'react-native';
+// import Modal from 'react-native-modal';
 import { TextInput } from "react-native-paper";
 import Toast from 'react-native-toast-message';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAccessToken } from '../user-profile/getAccessToken';
-
+import { TouchableOpacity, Platform } from 'react-native';
 
 export default function ForgotPassword({ navigation }) {
     const [email, setEmail] = useState();
@@ -22,10 +22,23 @@ export default function ForgotPassword({ navigation }) {
     const [message, setMessage] = useState('')
 
     const [errPassword, setErrPassword] = useState('')
+    const [errOtp, setErrOtp] = useState('')
 
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
+
+    const openModalChangePassword = () => {
+        setIsChangePassword(!isChangePassword);
+    };
+
+    const displayModalWithDelay = () => {
+        setTimeout(() => {
+            openModalChangePassword();
+        }, Platform.OS === 'ios' ? 200 : 0);
+    };
+
+
 
     const handleOtpChange = (text) => {
         const numericValue = text.replace(/[^0-9]/g, '');
@@ -52,10 +65,10 @@ export default function ForgotPassword({ navigation }) {
                     position: 'top',
                     visibilityTime: 4000,
                 });
-
                 if (data.status === 'success') {
                     toggleModal();
-                    setIsChangePassword(!isChangePassword);
+                    setIsChangePassword(!isChangePassword)
+
                 }
             })
     };
@@ -68,9 +81,11 @@ export default function ForgotPassword({ navigation }) {
         setShowConfirmNewPassword((prevState) => !prevState);
     };
 
+    console.log("is change password" + isChangePassword);
+
     const changePassword = async () => {
         console.log(email);
-        console.log(newPassword);
+        console.log(typeof (newPassword));
         console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
             if (newPassword.length >= 6) {
@@ -159,41 +174,50 @@ export default function ForgotPassword({ navigation }) {
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
-                <TextInput
-                    style={[styles.input]}
-                    label="Please enter your email address"
-                    underlineColorAndroid="transparent"
-                    value={email}
-                    onChangeText={(text) => setEmail(text)}
-                />
-                <Pressable
-                    style={{
-                        backgroundColor: '#f558a4',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        height: 50,
-                        width: '50%',
-                        marginTop: 20,
-                        alignSelf: 'center',
-                        borderRadius: 30
-                    }}
-                    onPress={() => handleSendOTP(false)}
-                >
-                    <Text
+                <View style={{
+                    flexDirection: 'column',
+                    gap: 25
+                }}>
+                    <TextInput
+                        style={[styles.input]}
+                        label="Please enter your email address"
+                        // underlineColorAndroid="transparent"
+                        value={email}
+                        onChangeText={(text) => setEmail(text)}
+                    />
+
+
+                    <Pressable
                         style={{
-                            color: 'white',
-                            fontSize: 17,
-                            fontWeight: 500,
+                            backgroundColor: '#f558a4',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: 50,
+                            width: '50%',
+                            marginTop: 80,
+                            alignSelf: 'center',
+                            borderRadius: 30
                         }}
+                        onPress={() => handleSendOTP(false)}
                     >
-                        Confirm
-                    </Text>
-                </Pressable>
+                        <Text
+                            style={{
+                                color: 'white',
+                                fontSize: 17,
+                                fontWeight: 500,
+                            }}
+                        >
+                            Confirm
+                        </Text>
+                    </Pressable>
 
-                <Modal isVisible={isModalVisible} onBackdropPress={toggleModal}>
+                </View>
+
+                {/* 
+                <Modal visible={isModalVisible} onBackdropPress={toggleModal}> */}
+                <Modal visible={isModalVisible} onRequestClose={toggleModal}>
                     <View style={styles.modalContainer}>
-
                         <Text style={styles.modalText}>Enter OTP:</Text>
                         <TextInput
                             style={styles.otpInput}
@@ -242,12 +266,34 @@ export default function ForgotPassword({ navigation }) {
                                 <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Resend otp</Text>
                             </Pressable>
                         </View>
+                        <View style={{
+                            flexDirection: 'row',
+                            gap: 50,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            <Pressable style={{
+                                width: '100%',
+                                height: 40,
+                                backgroundColor: '#c9c9c9',
+                                borderRadius: 5,
+                                marginTop: 20,
+                                flexDirection: 'row',
+                                gap: 10,
+                                justifyContent: 'center',
+                                marginLeft: 10,
+                            }} onPress={toggleModal}>
+                                <Text style={{
+                                    color: 'black', textAlign: 'center', marginTop: 15
+                                }}>Close</Text>
+                            </Pressable>
+                        </View>
 
                     </View>
                 </Modal>
 
 
-                <Modal isVisible={isChangePassword}>
+                <Modal visible={isChangePassword}>
                     <View style={styles.modalContainer}>
                         <View style={{
                             marginBottom: 5,
@@ -322,6 +368,28 @@ export default function ForgotPassword({ navigation }) {
                             }}>Change password</Text>
                         </Pressable>
                     </View>
+                    <View style={{
+                        flexDirection: 'row',
+                        gap: 50,
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                    }}>
+                        <Pressable style={{
+                            width: '90%',
+                            height: 40,
+                            backgroundColor: '#c9c9c9',
+                            borderRadius: 5,
+
+                            flexDirection: 'row',
+                            gap: 10,
+                            justifyContent: 'center',
+                        }} onPress={toggleModal}>
+                            <Text style={{
+                                color: 'black', textAlign: 'center', marginTop: 15
+                            }}>Close</Text>
+                        </Pressable>
+                    </View>
+
                 </Modal>
             </View>
 
@@ -372,7 +440,8 @@ const styles = StyleSheet.create({
         backgroundColor: 'white',
         padding: 20,
         borderRadius: 10,
-        gap: 5
+        gap: 5,
+        marginTop: 250
     },
     modalText: {
         fontSize: 18,
@@ -394,6 +463,7 @@ const styles = StyleSheet.create({
     input: {
         backgroundColor: '#f5f5f5',
         flex: 1,
+
     },
     iconContainer: {
         marginRight: 20,
@@ -415,6 +485,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         gap: 10,
         justifyContent: 'center',
+
     },
     saveIcon: {
         marginTop: 10,
