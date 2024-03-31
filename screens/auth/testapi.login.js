@@ -183,7 +183,7 @@ const Login = ({ navigation }) => {
           } else {
             Toast.show({
               type: 'error',
-              text1: 'Email and password incorrect',
+              text1: 'Phone number and password incorrect',
               position: 'top',
               visibilityTime: 4000,
             });
