@@ -178,6 +178,7 @@ const Login = ({ navigation }) => {
             })
             );
             setPassword("")
+            setLoginError(false)
             navigation.navigate("Home");
           } else {
             Toast.show({
