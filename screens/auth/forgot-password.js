@@ -22,6 +22,7 @@ export default function ForgotPassword({ navigation }) {
     const [message, setMessage] = useState('')
 
     const [errPassword, setErrPassword] = useState('')
+    const [errOtp, setErrOtp] = useState('')
 
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
@@ -56,6 +57,9 @@ export default function ForgotPassword({ navigation }) {
                 if (data.status === 'success') {
                     toggleModal();
                     setIsChangePassword(!isChangePassword);
+                }
+                else {
+                    setErrOtp("Invalid OTP")
                 }
             })
     };
@@ -202,6 +206,15 @@ export default function ForgotPassword({ navigation }) {
                             maxLength={6}
                             keyboardType="numeric"
                         />
+                        <Text style={{
+                            color: 'red',
+                            fontStyle: 'italic',
+                            fontWeight: '500',
+                            marginTop: 5,
+                            marginBottom: 5
+
+
+                        }}>*{errOtp}</Text>
                         <Text style={{
                             color: 'red',
                             fontStyle: 'italic',

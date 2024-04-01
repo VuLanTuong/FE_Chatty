@@ -42,7 +42,7 @@ const FindFriend = ({ navigation }) => {
         <View style={styles.container}>
             <View style={styles.inputContainer}>
                 <View style={styles.prefixContainer}>
-                    <Text style={styles.prefixText}>+84</Text>
+                    <Text style={styles.prefixText}>VN</Text>
                 </View>
                 <TextInput
                     mode='outlined'
