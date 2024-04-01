@@ -9,7 +9,9 @@ import ImagePicker from 'react-native-image-picker';
 import { useDispatch } from "react-redux";
 import { login, changeAvatar } from "../../rtk/user-slice";
 import Toast from 'react-native-toast-message';
-
+import DateTimePicker from "react-native-ui-datepicker";
+import dayjs from "dayjs";
+import Modal from "react-native-modal";
 
 
 export default function DetailProfile({ navigation }) {
@@ -19,37 +21,44 @@ export default function DetailProfile({ navigation }) {
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(user.name);
     const [gender, setGender] = useState(user.gender);
-    const [dateOfBirth, setDateOfBirth] = useState(user.dateOfBirth);
+    const [dateOfBirth, setDateOfBirth] = useState(dayjs(user.dateOfBirth));
     const [phoneNumber, setPhoneNumber] = useState(user.phone);
     const [photo, setPhoto] = useState('');
     const [email, setEmail] = useState(user.email);
 
     console.log(name);
 
+
+    const [showModal, setShowModal] = useState(false);
+
+    const toggleModal = () => {
+        setShowModal(!showModal);
+    };
+
     const handleEditPress = () => {
         setIsEditing(true);
     };
 
 
-    const getMe = async () => {
-        const accessToken = await getAccessToken();
-        fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
-            method: 'GET',
-            headers: {
-                "Authorization": "Bearer " + accessToken,
-                'Content-Type': 'application/json'
-            }
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                dispatch(login({
-                    user: data.data.user
+    // const getMe = async () => {
+    //     const accessToken = await getAccessToken();
+    //     fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
+    //         method: 'GET',
+    //         headers: {
+    //             "Authorization": "Bearer " + accessToken,
+    //             'Content-Type': 'application/json'
+    //         }
+    //     })
+    //         .then((response) => response.json())
+    //         .then((data) => {
+    //             dispatch(login({
+    //                 user: data.data.user
 
-                })
-                )
-            })
+    //             })
+    //             )
+    //         })
 
-    }
+    // }
 
     const handleSavePress = async () => {
         setIsEditing(false);
@@ -77,8 +86,9 @@ export default function DetailProfile({ navigation }) {
             },
             body: JSON.stringify({
                 name: name,
-                dateOfBirth: formattedDate,
-                gender: gender
+                dateOfBirth: dateOfBirth,
+                gender: gender,
+
 
             }),
         })
@@ -285,17 +295,36 @@ export default function DetailProfile({ navigation }) {
                     <View style={styles.infoRow}>
                         <Text style={styles.infoLabel}>Date of Birth</Text>
                         {isEditing ? (
-                            <TextInput
-                                style={{
-                                    marginLeft: 7
-                                }}
-                                value={formatDateOfBirth(user.dateOfBirth)}
-                                onChangeText={newDateOfBirth => setDateOfBirth(newDateOfBirth)}
-                            />
+                            // <TextInput
+                            //     style={{
+                            //         marginLeft: 7
+                            //     }}
+                            //     value={user.dateOfBirth}
+                            //     onChangeText={text => setDateOfBirth(text)}
+                            // />
+                            <View>
+
+                                <Pressable onPress={toggleModal} style={styles.modalButton}>
+                                    <TextInput
+                                        label={"Date of birth"}
+                                        value={dateOfBirth.format("YYYY-MM-DD")}
+                                    />
+                                </Pressable>
+                                <Modal isVisible={showModal} onBackdropPress={toggleModal}>
+                                    <View style={styles.modalContent}>
+                                        <DateTimePicker
+                                            mode="single"
+                                            date={dateOfBirth}
+                                            onChange={(params) => setDateOfBirth(params.date)}
+                                        />
+
+                                    </View>
+                                </Modal>
+                            </View>
                         ) : (
                             <Text style={{
                                 marginLeft: 15
-                            }}>{formatDateOfBirth(user.dateOfBirth)}</Text>
+                            }}>{dateOfBirth.format("YYYY-MM-DD")}</Text>
                         )}
                     </View>
                     <Divider style={styles.divider} />
@@ -431,5 +460,13 @@ const styles = StyleSheet.create({
     },
     checkboxLabel: {
         marginTop: 7
-    }
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 4,
+        borderColor: 'rgba(0, 0, 0, 0.1)',
+    },
 });
