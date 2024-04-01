@@ -29,8 +29,8 @@ import { useEffect } from 'react';
 import getAccessToken from './screens/user-profile/getAccessToken';
 import { useDispatch } from "react-redux";
 import { login } from "./rtk/user-slice";
-// import ForgotPassword from './screens/auth/forgot-password';
-import ForgotPassword from './screens/auth/forgot-password-for-phone';
+import ForgotPassword from './screens/auth/forgot-password';
+// import ForgotPassword from './screens/auth/forgot-password-for-phone';
 
 
 

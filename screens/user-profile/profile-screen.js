@@ -113,18 +113,18 @@ export default function ProfileScreen({ navigation }) {
         <Divider style={styles.dividerForMenu} />
 
         <Button
-        mode="elevated"
-        icon={({ color, size }) => (
-          <Icon name="security" color={color} size={size} />
-        )}
-        style={{
-          alignItems: "flex-start",
-          justifyContent: "center",
-          height: 50,
-          width: "100%",
-          marginBottom: 5,
-          borderRadius: 0,
-        }}
+          mode="elevated"
+          icon={({ color, size }) => (
+            <Icon name="security" color={color} size={size} />
+          )}
+          style={{
+            alignItems: "flex-start",
+            justifyContent: "center",
+            height: 50,
+            width: "100%",
+            marginBottom: 5,
+            borderRadius: 0,
+          }}
         >
           <Text
             style={{
@@ -135,17 +135,17 @@ export default function ProfileScreen({ navigation }) {
           </Text>
         </Button>
         <Button
-        mode="elevated"
-        icon={({ color, size }) => (
-          <Icon name="lock" color={color} size={size} />
-        )}
-        style={{
-          alignItems: "flex-start",
-          justifyContent: "center",
-          height: 50,
-          width: "100%",
-          borderRadius: 0,
-        }}>
+          mode="elevated"
+          icon={({ color, size }) => (
+            <Icon name="lock" color={color} size={size} />
+          )}
+          style={{
+            alignItems: "flex-start",
+            justifyContent: "center",
+            height: 50,
+            width: "100%",
+            borderRadius: 0,
+          }}>
           <Text
             style={{
               marginLeft: 10,

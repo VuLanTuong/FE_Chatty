@@ -271,12 +271,6 @@ export default function DetailProfile({ navigation }) {
                                     value='Female'
                                 />
                                 <Text style={styles.checkboxLabel}>Female</Text>
-                                <RadioButton
-                                    status={gender === 'Other' ? 'checked' : 'unchecked'}
-                                    onPress={() => setGender('Other')}
-                                    color="#f558a4"
-                                />
-                                <Text style={styles.checkboxLabel}>Other</Text>
                             </View>
                         ) : (
 

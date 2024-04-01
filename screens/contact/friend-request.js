@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, TextInput }
 import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import {getAccessToken} from '../user-profile/getAccessToken';
+import { getAccessToken } from '../user-profile/getAccessToken';
 import { findFriendById } from '../../service/friend.util';
 
 export function FriendRequest({ navigation }) {
@@ -86,7 +86,6 @@ export function FriendRequest({ navigation }) {
 
 
     useEffect(() => {
-
         fetchFriendRequest();
 
     }, [])
@@ -111,6 +110,7 @@ export function FriendRequest({ navigation }) {
             }
             console.log('success');
             setIsAcptrRequest(true);
+            fetchFriendRequest();
 
 
         }
@@ -126,6 +126,7 @@ export function FriendRequest({ navigation }) {
         try {
             console.log(id);
             await addFriend(id);
+            fetchFriendRequest();
             // const newRequests = requests.filter(request => request._id !== id);
             // setRequests(newRequests);
             // setRequests(requests.filter(request => request._id !== id));
@@ -138,27 +139,26 @@ export function FriendRequest({ navigation }) {
 
 
 
-    const cancelAddFriend = async () => {
+    const cancelAddFriend = async (id) => {
         const accessToken = await getAccessToken();
-        console.log(user._id);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${user._id}`, {
+        console.log("cancel");
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 Authorization: "Bearer " + accessToken
             }
-
-
         })
             .then(response => {
                 console.log(response.status);
                 if (!response.ok) {
                     console.log('error');
-                    setIsAcptrRequest(false)
+                    // setIsAcptrRequest(false)
                     return;
                 }
-                console.log('success');
-                setIsAcptrRequest(true);
+                console.log('cancel');
+                // setIsAcptrRequest(true);
+
 
 
             }
@@ -166,8 +166,9 @@ export function FriendRequest({ navigation }) {
 
     }
 
-    const viewProfileOfUser = (id) => {
-        const friend = findFriendById(id);
+    const viewProfileOfUser = async (id) => {
+        const friend = await findFriendById(id);
+        console.log(friend);
         if (friend) {
             navigation.navigate('FriendProfile', { friend: friend });
         }
@@ -307,7 +308,10 @@ export function FriendRequest({ navigation }) {
                             backgroundColor: '#969190',
 
 
-                        }}>
+                        }} onPress={() => cancelAddFriend(request.friend._id).then(() => {
+                            console.log("cancel success");
+                            fetchFriendRequest()
+                        })}>
                             <Text style={{
                                 color: 'white',
                                 marginLeft: 40,

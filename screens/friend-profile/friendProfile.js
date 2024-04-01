@@ -190,6 +190,8 @@ export default function FriendProfile({ route, navigation }) {
                 }
                 console.log("unfriend success");
                 setIsFriend(false);
+                setIsSendRequest(false)
+                setIsRecipient(false)
                 getFriendOfUser();
                 return;
             })
@@ -372,7 +374,7 @@ export default function FriendProfile({ route, navigation }) {
 const styles = StyleSheet.create({
     button: {
         height: 40,
-        width: '20%',
+        width: '30%',
         backgroundColor: '#f558a4',
         borderRadius: 20,
         justifyContent: 'center',

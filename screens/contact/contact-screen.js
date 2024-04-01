@@ -285,7 +285,7 @@ export function ContactScreen({ navigation }) {
                                     marginLeft: 5,
                                     marginTop: 5,
                                     textAlign: 'center',
-                                }}>100</Text>
+                                }}>{friends.length}</Text>
 
 
                             </View>
