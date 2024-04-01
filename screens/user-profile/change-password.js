@@ -51,7 +51,7 @@ export default function ChangePassword({ navigation }) {
     const changePassword = async (oldPassword, newPassword) => {
         const accessToken = await getData();
         console.log("Bearer" + accessToken);
-        try {
+        if (confirmNewPassword === newPassword && newPassword.length >= 6) {
             const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/changePassword", {
                 method: "POST",
                 headers: {
@@ -63,24 +63,29 @@ export default function ChangePassword({ navigation }) {
                     newPassword: newPassword
                 })
             });
-
             if (response.ok) {
                 Toast.show({
                     type: 'success',
                     text1: 'Change password successfully!',
+                    position: "top",
+                    visibilityTime: 4000,
                 });
                 navigation.navigate("ProfileScreen");
             } else {
                 Toast.show({
                     type: 'error',
-                    text1: 'Change password failed!',
+                    text1: 'Password incorrect',
+                    position: "top",
+                    visibilityTime: 4000,
                 });
             }
-        } catch (error) {
-            console.log("Error:", error);
+        } else {
             Toast.show({
                 type: 'error',
-                text1: 'An error occurred while changing password!',
+                text1: 'New password and confirm password not match',
+                text2: 'Password must be >= 6 digits',
+                position: "top",
+                visibilityTime: 4000,
             });
         }
     };
