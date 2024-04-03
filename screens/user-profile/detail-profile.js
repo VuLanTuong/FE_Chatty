@@ -231,7 +231,7 @@ export default function DetailProfile({ navigation }) {
                                     height: 40,
                                     borderRadius: 50,
                                     marginTop: 5,
-                                    border: '1px solid white',
+                                    border: 1,
                                     marginLeft: 5
                                 }} />
                             </Pressable>

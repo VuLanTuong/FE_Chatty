@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     input: {
         flex: 1,
         fontSize: 13,
-        border: '0px'
+
     },
     searchButton: {
         height: 40,
