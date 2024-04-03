@@ -11,7 +11,7 @@ export async function getAllConversation() {
     }).then((response) => {
         return response.json()
     }).then((data) => {
-        console.log(data);
+        console.log(data.data);
         return data.data
     }).catch((err) => {
         console.log(err)
