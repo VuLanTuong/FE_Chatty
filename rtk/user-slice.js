@@ -13,7 +13,8 @@ const initialState = {
         // An array of the user's friends.
     },
     friends: [],
-    conversation: []
+    conversation: [],
+    currentConversation: {}
 };
 
 export const userSlice = createSlice({
@@ -41,6 +42,10 @@ export const userSlice = createSlice({
         },
         updateFriend: (state, action) => {
             state.friends = [...state.friends, action.payload]
+        },
+        setCurrentConversation: (state, action) => {
+            state.currentConversation = action.payload
+
         }
         // updated: (state, action) => {
         //     const commentIndx = state.comment.findIndex(comment =>
@@ -66,5 +71,5 @@ export const userSlice = createSlice({
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation } = userSlice.actions;
 export default userSlice.reducer
