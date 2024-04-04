@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image } from 'react-native';
+import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, TextInput } from 'react-native';
 import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ import { setFriend } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
+import ActionSheet from 'react-native-actionsheet';
+
 export function ContactScreen({ navigation }) {
 
     const dispatch = useDispatch();
@@ -25,6 +27,15 @@ export function ContactScreen({ navigation }) {
 
     }
 
+    const options = ['Add Friend', 'Add Group', 'Cancel'];
+    const actionSheetRef = useRef();
+    const handleAddFriend = () => {
+        navigation.navigate('FindFriend')
+    }
+
+    const handleAddGroup = () => {
+        navigation.navigate('AddGroup')
+    }
 
 
 
@@ -188,7 +199,58 @@ export function ContactScreen({ navigation }) {
 
         return sortedFriendGroups;
     };
+    const handlePress = () => {
+        actionSheetRef.current.show();
+    };
 
+    useLayoutEffect(() => {
+        navigation.setOptions({
+            headerTitle: "",
+            headerStyle: {
+                backgroundColor: '#f558a4',
+                height: 60,
+            },
+            headerLeft: () => (
+                <View style={{ height: 50, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', gap: 10 }}>
+                        <MaterialCommunityIcons name="magnify" color="white" size={20} />
+                        <TextInput
+                            placeholder="Search"
+                            placeholderTextColor="white"
+                            style={{ height: 20, fontSize: 17, color: 'white' }}
+                        />
+                    </View>
+                </View>
+            ),
+            headerRight: () =>
+                <View style={{ position: 'relative' }}>
+                    <View style={{ marginRight: 20 }}>
+                        {/* <ContextMenu /> */}
+                        <Pressable onPress={handlePress}>
+                            <MaterialCommunityIcons name="plus" color="white" size={25} />
+                        </Pressable>
+                        <ActionSheet
+                            ref={actionSheetRef}
+                            options={options}
+                            cancelButtonIndex={2}
+                            onPress={(index) => {
+                                // Handle the selected option based on the index
+                                switch (index) {
+                                    case 0:
+                                        handleAddFriend();
+                                        break;
+                                    case 1:
+                                        handleAddGroup();
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }}
+                        />
+                    </View>
+                </View>
+        })
+    }, [])
 
 
     // const handleOptionSelect = (option) => {
