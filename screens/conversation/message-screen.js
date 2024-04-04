@@ -4,13 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import { SafeAreaView } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import { setAllConversation } from "../../rtk/user-slice";
+import { setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
 import { findFriendById } from "../../service/friend.util";
 import ContextMenu from "../context-menu/context-menu";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ActionSheet from 'react-native-actionsheet';
 
 import { Badge } from '@rneui/themed';
+import { useSocket } from "../socket.io/socket-context";
 const MessageScreen = ({ navigation }) => {
 
 
@@ -24,19 +25,83 @@ const MessageScreen = ({ navigation }) => {
     navigation.navigate('AddGroup')
   }
 
+  const { socket } = useSocket();
+
 
   const showStoriCircle = () => { };
   const [conversations, setConversations] = useState([]);
 
+
   const dispatch = useDispatch()
+
 
   // get current user
   const user = useSelector((state) => state.user.user);
+  console.log(user);
 
   const scrollViewRef = useRef(null);
+  // selector run after use effect
+  const allConversationAtRedux = useSelector((state) => state.user.conversation);
+  console.log(allConversationAtRedux);
+
+
+  const checkIsMember = (data, members) => {
+    const existingConversation = allConversationAtRedux.find((conversation) => {
+      return conversation._id.toString() === data.conversation._id.toString();
+    });
+
+    if (!existingConversation && members.some(member => member._id === user._id)) {
+      return {
+        ...data.conversation,
+        lastMessage: data.conversation,
+        isReadMessage: false,
+      };
+    }
+
+    return null;
+  };
+
+
+  const handleConversationUpdate = (data) => {
+    console.log(data.conversation.members);
+    const members = data.conversation.members;
+
+
+    let updatedConversationArray = allConversationAtRedux;
+    const newConversation = checkIsMember(data, members);
+
+    if (newConversation !== null) {
+      updatedConversationArray = [...allConversationAtRedux, newConversation];
+    }
+
+
+    console.log(updatedConversationArray);
+    const updatedConversation = updatedConversationArray.map((item) => {
+      console.log(item);
+      if (item._id.toString() === data.conversation._id.toString()) {
+        return {
+          ...item,
+          lastMessage: data,
+          updateAt: Date.now(),
+          isReadMessage: false,
+        };
+      }
+      return item;
+    });
+
+    console.log(updatedConversation);
+    dispatch(setAllConversation(updatedConversation));
+    setConversations(updatedConversation);
+    console.log(data);
+  };
+
+  socket.on('message:receive', (data) => {
+    handleConversationUpdate(data);
+  });
 
   useEffect(() => {
-    scrollToTop()
+    scrollToTop();
+    getAllConversation();
   }, []);
 
   const scrollToTop = () => {
@@ -54,6 +119,8 @@ const MessageScreen = ({ navigation }) => {
     console.log("set");
   }
 
+
+
   async function getAllConversation() {
     const accessToken = await getAccessToken();
     await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations', {
@@ -65,9 +132,9 @@ const MessageScreen = ({ navigation }) => {
     }).then((response) => {
       return response.json()
     }).then((data) => {
-      const temp = data.data;
+      const temp = Object.values(data.data);
+
       const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
-      console.log(updatedConversations);
       setConversations(updatedConversations);
       dispatch(setAllConversation(updatedConversations))
 
@@ -93,7 +160,7 @@ const MessageScreen = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-      getAllConversation();
+
 
     }, [])
   );
@@ -108,14 +175,14 @@ const MessageScreen = ({ navigation }) => {
 
   };
 
-  const handleSendMessage = async (members) => {
+  const handleOpenConversation = async (members, id) => {
     const filteredItems = members.filter(member => member._id !== user._id);
     console.log(filteredItems[0]._id);
     const token = await getAccessToken();
 
-    fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${filteredItems[0]._id}`,
+    fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}`,
       {
-        method: "POST",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: "Bearer " + token
@@ -128,7 +195,8 @@ const MessageScreen = ({ navigation }) => {
           return;
         }
         else {
-          console.log(data.data._id);
+          console.log(data.data);
+          dispatch(setCurrentConversation(data.data))
           navigation.navigate('Chat', { data: data.data })
         }
 
@@ -188,8 +256,6 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
-    console.log(item);
-
     if (item.lastMessage.sender !== user._id) {
       return item.name + ": " + item.lastMessage.content;
     }
@@ -199,7 +265,7 @@ const MessageScreen = ({ navigation }) => {
         return "This message was deleted";
       }
 
-      console.log(item.lastMessage);
+
       if (item.lastMessage.content.length > 20) {
         console.log(item.lastMessage.content.substring(0, 10) + "...");
         return item.lastMessage.content.substring(0, 10) + "...";
@@ -273,9 +339,9 @@ const MessageScreen = ({ navigation }) => {
         horizontal={false}
         data={conversations}
         renderItem={({ item }) => (
-          <View style={styles.container} key={item.id}>
+          <View style={styles.container} key={item._id}>
             <TouchableOpacity style={styles.conversation}
-              onPress={() => handleSendMessage(item.members)}
+              onPress={() => handleOpenConversation(item.members, item._id)}
             >
               <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
                 <Image style={styles.image} source={{ uri: item.image }} />
@@ -297,7 +363,7 @@ const MessageScreen = ({ navigation }) => {
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                 }}>
-                  {item.isReadMessage && item.lastMessage.sender === user._id ? (
+                  {item.isReadMessage && item.lastMessage.sender === user._id.toString() ? (
 
                     <Text style={styles.message}>{getLastMessage(item)}</Text>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect, useContext } from "react";
 import {
     Text,
     View,
@@ -28,9 +28,11 @@ import HeaderChat from "./header.chat-ui";
 import { useDispatch, useSelector } from "react-redux";
 import { useScrollToTop } from '@react-navigation/native';
 import ActionSheet from 'react-native-actionsheet';
+import { io } from "socket.io-client";
 
 import { Checkbox } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
+import { useSocket } from "../socket.io/socket-context";
 
 
 const ChatScreen = ({ navigation, route }) => {
@@ -46,6 +48,10 @@ const ChatScreen = ({ navigation, route }) => {
     const [checked, setChecked] = React.useState(false);
     const [contentForward, setContentForward] = useState('');
     const friendInRedux = useSelector((state) => state.user.friends);
+
+    const { socket } = useSocket();
+
+
 
     const handleOpenModal = () => {
         setModalVisible(true);
@@ -64,18 +70,30 @@ const ChatScreen = ({ navigation, route }) => {
         setModalVisible(false);
     };
 
-    const data = route.params.data;
-    console.log(data);
+    const conversationParams = route.params.data;
+    console.log(conversationParams);
+    // console.log(data);
 
+    const allConversationAtRedux = useSelector((state) => state.user.conversation);
+    console.log(allConversationAtRedux);
 
-
-    console.log(friends);
+    // console.log(friends);
 
     const scrollViewRef = useRef(null);
 
+    const currentConversation = useSelector((state) => state.user.currentConversation);
+    console.log(currentConversation);
+
     useEffect(() => {
+        getAllMessage();
+        console.log("effect");
+        // socket.on('message:receive', (data) => {
+        //     console.log("receive message");
+        //     console.log(data);
+        // })
         scrollToBottom(),
             groupFriendsByLetter();
+
 
     }, []);
 
@@ -95,31 +113,9 @@ const ChatScreen = ({ navigation, route }) => {
         actionSheetRef.current.show();
     };
     const options = ['Delete', 'Forward', 'Reply', 'Cancel'];
-    // const ContextMenu = React.forwardRef((props, ref) => (
-    //     <ActionSheet
-    //         ref={ref}
-    //         options={options}
-    //         cancelButtonIndex={3}
-    //         onPress={(index) => {
-    //             switch (index) {
-    //                 case 0:
-    //                     handleDelete();
-    //                     break;
-    //                 case 1:
-    //                     handleForward();
-    //                     break;
-    //                 case 2:
-    //                     handleReply();
-    //                     break;
-    //                 default:
-    //                     break;
-    //             }
-    //         }}
-    //     />
-    // ));
 
     const handleDelete = async (id) => {
-        console.log(id);
+        // console.log(id);
         const token = await getAccessToken();
         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/messages/${id}`,
             {
@@ -130,12 +126,12 @@ const ChatScreen = ({ navigation, route }) => {
                 }
             }).then((response) => response.json())
             .then((data) => {
-                console.log(data)
+                // console.log(data)
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
                 }
-                console.log(data);
+                // console.log(data);
             })
 
             .catch(() => console.log("fetch error"))
@@ -150,12 +146,10 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     const handleForward = async () => {
-
-        console.log("send text");
-        console.log(contentForward);
-
-
-
+        console.log("press forward");
+        // console.log("send text");
+        // console.log(contentForward);
+        console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
             const token = await getAccessToken();
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
@@ -167,19 +161,14 @@ const ChatScreen = ({ navigation, route }) => {
                     }
                 }).then((response) => response.json())
                 .then((data) => {
-                    console.log(data)
+                    // console.log(data)
                     if (data.status === "fail") {
                         console.log("fail");
                         return;
                     }
                     else {
-                        console.log(modalVisible);
-                        console.log(data.data._id);
+                        console.log(contentForward);
                         handleSendTextMessage(data.data._id, contentForward);
-
-
-
-
                     }
 
 
@@ -210,18 +199,26 @@ const ChatScreen = ({ navigation, route }) => {
 
     const user = useSelector((state) => state.user.user);
 
-    const member1 = data.members.find(member => member._id !== user._id)
+    const member1 = conversationParams.members.find(member => member._id !== user._id)
 
     useFocusEffect(
         React.useCallback(() => {
-            console.log("get all");
-            getAllMessage();
+            socket.on('message:receive', (data) => {
+                console.log(data);
+                console.log(user);
+                if (data.conversation._id.toString() === currentConversation._id.toString()) {
+                    if (data.sender._id !== user._id) {
+                        return setMessages([...messages, { ...data, isMine: false }])
+                    }
+                }
+                return;
 
-        }, [text])
+            })
+        }, [messages])
     );
     const getAllMessage = async () => {
         const token = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data._id}/messages?page=1&limit=50`,
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages?page=1&limit=50`,
             {
                 method: "GET",
                 headers: {
@@ -230,11 +227,12 @@ const ChatScreen = ({ navigation, route }) => {
                 }
             }).then((response) => response.json())
             .then((data) => {
-                console.log(data)
+                // console.log(data)
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
                 }
+                console.log(data.data);
                 reverseData(data.data)
             })
 
@@ -249,44 +247,49 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const handleSendTextMessage = async (id, text) => {
-        console.log("send text");
-        console.log(text);
+        // console.log("send text");
+        // console.log(text);
         const token = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + token
-                },
-                body: JSON.stringify({
-                    content: text
-                }
+        if (text !== '') {
+            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        content: text
+                    }
+                    )
+                }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data)
+                    if (data.status === "fail") {
+                        console.log("fail");
+                        return;
+                    }
+                    socket.emit('message:send', { ...data.data, conversation: conversationParams, sender: user._id })
+                    setMessages([...messages, data.data])
+                    setText('');
 
-                )
-            }).then((response) => response.json())
-            .then((data) => {
-                console.log(data)
-                if (data.status === "fail") {
-                    console.log("fail");
-                    return;
-                }
-            }).then(() => setText(''))
-            .catch(() => console.log("fetch error"))
+                }).then(() => setText(''))
+                .catch(() => console.log("fetch error"))
+        }
+        else {
+            console.log("empty text");
+            return;
+        }
 
     }
     const getTime = (updateAt) => {
-
-        console.log(typeof (updateAt));
         const date = new Date(updateAt);
-
         const hour = date.getHours();
         const minute = date.getMinutes();
 
         return `${hour}:${minute}`;
     }
 
-    console.log("focus" + isFocused);
     const handleFocus = () => {
         setIsFocused(true);
     };
@@ -620,7 +623,7 @@ const ChatScreen = ({ navigation, route }) => {
                     <Pressable>
                         <Octicons name="image" size={24} color="black" />
                     </Pressable>
-                    <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleSendTextMessage(data._id, text)}>
+                    <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleSendTextMessage(conversationParams._id, text)}>
                         <Feather name="send" size={24} color="black" />
                     </Pressable>
 
