@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, TextInput, Platform } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, TextInput, Platform, SafeAreaView } from 'react-native';
 import { Divider, Checkbox, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSelector } from "react-redux";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useDispatch } from "react-redux"
-import { setFriend } from "../../rtk/user-slice";
+import { setFriend, updateFriend } from "../../rtk/user-slice";
 import { findFriendById } from '../../service/friend.util';
 import { getAllConversation } from '../../service/conversation.util';
 export default function FriendProfile({ route, navigation }) {
@@ -219,155 +219,196 @@ export default function FriendProfile({ route, navigation }) {
             console.log('add friend success');
             setIsFriend(true)
             getFriendOfUser();
-            return;
+
+            return response.json();
+
+
+        }).then((data) => {
+            console.log(data);
+            if (data.status === "fail") {
+                console.log("fail");
+                return;
+            }
+            else {
+                dispatch(updateFriend(data.data))
+            }
 
         })
 
     }
 
 
-    const handleSendMessage = () => {
-        // navigation.navigate('Chat')
+    const handleSendMessage = async () => {
+        const token = await getAccessToken();
+        console.log(token);
+        console.log(user);
+        console.log("user id", user._id);
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${user._id}`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                }
+            }).then((response) => response.json())
+            .then((data) => {
+                console.log(data)
+                if (data.status === "fail") {
+                    console.log("fail");
+                    return;
+                }
+                else {
+                    console.log(data.data._id);
+                    navigation.navigate('Chat', { data: data.data })
+                }
+
+
+            })
+
+            .catch(() => console.log("fetch error"))
+
 
     }
 
 
 
     return (
-        <View style={{
-            width: '100%',
-        }}>
-            <Image source={{ uri: user.background }}
-                style={{
-                    width: '100%',
-                    height: 150,
-
-                    borderWidth: 1,
-                    borderColor: 'white',
-
-                }} />
+        <SafeAreaView>
             <View style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                justifyContent: 'flex-start',
-                alignItems: 'center'
-
+                width: '100%',
             }}>
-                <Image source={{ uri: user.avatar }}
+                <Image source={{ uri: user.background }}
                     style={{
-                        width: 100,
-                        height: 100,
-                        borderRadius: 50,
-                        borderWidth: 3,
+                        width: '100%',
+                        height: 150,
+
+                        borderWidth: 1,
                         borderColor: 'white',
-                        marginTop: 100
 
                     }} />
+                <View style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    justifyContent: 'flex-start',
+                    alignItems: 'center'
+
+                }}>
+                    <Image source={{ uri: user.avatar }}
+                        style={{
+                            width: 100,
+                            height: 100,
+                            borderRadius: 50,
+                            borderWidth: 3,
+                            borderColor: 'white',
+                            marginTop: 100
+
+                        }} />
+                </View>
+                <View style={{
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    marginTop: 50
+                }}>
+                    <Text style={{
+                        fontSize: 20,
+                        fontWeight: 'bold'
+                    }}>{user.name}</Text>
+                    <Text>
+                        {user.bio}
+                    </Text>
+                </View>
+                <View>
+                    {isFriend === false ?
+                        <View>
+                            {isSendRequest === true ? (
+                                <View style={{
+                                    flexDirection: 'row',
+                                    gap: 35,
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    marginTop: 20
+
+                                }}>
+                                    <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
+                                        <Text style={styles.textStyle}>Cancel Request</Text>
+                                    </Pressable>
+                                    <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                        <Text style={styles.textStyle}>Send Message</Text>
+                                    </Pressable>
+                                </View>
+                            ) : (
+                                <View>
+                                    {isRecipient === true ? (
+                                        <View style={{
+                                            flexDirection: 'row',
+                                            gap: 25,
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginTop: 20
+
+                                        }}>
+                                            <Pressable style={styles.button} onPress={() => handleAcceptRequest()}>
+                                                <Text style={styles.textStyle}>Accept Request</Text>
+                                            </Pressable>
+                                            <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
+                                                <Text style={styles.textStyle}>Reject Request</Text>
+                                            </Pressable>
+                                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                                <Text style={styles.textStyle}>Send Message</Text>
+                                            </Pressable>
+                                        </View>
+
+                                    )
+                                        : <View style={{
+                                            flexDirection: 'row',
+                                            gap: 35,
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            marginTop: 20
+
+                                        }}>
+                                            <Pressable style={styles.button} onPress={() => sendRequest()}>
+                                                <Text style={styles.textStyle}>Add Friend</Text>
+                                            </Pressable>
+                                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                                <Text style={styles.textStyle}>Send Message</Text>
+                                            </Pressable>
+
+                                        </View>
+                                    }
+
+
+                                </View>
+                            )}
+                        </View>
+                        :
+                        <View style={{
+                            flexDirection: 'row',
+                            marginTop: 20,
+                            flexDirection: 'row',
+                            gap: 35,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}>
+                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                <Text style={styles.textStyle}>Send Message</Text>
+                            </Pressable>
+                            <Pressable style={styles.button} onPress={() => handleUnfriend()}>
+                                <Text style={styles.textStyle}>Unfriend</Text>
+                            </Pressable>
+                        </View>
+
+
+
+                    }
+                </View>
+
             </View>
-            <View style={{
-                flexDirection: 'column',
-                justifyContent: 'center',
-                alignItems: 'center',
-                marginTop: 50
-            }}>
-                <Text style={{
-                    fontSize: 20,
-                    fontWeight: 'bold'
-                }}>{user.name}</Text>
-                <Text>
-                    {user.bio}
-                </Text>
-            </View>
-            <View>
-                {isFriend === false ?
-                    <View>
-                        {isSendRequest === true ? (
-                            <View style={{
-                                flexDirection: 'row',
-                                gap: 35,
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                marginTop: 20
-
-                            }}>
-                                <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
-                                    <Text style={styles.textStyle}>Cancel Request</Text>
-                                </Pressable>
-                                <Pressable style={styles.button} onPress={() => handleSendMessage()}>
-                                    <Text style={styles.textStyle}>Send Message</Text>
-                                </Pressable>
-                            </View>
-                        ) : (
-                            <View>
-                                {isRecipient === true ? (
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        gap: 25,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        marginTop: 20
-
-                                    }}>
-                                        <Pressable style={styles.button} onPress={() => handleAcceptRequest()}>
-                                            <Text style={styles.textStyle}>Accept Request</Text>
-                                        </Pressable>
-                                        <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
-                                            <Text style={styles.textStyle}>Reject Request</Text>
-                                        </Pressable>
-                                        <Pressable style={styles.button} onPress={() => handleSendMessage()}>
-                                            <Text style={styles.textStyle}>Send Message</Text>
-                                        </Pressable>
-                                    </View>
-
-                                )
-                                    : <View style={{
-                                        flexDirection: 'row',
-                                        gap: 35,
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        marginTop: 20
-
-                                    }}>
-                                        <Pressable style={styles.button} onPress={() => sendRequest()}>
-                                            <Text style={styles.textStyle}>Add Friend</Text>
-                                        </Pressable>
-                                        <Pressable style={styles.button} onPress={() => handleSendMessage()}>
-                                            <Text style={styles.textStyle}>Send Message</Text>
-                                        </Pressable>
-
-                                    </View>
-                                }
-
-
-                            </View>
-                        )}
-                    </View>
-                    :
-                    <View style={{
-                        flexDirection: 'row',
-                        marginTop: 20,
-                        flexDirection: 'row',
-                        gap: 35,
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                    }}>
-                        <Pressable style={styles.button} onPress={handleSendMessage()}>
-                            <Text style={styles.textStyle}>Send Message</Text>
-                        </Pressable>
-                        <Pressable style={styles.button} onPress={() => handleUnfriend()}>
-                            <Text style={styles.textStyle}>Unfriend</Text>
-                        </Pressable>
-                    </View>
-
-
-
-                }
-            </View>
-
-        </View>
+        </SafeAreaView>
     )
 }
 

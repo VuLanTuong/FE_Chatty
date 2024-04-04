@@ -269,7 +269,7 @@ export function FriendRequest({ navigation }) {
 
                                 <Text style={{
                                     padding: 10,
-                                    border: '1px solid #969190',
+                                    border: 1,
                                     width: 250,
                                     borderRadius: 5
 

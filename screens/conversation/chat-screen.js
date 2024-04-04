@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from "react";
 import {
   Text,
   View,
@@ -6,6 +6,11 @@ import {
   Image,
   TextInput,
   FlatList,
+  Pressable,
+  KeyboardAvoidingView,
+  ScrollView,
+  SafeAreaView,
+  Animated
 } from "react-native";
 import {
   AntDesign,
@@ -14,70 +19,111 @@ import {
   Octicons,
 } from "@expo/vector-icons";
 import { useNavigation } from '@react-navigation/native';
-const ChatScreen = ({ navigation }) => {
+import { getAccessToken } from "../user-profile/getAccessToken";
+import { findFriendById } from "../../service/friend.util";
+import { useFocusEffect } from '@react-navigation/native';
+import HeaderChat from "./header.chat-ui";
+
+const ChatScreen = ({ navigation, route }) => {
 
   const [isFocused, setIsFocused] = useState(false);
   const [messages, setMessages] = useState([]);
-  useEffect(() => {
-    // Fetch messages from server
-    setMessages([
-      {
-        _id: 1,
-        text: "Hello",
-        createdAt: new Date(),
-        user: {
-          _id: 2,
-          name: "Jenifer",
-          avatar:
-            "https://img.lazcdn.com/g/shop/bcdcd66a784bdd39a5063f150a128122.png_960x960q80.png_.webp",
-        },
-      },
-      {
-        _id: 2,
-        text: "Hi",
-        createdAt: new Date(),
-        user: {
-          _id: 1,
-          name: "John",
-          avatar:
-            "https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg",
-        },
-      },
-    ]);
-  }, []);
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-  }, []);
+  const [friend, setFriend] = useState();
+  const data = route.params.data;
+  console.log(data);
 
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "space-between",
-      }}
-    >
-      {/*Render Header */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          paddingHorizontal: 10,
-          paddingVertical: 5,
-          backgroundColor: "#f558a4",
-          borderBottomColor: "gray",
-          borderBottomWidth: 0.2,
-        }}
-      >
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
+  const [text, setText] = useState("");
+  // const fetchFriendInConversation = async () => {
+  //   const friend = await findFriendById(data.member[1]._id);
+  //   console.log(friend);
+
+  // }
+
+  const memeber1 = data.members[1];
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getAllMessage();
+    }, [text])
+  );
+
+
+
+
+  const getAllMessage = async () => {
+    const token = await getAccessToken();
+    fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data._id}/messages?page=1&limit=50`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        }
+      }).then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        if (data.status === "fail") {
+          console.log("fail");
+          return;
+        }
+        reverseData(data.data)
+      })
+
+      .catch(() => console.log("fetch error"))
+
+
+  }
+
+  const reverseData = (data) => {
+    setMessages(data.reverse())
+
+  }
+
+  const handleSendTextMessage = async () => {
+    console.log("send text");
+    console.log(text);
+    const token = await getAccessToken();
+    fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data._id}/messages/sendText`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({
+          content: text
+        }
+
+        )
+      }).then((response) => response.json())
+      .then((data) => {
+        console.log(data)
+        if (data.status === "fail") {
+          console.log("fail");
+          return;
+        }
+      }).then(() => setText(''))
+      .catch(() => console.log("fetch error"))
+
+  }
+  const getTime = (updateAt) => {
+
+    console.log(typeof (updateAt));
+    const date = new Date(updateAt);
+
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
+    return `${hour}:${minute}`;
+  }
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "",
+      headerLeft: () => (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <TouchableOpacity
-            onPress={() => navigation.goBack()}
+            onPress={() => navigation.navigate("MessageScreen")}
             style={{ marginHorizontal: 15, marginLeft: 0 }}
           >
             <AntDesign name="arrowleft" size={24} color="white" />
@@ -86,55 +132,12 @@ const ChatScreen = ({ navigation }) => {
             style={{
               flexDirection: "row",
             }}
-          >
-            <View>
-              <View
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  right: 4,
-                  height: 10,
-                  width: 10,
-                  backgroundColor: "green",
-                  borderRadius: 5,
-                  zIndex: 1,
-                  borderWidth: 999,
-                  borderWidth: 2,
-                  borderColor: "white",
-                }}
-              />
-              <Image
-                source={{
-                  uri: "https://img.lazcdn.com/g/shop/bcdcd66a784bdd39a5063f150a128122.png_960x960q80.png_.webp",
-                }}
-                resizeMode="contain"
-                style={{
-                  width: 50,
-                  height: 50,
-                  borderRadius: 25,
-                }}
-              />
-            </View>
-            <View style={{ marginLeft: 10 }}>
-              <Text
-                style={{
-                  fontSize: 18,
-                  fontWeight: "bold",
-                  color: "white",
-                }}
-              >
-                Jenifer
-              </Text>
-              <Text style={{ color: "white" }}>Active now</Text>
-            </View>
-          </TouchableOpacity>
+          ></TouchableOpacity>
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
+      ),
+      headerRight: () =>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+
           <TouchableOpacity style={{ marginHorizontal: 10 }}>
             <Feather name="phone" size={24} color="white" />
           </TouchableOpacity>
@@ -146,10 +149,88 @@ const ChatScreen = ({ navigation }) => {
             <AntDesign name="profile" size={24} color="white" />
           </TouchableOpacity>
         </View>
-      </View>
+
+
+
+    });
+  }, []);
+
+
+  return (
+    <SafeAreaView>
       {/* Render Messages */}
-      <View style={{ flex: 1 }}>
+      <View style={{ justifyContent: 'flex-end' }}>
         <FlatList
+          showsVerticalScrollIndicator={false}
+          data={messages}
+          // keyExtractor={(message) => item._id.toString()}
+          renderItem={({ item }) => (
+            <KeyboardAvoidingView>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "flex-end",
+                  marginVertical: 5,
+                  marginHorizontal: 10,
+                  justifyContent:
+                    item.isMine == true ? "flex-end" : "flex-start",
+                }}
+              >
+                {item.isMine == false && (
+                  <Image
+                    source={{ uri: item.avatar }}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
+                      marginRight: 5,
+                    }}
+                  />
+                )}
+                <View
+                  style={{
+                    backgroundColor:
+                      item.isMine == true ? "#ffadd5" : "lightgray",
+                    borderRadius: 10,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    flexDirection: 'column',
+                    gap: 5
+
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 17,
+                    }}>{item.content}</Text>
+
+                  <Text
+                    style={{
+                      fontSize: 12,
+                    }}>{getTime(item.updatedAt)}</Text>
+
+
+                </View>
+                {item.isMine == true && (
+                  <Image
+                    source={{ uri: item.avatar }}
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
+                      marginLeft: 5,
+                    }}
+                  />
+                )}
+              </View>
+            </KeyboardAvoidingView>
+
+          )
+          }
+
+        />
+
+        {/* <FlatList
           data={messages}
           keyExtractor={(item) => item._id.toString()}
           renderItem={({ item }) => (
@@ -203,7 +284,7 @@ const ChatScreen = ({ navigation }) => {
             </View>
           )}
           inverted
-        />
+        /> */}
       </View>
 
       {/*Render Input */}
@@ -248,40 +329,29 @@ const ChatScreen = ({ navigation }) => {
               style={{
                 fontSize: 20,
               }}
-              onChangeText={() => { }}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              value={text}
+              onChangeText={(text) => { setText(text) }}
+            // onFocus={() => setIsFocused(true)}
+            // onBlur={() => setIsFocused(false)}
             />
-            <TouchableOpacity
-              style={{
-              }}
-            >
-              <AntDesign name="ellipsis1" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{
-              }}
-            >
-              <Octicons name="image" size={24} color="black" />
-            </TouchableOpacity>
 
-            {isFocused ? (
-              <TouchableOpacity style={{ marginHorizontal: 5 }}>
-                <Feather name="send" size={24} color="black" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                style={{
-                  marginHorizontal: 5,
-                }}
-              >
-                <Feather name="mic" size={24} color="black" />
-              </TouchableOpacity>
-            )}
+            <Pressable>
+              <AntDesign name="ellipsis1" size={24} color="black" />
+            </Pressable>
+            <Pressable>
+              <Octicons name="image" size={24} color="black" />
+            </Pressable>
+            <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleSendTextMessage()}>
+              <Feather name="send" size={24} color="black" />
+            </Pressable>
+
+
+
           </View>
         </View>
       </View>
-    </View>
+      {/* </ScrollView> */}
+    </SafeAreaView >
   );
 };
 

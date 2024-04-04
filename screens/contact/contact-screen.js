@@ -318,7 +318,7 @@ export function ContactScreen({ navigation }) {
                                                         gap: 20
                                                     }} onPress={() => userProfile(friend.userId)}>
                                                         {/* // api to get avatar */}
-                                                        <Image source={{ uri: user.avatar }} style={{
+                                                        <Image source={{ uri: friend.avatar }} style={{
                                                             width: 50,
                                                             height: 50,
                                                             borderRadius: 50

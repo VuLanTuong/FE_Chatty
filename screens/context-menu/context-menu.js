@@ -24,7 +24,7 @@ export default function ContextMenu({ }) {
                     onBackdropPress={() => setIsContextMenuOpen(false)}
                 >
                     <MenuTrigger onPress={openContextMenu}>
-                        <MaterialCommunityIcons name="plus" color="white" size={20} style={{ marginLeft: 95, marginTop: 15, marginRight: -20 }} />
+                        <MaterialCommunityIcons name="plus" color="white" size={25} style={{}} />
                     </MenuTrigger>
                     <MenuOptions customStyles={menuOptionsStyles}>
                         <MenuOption onSelect={() => handleMenuItemSelect('Option 1')}>

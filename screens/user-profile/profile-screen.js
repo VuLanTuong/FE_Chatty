@@ -3,6 +3,7 @@ import { Divider, Avatar, Button } from "react-native-paper";
 import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { SafeAreaView } from "react-native";
 export default function ProfileScreen({ navigation }) {
   const user = useSelector((state) => state.user.user);
   console.log(user);
@@ -20,34 +21,35 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <View style={{}}>
-      <View
-        style={{
-          backgroundColor: "#f558a4",
-          flexDirection: "row",
-          width: "100%",
-          gap: 15,
-          height: 70,
-          marginBottom: 10,
-        }}
-      >
-        {/* // onPress to view detail of the user */}
-        <Pressable
+    <SafeAreaView>
+      <View style={{}}>
+        <View
           style={{
+            backgroundColor: "#f558a4",
             flexDirection: "row",
-            alignItems: "center",
-          }}
-          onPress={() => {
-            navigation.navigate("DetailProfile");
+            width: "100%",
+            gap: 15,
+            height: 70,
+            marginBottom: 10,
           }}
         >
-          <Avatar.Image
-            source={{ uri: user.avatar }}
+          {/* // onPress to view detail of the user */}
+          <Pressable
             style={{
-              margin: 5,
+              flexDirection: "row",
+              alignItems: "center",
             }}
-          />
-          {/* <Image source={{ uri: user.avatar }} style={{
+            onPress={() => {
+              navigation.navigate("DetailProfile");
+            }}
+          >
+            <Avatar.Image
+              source={{ uri: user.avatar }}
+              style={{
+                margin: 5,
+              }}
+            />
+            {/* <Image source={{ uri: user.avatar }} style={{
                         width: 40,
                         height: 40,
                         borderRadius: 50,
@@ -56,52 +58,89 @@ export default function ProfileScreen({ navigation }) {
                         marginLeft: 5
                     }} /> */}
 
-          {/* get current user in redux */}
-          <View
+            {/* get current user in redux */}
+            <View
+              style={{
+                marginLeft: 10,
+                flexDirection: "column",
+                gap: 5,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: "bold",
+                  color: "white",
+                }}
+              >
+                {user.name}
+              </Text>
+              <Text
+                style={{
+                  color: "white",
+                }}
+              >
+                View profile
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+        {/* <Divider style={styles.divider} /> */}
+        <View>
+          <Button
+            mode="elevated"
+            icon={({ color, size }) => (
+              <Icon name="form-textbox-password" color={color} size={size} />
+            )}
             style={{
-              marginLeft: 10,
-              flexDirection: "column",
-              gap: 5,
+              alignItems: "flex-start",
+              justifyContent: "center",
+              height: 50,
+              width: "100%",
+              borderRadius: 0,
+            }}
+            onPress={() => {
+              navigation.navigate("ChangePassword");
             }}
           >
             <Text
               style={{
-                fontSize: 17,
-                fontWeight: "bold",
-                color: "white",
+                marginLeft: 10,
+                marginTop: 10,
               }}
             >
-              {user.name}
+              Change password
             </Text>
+          </Button>
+          <Divider style={styles.dividerForMenu} />
+
+          <Button
+            mode="elevated"
+            icon={({ color, size }) => (
+              <Icon name="security" color={color} size={size} />
+            )}
+            style={{
+              alignItems: "flex-start",
+              justifyContent: "center",
+              height: 50,
+              width: "100%",
+              marginBottom: 5,
+              borderRadius: 0,
+            }}
+          >
             <Text
               style={{
-                color: "white",
+                marginLeft: 10,
               }}
             >
-              View profile
+              Account and security
             </Text>
-          </View>
-        </Pressable>
-      </View>
-      {/* <Divider style={styles.divider} /> */}
-      <View>
-        <Button
-          mode="elevated"
-          icon={({ color, size }) => (
-            <Icon name="form-textbox-password" color={color} size={size} />
-          )}
-          style={{
-            alignItems: "flex-start",
-            justifyContent: "center",
-            height: 50,
-            width: "100%",
-            borderRadius: 0,
-          }}
-          onPress={() => {
-            navigation.navigate("ChangePassword");
-          }}
-        >
-          <Text
+          </Button>
+          <Button
+            mode="elevated"
+            icon={({ color, size }) => (
+              <Icon name="lock" color={color} size={size} />
+            )}
             style={{
               marginLeft: 10,
               marginTop: 10,
@@ -175,15 +214,26 @@ export default function ProfileScreen({ navigation }) {
         >
           <Text
             style={{
-              marginLeft: 10,
-              marginTop: 10,
+              height: 50,
+              width: "100%",
+              backgroundColor: "#f558a4",
+              alignContent: "center",
+              justifyContent: "center",
+              borderRadius: 0,
             }}
           >
-            Log out
-          </Text>
-        </Button>
+            <Text
+              style={{
+                marginLeft: 10,
+                marginTop: 10,
+              }}
+            >
+              Log out
+            </Text>
+          </Button>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
