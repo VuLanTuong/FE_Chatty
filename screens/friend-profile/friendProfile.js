@@ -57,7 +57,7 @@ export default function FriendProfile({ route, navigation }) {
         findFriendById(user._id).then((friend) => {
             if (friend) {
                 console.log(friend);
-                if (friend.friend.requester === myInfor.user._id && friend.status != "accecpt") {
+                if (myInfor.user._id === friend.friend.requester && friend.status != "accecpt") {
                     console.log("isSendRequest");
                     setIsSendRequest(true)
                 }
@@ -221,8 +221,6 @@ export default function FriendProfile({ route, navigation }) {
             getFriendOfUser();
 
             return response.json();
-
-
         }).then((data) => {
             console.log(data);
             if (data.status === "fail") {

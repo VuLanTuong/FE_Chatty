@@ -32,6 +32,8 @@ import { login } from "./rtk/user-slice";
 import ForgotPassword from './screens/auth/forgot-password';
 // import ForgotPassword from './screens/auth/forgot-password-for-phone';
 
+import { SafeAreaView } from 'react-native';
+import { SocketProvider } from './screens/socket.io/socket-context';
 
 
 const Tab = createBottomTabNavigator();
@@ -194,7 +196,7 @@ const ContactStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name='contact' component={ContactScreen} options={{
-        headerShown: false
+        headerShown: true
       }} />
       <Stack.Screen name='FriendRequest' component={FriendRequest} options={{
         headerShown: false
@@ -279,8 +281,11 @@ export default function App() {
   return (
     <Provider store={store}>
       {/* <ChatScreen /> */}
-      <AppNavigator />
-      <Toast ref={toastRef} />
+
+      <SocketProvider>
+        <AppNavigator />
+        <Toast ref={toastRef} />
+      </SocketProvider>
     </Provider>
 
 
