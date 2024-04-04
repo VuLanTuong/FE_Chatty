@@ -31,9 +31,9 @@ import { useDispatch } from "react-redux";
 import { login } from "./rtk/user-slice";
 import ForgotPassword from './screens/auth/forgot-password';
 // import ForgotPassword from './screens/auth/forgot-password-for-phone';
+
 import { SafeAreaView } from 'react-native';
 import { SocketProvider } from './screens/socket.io/socket-context';
-
 
 
 const Tab = createBottomTabNavigator();
@@ -282,9 +282,10 @@ export default function App() {
     <Provider store={store}>
       {/* <ChatScreen /> */}
 
-      <AppNavigator />
-      <Toast ref={toastRef} />
-
+      <SocketProvider>
+        <AppNavigator />
+        <Toast ref={toastRef} />
+      </SocketProvider>
     </Provider>
 
 
