@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ScrollView, Alert, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Alert,
+  Pressable,
+} from "react-native";
 import {
   TextInput,
   Button,
@@ -11,11 +18,11 @@ import {
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
 import { login, setFriend } from "../../rtk/user-slice";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
-import Toast from 'react-native-toast-message';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Toast from "react-native-toast-message";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -23,7 +30,6 @@ const Login = ({ navigation }) => {
   const [checked, setChecked] = useState(false);
   const [loginError, setLoginError] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-
 
   const toggleNewPasswordVisibility = () => {
     setShowNewPassword((prevState) => !prevState);
@@ -34,73 +40,76 @@ const Login = ({ navigation }) => {
   };
 
   const getMe = async (token) => {
-    fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
-      method: "GET",
-      headers: {
-        // "Content-Type": "application/json",
-        "Authorization": "Bearer " + token,
-      },
-    })
+    fetch(
+      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe",
+      {
+        method: "GET",
+        headers: {
+          // "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
-        if (data.status === 'fail') {
+        if (data.status === "fail") {
           console.log("fail");
           return;
         }
-        console.log('response', data);
+        console.log("response", data);
         Toast.show({
-          type: 'success',
-          text1: 'Login successful',
-          position: 'top',
+          type: "success",
+          text1: "Login successful",
+          position: "top",
           visibilityTime: 2000,
-
         });
         return data.data;
       })
       .catch((error) => {
-        console.log('Error:', error);
+        console.log("Error:", error);
         Toast.show({
-          type: 'error',
-          text1: 'Email and password correct',
-          position: 'top',
+          type: "error",
+          text1: "Email and password correct",
+          position: "top",
           visibilityTime: 2000,
         });
-        setLoginError(true)
+        setLoginError(true);
       });
   };
-
-
-
-
 
   useEffect(() => {
     const token = getAccessToken().then((token) => {
       if (token) {
         console.log(token);
-        const user = fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
-          method: "GET",
-          headers: {
-            "Authorization": "Bearer " + token,
-          },
-        })
+        const user = fetch(
+          "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe",
+          {
+            method: "GET",
+            headers: {
+              Authorization: "Bearer " + token,
+            },
+          }
+        )
           .then((response) => response.json())
           .then((data) => {
-            if (data.status === 'fail') {
+            if (data.status === "fail") {
               console.log("fail");
               return;
             }
-            console.log('response', data);
+            console.log("response", data);
             return data.data;
           })
           .catch((error) => {
-            console.log('Error:', error);
-          })
+            console.log("Error:", error);
+          });
         const temp = user.then((user) => {
           console.log(user);
 
-          dispatch(login({
-            user: user,
-          }))
+          dispatch(
+            login({
+              user: user,
+            })
+          );
           console.log(user);
           fetchAllFriend();
 
@@ -113,38 +122,36 @@ const Login = ({ navigation }) => {
           //   log
           // })
           navigation.navigate("Home");
-        })
-
+        });
       }
-    })
-
-
-  }, [])
+    });
+  }, []);
 
   const handlePhoneNumber = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
+    const numericValue = text.replace(/[^0-9]/g, "");
     setPhoneNumber(numericValue);
   };
-
 
   async function fetchAllFriend() {
     console.log("fetch all friend");
     // use redux to get current user
-    const accessToken = await getAccessToken()
-    await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + accessToken,
-      },
-    })
+    const accessToken = await getAccessToken();
+    await fetch(
+      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends",
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
-        dispatch(setFriend({
-          friends:
-            data.data
-        })
-
+        dispatch(
+          setFriend({
+            friends: data.data,
+          })
         );
         console.log("ok");
       });
@@ -152,53 +159,57 @@ const Login = ({ navigation }) => {
 
   const onLogin = () => {
     if (phoneNumber && password) {
-      fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          phone: phoneNumber,
-          password: password,
-        }),
-      })
-        .then((response) => { return response.json() })
+      fetch(
+        "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            phone: phoneNumber,
+            password: password,
+          }),
+        }
+      )
+        .then((response) => {
+          return response.json();
+        })
         .then((data) => {
           if (data.status === "success") {
             console.log(data.data.token.access_token);
-            storeToken(data.data.token.access_token)
+            storeToken(data.data.token.access_token);
             Toast.show({
-              type: 'success',
-              text1: 'Login successful',
-              position: 'top',
+              type: "success",
+              text1: "Login successful",
+              position: "top",
               visibilityTime: 4000,
             });
-            dispatch(login({
-              user: data.data.user
-            })
+            dispatch(
+              login({
+                user: data.data.user,
+              })
             );
-            setPassword("")
-            setLoginError(false)
+            setPassword("");
+            setLoginError(false);
             navigation.navigate("Home");
           } else {
             Toast.show({
-              type: 'error',
-              text1: 'Phone number and password incorrect',
-              position: 'top',
+              type: "error",
+              text1: "Phone number and password incorrect",
+              position: "top",
               visibilityTime: 4000,
             });
             setLoginError(true);
           }
         });
-    }
-    else {
+    } else {
       Toast.show({
-        type: 'error',
-        text1: 'Please enter your phone number and password',
-        position: 'top',
+        type: "error",
+        text1: "Please enter your phone number and password",
+        position: "top",
         visibilityTime: 4000,
       });
-
     }
   };
 
@@ -229,10 +240,12 @@ const Login = ({ navigation }) => {
           onChangeText={handlePhoneNumber}
         />
       </View>
-      <View style={{
-        marginBottom: 5,
-        flexDirection: 'row'
-      }}>
+      <View
+        style={{
+          marginBottom: 5,
+          flexDirection: "row",
+        }}
+      >
         <TextInput
           style={[styles.input, loginError && styles.errorInput]}
           label="Password"
@@ -246,12 +259,11 @@ const Login = ({ navigation }) => {
           style={styles.iconContainer}
         >
           <MaterialCommunityIcons
-            name={!showNewPassword ? 'eye-off' : 'eye'}
+            name={!showNewPassword ? "eye-off" : "eye"}
             size={20}
             style={styles.eyeIcon}
           />
         </Pressable>
-
       </View>
 
       <View style={styles.btnContainer}>
@@ -260,7 +272,11 @@ const Login = ({ navigation }) => {
         </Button>
       </View>
       <View style={styles.forgetContainer}>
-        <Pressable onPress={() => { navigation.navigate('ForgotPassword') }}>
+        <Pressable
+          onPress={() => {
+            navigation.navigate("ForgotPassword");
+          }}
+        >
           <Text style={styles.forgetText}>Forgot password?</Text>
         </Pressable>
       </View>
@@ -301,7 +317,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
-    width: '100%'
+    width: "100%",
   },
   errorInput: {
     backgroundColor: "#ffcccc",
@@ -325,23 +341,22 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: "#f558a4",
+    justifyContent: "center",
   },
   forgetContainer: {
     marginTop: 10,
     alignItems: "center",
-
   },
   forgetText: {
     color: "#f558a4",
     fontWeight: 500,
-    fontSize: 15
+    fontSize: 15,
   },
   iconContainer: {
     marginRight: 20,
-    position: 'absolute',
+    position: "absolute",
     right: 0,
-    top: '40%'
-
+    top: "40%",
   },
 });
 

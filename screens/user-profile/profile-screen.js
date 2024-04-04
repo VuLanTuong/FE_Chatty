@@ -105,6 +105,7 @@ export default function ProfileScreen({ navigation }) {
             style={{
               marginLeft: 10,
               marginTop: 10,
+              color: "black",
             }}
           >
             Change password
@@ -129,6 +130,7 @@ export default function ProfileScreen({ navigation }) {
           <Text
             style={{
               marginLeft: 10,
+              color: "black",
             }}
           >
             Account and security
@@ -149,6 +151,7 @@ export default function ProfileScreen({ navigation }) {
           <Text
             style={{
               marginLeft: 10,
+              color: "black",
             }}
           >
             Privacy
