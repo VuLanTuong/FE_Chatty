@@ -144,7 +144,8 @@ const ChatScreen = ({ navigation, route }) => {
           <TouchableOpacity style={{ marginHorizontal: 10 }}>
             <Feather name="video" size={24} color="white" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ marginHorizontal: 10 }}>
+          <TouchableOpacity style={{ marginHorizontal: 10 }}
+          onPress={() => navigation.navigate('Option')}>
             <AntDesign name="profile" size={24} color="white" />
           </TouchableOpacity>
         </View>

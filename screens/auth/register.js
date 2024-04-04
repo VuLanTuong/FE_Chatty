@@ -15,7 +15,7 @@ import Toast from "react-native-toast-message";
 import DateTimePicker from "react-native-ui-datepicker";
 import dayjs from "dayjs";
 // import "react-datepicker/dist/react-datepicker.css";
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const register = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -45,17 +45,16 @@ const register = ({ navigation }) => {
   const dispatch = useDispatch();
 
   const handlePhoneNumber = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, '');
+    const numericValue = text.replace(/[^0-9]/g, "");
     setPhone(numericValue);
   };
-
 
   const validate = () => {
     const phoneRegex = /^(03|05|07|08|09|01[2689])([0-9]{8})\b/;
 
     if (!phone.match(phoneRegex)) {
       console.log("phone invalid");
-      return false
+      return false;
     }
     if (password !== confirmPassword) {
       setIsSignUpError(true);
@@ -101,8 +100,6 @@ const register = ({ navigation }) => {
 
     if (phone.match(/^(03|05|07|08|09|01[2689])([0-9]{8})\b/)) {
       if (confirmPassword === password) {
-
-
         const response = await fetch(
           "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
           {
@@ -153,8 +150,7 @@ const register = ({ navigation }) => {
           .catch((error) => {
             console.log(error.message);
           });
-      }
-      else {
+      } else {
         Toast.show({
           type: "error",
           text1: "Password and confirm password not match",
@@ -162,8 +158,7 @@ const register = ({ navigation }) => {
           visibilityTime: 4000,
         });
       }
-    }
-    else {
+    } else {
       Toast.show({
         type: "error",
         text1: "Phone must be valid in Viet Nam",
@@ -171,14 +166,12 @@ const register = ({ navigation }) => {
         visibilityTime: 4000,
       });
     }
-  }
-
-
-
+  };
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps='handled'
+    <ScrollView
+      contentContainerStyle={{ flexGrow: 1 }}
+      keyboardShouldPersistTaps="handled"
     >
       <View style={styles.container}>
         <View style={styles.text}>
@@ -206,10 +199,14 @@ const register = ({ navigation }) => {
           />
         </View>
         <View style={styles.genderCheck}>
-          <Text style={{
-            marginTop: 8,
-            marginLeft: 5
-          }}>Gender</Text>
+          <Text
+            style={{
+              marginTop: 8,
+              marginLeft: 5,
+            }}
+          >
+            Gender
+          </Text>
           <RadioButton
             status={
               gender === "Male" || gender === "male" ? "checked" : "unchecked"
@@ -221,7 +218,9 @@ const register = ({ navigation }) => {
           <Text style={styles.checkboxLabel}>Male</Text>
           <RadioButton
             status={
-              gender === "Female" || gender === "female" ? "checked" : "unchecked"
+              gender === "Female" || gender === "female"
+                ? "checked"
+                : "unchecked"
             }
             onPress={() => setGender("female")}
             color="#f558a4"
@@ -239,11 +238,17 @@ const register = ({ navigation }) => {
           <Modal isVisible={showModal} onBackdropPress={toggleModal}>
             <View style={styles.modalContent}>
               <DateTimePicker
+              selectedItemColor="#f558a4"
                 mode="single"
                 date={date}
                 onChange={(params) => setDate(params.date)}
               />
-              <Button style={{ backgroundColor: '#f558a4' }} onPress={toggleModal}>OK</Button>
+              <Button
+                style={{ backgroundColor: "#f558a4" }}
+                onPress={toggleModal}
+              >
+                OK
+              </Button>
             </View>
           </Modal>
         </View>
@@ -268,10 +273,12 @@ const register = ({ navigation }) => {
             onChangeText={handlePhoneNumber}
           />
         </View>
-        <View style={{
-          marginBottom: 5,
-          flexDirection: 'row'
-        }}>
+        <View
+          style={{
+            marginBottom: 5,
+            flexDirection: "row",
+          }}
+        >
           <TextInput
             style={[styles.input, isSignUpError && styles.errorInput]}
             label="Password"
@@ -285,17 +292,18 @@ const register = ({ navigation }) => {
             style={styles.iconContainer}
           >
             <MaterialCommunityIcons
-              name={!showNewPassword ? 'eye-off' : 'eye'}
+              name={!showNewPassword ? "eye-off" : "eye"}
               size={20}
               style={styles.eyeIcon}
             />
           </Pressable>
-
         </View>
-        <View style={{
-          marginBottom: 5,
-          flexDirection: 'row'
-        }}>
+        <View
+          style={{
+            marginBottom: 5,
+            flexDirection: "row",
+          }}
+        >
           <TextInput
             style={[styles.input, isSignUpError && styles.errorInput]}
             label="Confirm Password"
@@ -309,12 +317,11 @@ const register = ({ navigation }) => {
             style={styles.iconContainer}
           >
             <MaterialCommunityIcons
-              name={!showConfirmNewPassword ? 'eye-off' : 'eye'}
+              name={!showConfirmNewPassword ? "eye-off" : "eye"}
               size={20}
               style={styles.eyeIcon}
             />
           </Pressable>
-
         </View>
 
         <View style={styles.btnContainer}>
@@ -361,7 +368,7 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: "#f5f5f5",
     paddingLeft: 10,
-    width: '100%'
+    width: "100%",
   },
   errorInput: {
     backgroundColor: "#ffcccc",
@@ -376,6 +383,7 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     backgroundColor: "#f558a4",
+    justifyContent: "center",
   },
   checkboxLabel: {
     marginTop: 7,
@@ -389,19 +397,18 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 22,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 4,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: "rgba(0, 0, 0, 0.1)",
   },
   iconContainer: {
     marginRight: 20,
-    position: 'absolute',
+    position: "absolute",
     right: 0,
-    top: '40%'
-
+    top: "40%",
   },
 });
 
