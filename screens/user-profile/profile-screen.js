@@ -113,7 +113,6 @@ export default function ProfileScreen({ navigation }) {
             </Text>
           </Button>
           <Divider style={styles.dividerForMenu} />
-
           <Button
             mode="elevated"
             icon={({ color, size }) => (
@@ -131,6 +130,7 @@ export default function ProfileScreen({ navigation }) {
             <Text
               style={{
                 marginLeft: 10,
+                color: "black",
               }}
             >
               Account and security
@@ -142,77 +142,29 @@ export default function ProfileScreen({ navigation }) {
               <Icon name="lock" color={color} size={size} />
             )}
             style={{
-              marginLeft: 10,
-              marginTop: 10,
-              color: "black",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              height: 50,
+              width: "100%",
+              borderRadius: 0,
             }}
           >
-            Change password
-          </Text>
-        </Button>
-        <Divider style={styles.dividerForMenu} />
-
-        <Button
-          mode="elevated"
-          icon={({ color, size }) => (
-            <Icon name="security" color={color} size={size} />
-          )}
-          style={{
-            alignItems: "flex-start",
-            justifyContent: "center",
-            height: 50,
-            width: "100%",
-            marginBottom: 5,
-            borderRadius: 0,
-          }}
-        >
-          <Text
-            style={{
-              marginLeft: 10,
-              color: "black",
-            }}
-          >
-            Account and security
-          </Text>
-        </Button>
-        <Button
-          mode="elevated"
-          icon={({ color, size }) => (
-            <Icon name="lock" color={color} size={size} />
-          )}
-          style={{
-            alignItems: "flex-start",
-            justifyContent: "center",
-            height: 50,
-            width: "100%",
-            borderRadius: 0,
-          }}>
-          <Text
-            style={{
-              marginLeft: 10,
-              color: "black",
-            }}
-          >
-            Privacy
-          </Text>
-        </Button>
-        <Divider style={styles.dividerForMenu} />
-        <Button
-          onPress={() => removeToken()}
-          mode="contained"
-          icon={({ color, size }) => (
-            <Icon name="logout" color={color} size={size} />
-          )}
-          style={{
-            height: 50,
-            width: "100%",
-            backgroundColor: "#f558a4",
-            alignContent: "center",
-            justifyContent: "center",
-            borderRadius: 0,
-          }}
-        >
-          <Text
+            <Text
+              style={{
+                marginLeft: 10,
+                color: "black",
+              }}
+            >
+              Privacy
+            </Text>
+          </Button>
+          <Divider style={styles.dividerForMenu} />
+          <Button
+            onPress={() => removeToken()}
+            mode="contained"
+            icon={({ color, size }) => (
+              <Icon name="logout" color={color} size={size} />
+            )}
             style={{
               height: 50,
               width: "100%",
