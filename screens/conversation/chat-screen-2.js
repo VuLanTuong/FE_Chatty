@@ -33,8 +33,9 @@ import { io } from "socket.io-client";
 import { Checkbox } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
 import { useSocket } from "../socket.io/socket-context";
-
-
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
+import { getConservations } from "../../rtk/user-slice";
 const ChatScreen = ({ navigation, route }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -48,11 +49,10 @@ const ChatScreen = ({ navigation, route }) => {
     const [checked, setChecked] = React.useState(false);
     const [contentForward, setContentForward] = useState('');
     const friendInRedux = useSelector((state) => state.user.friends);
-
+    const [file, setFile] = useState(null);
+    const [isFriend, setIsFriend] = useState(false);
+    const dispatch = useDispatch()
     const { socket } = useSocket();
-
-
-
     const handleOpenModal = () => {
         setModalVisible(true);
     };
@@ -66,18 +66,35 @@ const ChatScreen = ({ navigation, route }) => {
     };
 
 
+    const checkIsFriend = () => {
+        console.log(friendInRedux);
+        conversationParams.members.map((member) => {
+            console.log(member);
+            if (member._id !== user._id && friendInRedux.find(friend => friend.userId === member._id)) {
+                console.log("is friend");
+                setIsFriend(true);
+                return true;
+            }
+            else {
+                return false;
+            }
+
+        })
+    }
+
+
     const handleCloseModal = () => {
         setModalVisible(false);
     };
 
     const conversationParams = route.params.data;
     console.log(conversationParams);
-    // console.log(data);
+
+
+    const friendInParams = route.params.friends;
 
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
     console.log(allConversationAtRedux);
-
-    // console.log(friends);
 
     const scrollViewRef = useRef(null);
 
@@ -85,17 +102,17 @@ const ChatScreen = ({ navigation, route }) => {
     console.log(currentConversation);
 
     useEffect(() => {
+        checkIsFriend()
         getAllMessage();
         console.log("effect");
-        // socket.on('message:receive', (data) => {
-        //     console.log("receive message");
-        //     console.log(data);
-        // })
         scrollToBottom(),
             groupFriendsByLetter();
 
 
+
     }, []);
+
+    console.log(isFriend);
 
     const scrollToBottom = () => {
         if (scrollViewRef.current) {
@@ -151,6 +168,7 @@ const ChatScreen = ({ navigation, route }) => {
         // console.log(contentForward);
         console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
+            console.log("friend forward", friendId);
             const token = await getAccessToken();
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
                 {
@@ -160,15 +178,25 @@ const ChatScreen = ({ navigation, route }) => {
                         Authorization: "Bearer " + token
                     }
                 }).then((response) => response.json())
-                .then((data) => {
+                .then(async (data) => {
                     // console.log(data)
                     if (data.status === "fail") {
                         console.log("fail");
                         return;
                     }
                     else {
+                        let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                Authorization: "Bearer " + token
+                            }
+                        });
+                        const conversationWithFriend = await response.json();
+
                         console.log(contentForward);
-                        handleSendTextMessage(data.data._id, contentForward);
+                        console.log(conversationWithFriend);
+                        handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
                     }
 
 
@@ -246,7 +274,7 @@ const ChatScreen = ({ navigation, route }) => {
 
     }
 
-    const handleSendTextMessage = async (id, text) => {
+    const handleSendTextMessage = async (id, text, conversation) => {
         // console.log("send text");
         // console.log(text);
         const token = await getAccessToken();
@@ -269,10 +297,15 @@ const ChatScreen = ({ navigation, route }) => {
                         console.log("fail");
                         return;
                     }
-                    socket.emit('message:send', { ...data.data, conversation: conversationParams, sender: user._id })
-                    setMessages([...messages, data.data])
-                    setText('');
 
+                    socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
+                    //kiem tra dieu kien de set
+                    if (conversation._id === currentConversation._id) {
+                        setMessages([...messages, data.data])
+                    }
+                    // setMessages([...messages, data.data])
+                    setText('');
+                    dispatch(getConservations())
                 }).then(() => setText(''))
                 .catch(() => console.log("fetch error"))
         }
@@ -298,10 +331,13 @@ const ChatScreen = ({ navigation, route }) => {
         setIsFocused(false);
     };
 
-
+    const handleOption = () => {
+        navigation.navigate('Option', { data: conversationParams });
+    }
 
 
     useLayoutEffect(() => {
+        console.log(isFriend);
         navigation.setOptions({
             headerTitle: "",
             headerLeft: () => (
@@ -320,7 +356,7 @@ const ChatScreen = ({ navigation, route }) => {
                         style={{
                             flexDirection: "row",
                         }}
-                    >
+                        onPress={() => handleOption()}>
                         <View>
                             <View
                                 style={{
@@ -338,7 +374,7 @@ const ChatScreen = ({ navigation, route }) => {
                                 }}
                             />
                             <Image
-                                source={{ uri: member1.avatar }}
+                                source={{ uri: conversationParams.image }}
                                 resizeMode="contain"
                                 style={{
                                     width: 50,
@@ -355,8 +391,15 @@ const ChatScreen = ({ navigation, route }) => {
                                     color: "white",
                                 }}
                             >
-                                {member1.name}
+                                {conversationParams.name}
                             </Text>
+
+                            {/* {isFriend ?
+                                <Text style={{ color: "white" }}>Friend</Text>
+
+                                :
+                                <Text style={{ color: "white" }}>Not friend</Text>} */}
+
                             <Text style={{ color: "white" }}>Active now</Text>
                         </View>
                     </TouchableOpacity>
@@ -376,7 +419,7 @@ const ChatScreen = ({ navigation, route }) => {
                     <TouchableOpacity style={{ marginHorizontal: 10 }}>
                         <Feather name="video" size={24} color="white" />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{ marginHorizontal: 10 }}>
+                    <TouchableOpacity onPress={() => handleOption()} style={{ marginHorizontal: 10 }}>
                         <AntDesign name="profile" size={24} color="white" />
                     </TouchableOpacity>
                 </View>
@@ -411,6 +454,48 @@ const ChatScreen = ({ navigation, route }) => {
     const onTextLayout = useCallback(e => {
         setTextLength(e.nativeEvent.lines.length);
     }, []);
+
+
+    const handleChoosePhoto = async () => {
+        let result = await DocumentPicker.getDocumentAsync({
+            type: '*/*', // Allow all file types, or specify specific types like 'application/pdf' or 'image/*'
+        });
+        console.log(result);
+        if (!result.canceled) {
+            handleUploadPhoto(result.assets[0].uri);
+        }
+    };
+
+    const handleUploadPhoto = async (file) => {
+        const accessToken = await getAccessToken();
+
+        fetch(
+            `http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/converations/${conversationParams._id}/messages/sendFilesV2`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + accessToken,
+
+                    "Content-Type": "application/json",
+                },
+                body: { file: [file] },
+            }
+        )
+            .then((response) => {
+                console.log("response", response);
+                return response.json();
+            })
+            .then((data) => {
+                console.log(data);
+            })
+            .catch((error) => {
+                console.log("error", error);
+            });
+    };
+
+
+
+
 
 
 
@@ -596,6 +681,7 @@ const ChatScreen = ({ navigation, route }) => {
                     flex: 1,
                     alignItems: "center",
                     justifyContent: "space-between",
+                    gap: 10
 
                 }}>
                     <TouchableOpacity>
@@ -610,9 +696,9 @@ const ChatScreen = ({ navigation, route }) => {
                         style={[{
                             fontSize: 20,
                             height: 50,
-                            width: '70%',
+                            width: '60%',
                             borderRadius: 20,
-                            paddingHorizontal: 15,
+                            paddingHorizontal: 10,
                         }, isFocused && styles.textInputFocused
                         ]}
                         value={text}
@@ -620,10 +706,13 @@ const ChatScreen = ({ navigation, route }) => {
                         onFocus={handleFocus}
                         onBlur={handleBlur}
                     />
-                    <Pressable>
+                    <Pressable onPress={() => handleChoosePhoto()} >
                         <Octicons name="image" size={24} color="black" />
                     </Pressable>
-                    <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleSendTextMessage(conversationParams._id, text)}>
+                    <Pressable style={{ marginHorizontal: 5 }}>
+                        <Octicons name="file" size={24} color="black" />
+                    </Pressable>
+                    <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, conversationParams)}>
                         <Feather name="send" size={24} color="black" />
                     </Pressable>
 
@@ -692,8 +781,6 @@ const ChatScreen = ({ navigation, route }) => {
                                                         flex: 1,
 
                                                     }}>
-
-
                                                         <View style={{
                                                             flexDirection: 'row',
                                                             gap: 20,

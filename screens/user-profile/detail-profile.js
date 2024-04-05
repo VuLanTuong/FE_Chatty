@@ -19,7 +19,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { launchImageLibrary } from "react-native-image-picker";
 import { getAccessToken } from "./getAccessToken";
-import ImagePicker from "react-native-image-picker";
+// import ImagePicker from "react-native-image-picker";
+import * as ImagePicker from 'expo-image-picker';
 import { useDispatch } from "react-redux";
 import { login, changeAvatar } from "../../rtk/user-slice";
 import Toast from "react-native-toast-message";
@@ -49,26 +50,6 @@ export default function DetailProfile({ navigation }) {
   const handleEditPress = () => {
     setIsEditing(true);
   };
-
-  // const getMe = async () => {
-  //     const accessToken = await getAccessToken();
-  //     fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe', {
-  //         method: 'GET',
-  //         headers: {
-  //             "Authorization": "Bearer " + accessToken,
-  //             'Content-Type': 'application/json'
-  //         }
-  //     })
-  //         .then((response) => response.json())
-  //         .then((data) => {
-  //             dispatch(login({
-  //                 user: data.data.user
-
-  //             })
-  //             )
-  //         })
-
-  // }
 
   const handleSavePress = async () => {
     setIsEditing(false);
@@ -122,65 +103,36 @@ export default function DetailProfile({ navigation }) {
     return `${day}/${month}/${year}`;
   };
 
-  const handleChoosePhoto = () => {
-    console.log("choose photo");
-    const options = {
-      mediaType: "photo",
-      includeBase64: false,
-    };
-
-    launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.error) {
-        console.log("Image picker error: ", response.error);
-      } else {
-        let imageUri = response.uri || response.assets?.[0]?.uri;
-        console.log(response);
-        setPhoto(imageUri);
-        handleUploadPhoto(imageUri);
-      }
+  const handleChoosePhoto = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
     });
+
+    console.log(result);
+
+    if (!result.canceled) {
+      setPhoto(result.assets[0].uri);
+      handleUploadPhoto(result.assets[0].uri);
+    }
   };
 
-  // const createFormData = (photo) => {
-  //     const avatar = new FormData();
-  //     // console.log(photo.uri);
-
-  //     avatar.append('avatar', {
-  //         name: "avatar",
-  //         type: "file/jpg/png/jpeg",
-  //         uri: Platform.OS === 'ios' ? photo.uri.replace('file://', '') : photo.uri,
-  //     });
-  //     console.log(avatar);
-  //     return avatar;
-  // };
 
   const handleUploadPhoto = async (imageUri) => {
     const accessToken = await getAccessToken();
-
-    // const avatar = new FormData();
-
-    console.log(photo);
-
-    // avatar.append('avatar', { photo });
-
-    // console.log('avatar', avatar);
-    console.log("access token", accessToken);
-
     console.log("photo", imageUri);
 
     fetch(
       "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateAvatarV2",
       {
-        // fetch('http://localhost:8555/api/v1/users/updateAvatarV2', {
         method: "PUT",
         headers: {
           Authorization: "Bearer " + accessToken,
 
           "Content-Type": "application/json",
         },
-        // type: 'application/json',
         body: JSON.stringify({ avatar: imageUri }),
       }
     )
@@ -224,7 +176,7 @@ export default function DetailProfile({ navigation }) {
           {isEditing ? (
             <View
               style={{
-                flex: 1,
+                // flex: 1,
                 alignItems: "center",
                 justifyContent: "center",
               }}

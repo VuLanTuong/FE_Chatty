@@ -15,12 +15,14 @@ import { useSocket } from "../socket.io/socket-context";
 const MessageScreen = ({ navigation }) => {
 
 
+
   const options = ['Add Friend', 'Add Group', 'Cancel'];
   const actionSheetRef = useRef();
   const handleAddFriend = () => {
     navigation.navigate('FindFriend')
   }
 
+  const friends = useSelector((state) => state.user.friends);
   const handleAddGroup = () => {
     navigation.navigate('AddGroup')
   }
@@ -32,7 +34,10 @@ const MessageScreen = ({ navigation }) => {
   const [conversations, setConversations] = useState([]);
 
 
+
   const dispatch = useDispatch()
+  const allConversation = useSelector((state) => state.user.conversation);
+  console.log(allConversation);
 
 
   // get current user
@@ -62,47 +67,82 @@ const MessageScreen = ({ navigation }) => {
   };
 
 
-  const handleConversationUpdate = (data) => {
-    console.log(data.conversation.members);
-    const members = data.conversation.members;
+  // const handleConversationUpdate = (data) => {
+  //   const members = data.conversation.members;
 
+  //   let updatedConversationArray = allConversationAtRedux;
+  //   const newConversation = checkIsMember(data, members);
 
-    let updatedConversationArray = allConversationAtRedux;
-    const newConversation = checkIsMember(data, members);
+  //   if (newConversation !== null) {
+  //     updatedConversationArray = [...allConversationAtRedux, newConversation];
+  //   }
+  //   console.log(updatedConversationArray);
+  //   const updatedConversation = updatedConversationArray.map((item) => {
+  //     console.log(item);
+  //     if (item._id.toString() === data.conversation._id.toString()) {
+  //       return {
+  //         ...item,
+  //         lastMessage: data,
+  //         updateAt: Date.now(),
+  //         isReadMessage: false,
+  //       };
+  //     }
+  //     return item;
+  //   });
 
-    if (newConversation !== null) {
-      updatedConversationArray = [...allConversationAtRedux, newConversation];
-    }
+  //   console.log(updatedConversation);
+  //   dispatch(setAllConversation(updatedConversation));
+  //   setConversations(updatedConversation);
+  //   console.log(data);
+  // };
 
-
-    console.log(updatedConversationArray);
-    const updatedConversation = updatedConversationArray.map((item) => {
-      console.log(item);
-      if (item._id.toString() === data.conversation._id.toString()) {
-        return {
-          ...item,
-          lastMessage: data,
-          updateAt: Date.now(),
-          isReadMessage: false,
-        };
-      }
-      return item;
-    });
-
-    console.log(updatedConversation);
-    dispatch(setAllConversation(updatedConversation));
-    setConversations(updatedConversation);
-    console.log(data);
-  };
-
-  socket.on('message:receive', (data) => {
-    handleConversationUpdate(data);
-  });
+  // socket.on('message:receive', (data) => {
+  //   handleConversationUpdate(data);
+  // });
 
   useEffect(() => {
-    scrollToTop();
-    getAllConversation();
+    const handleConversationUpdate = (data) => {
+      const members = data.conversation.members;
+
+      let updatedConversationArray = allConversationAtRedux;
+      const newConversation = checkIsMember(data, members);
+
+      if (newConversation !== null) {
+        updatedConversationArray = [...allConversation, newConversation];
+      }
+      console.log(updatedConversationArray);
+
+      const updatedConversation = updatedConversationArray.map((item) => {
+        console.log(item);
+        if (item._id.toString() === data.conversation._id.toString()) {
+          return {
+            ...item,
+            lastMessage: data,
+            updateAt: Date.now(),
+            isReadMessage: false,
+          };
+        }
+        return item;
+      });
+
+      console.log(updatedConversation);
+      // dispatch(setAllConversation(updatedConversation));
+      dispatch(getAllConversation());
+      // setConversations(updatedConversation);
+      console.log(data);
+    };
+    socket.on('message:receive', (data) => {
+      handleConversationUpdate(data);
+    });
   }, []);
+
+
+  // useFocusEffect(
+  //   React.useCallback(() => {
+  //     // scrollToTop();
+  //     getAllConversation();
+  //   }, [])
+  // );
 
   const scrollToTop = () => {
     if (scrollViewRef.current) {
@@ -137,9 +177,6 @@ const MessageScreen = ({ navigation }) => {
       const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
       setConversations(updatedConversations);
       dispatch(setAllConversation(updatedConversations))
-
-
-
     })
       .catch((err) => {
         console.log(err)
@@ -164,6 +201,8 @@ const MessageScreen = ({ navigation }) => {
 
     }, [])
   );
+
+
 
   const removeConservationNotContent = () => {
 
@@ -197,7 +236,7 @@ const MessageScreen = ({ navigation }) => {
         else {
           console.log(data.data);
           dispatch(setCurrentConversation(data.data))
-          navigation.navigate('Chat', { data: data.data })
+          navigation.navigate('Chat', { data: data.data, friends: friends })
         }
 
 
@@ -290,14 +329,14 @@ const MessageScreen = ({ navigation }) => {
       },
       headerLeft: () => (
         <View style={{ height: 50, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <MaterialCommunityIcons name="magnify" color="white" size={20} />
-            <TextInput
-              placeholder="Search"
-              placeholderTextColor="white"
-              style={{ height: 20, fontSize: 17, color: 'white' }}
-            />
-          </View>
+          {/* <View style={{ flexDirection: 'row', gap: 10 }}> */}
+          <MaterialCommunityIcons name="magnify" color="white" size={20} />
+          <TextInput
+            placeholder="Search"
+            placeholderTextColor="white"
+            style={{ height: 20, fontSize: 17, color: 'white' }}
+          />
+          {/* </View> */}
         </View>
       ),
       headerRight: () =>
@@ -337,7 +376,7 @@ const MessageScreen = ({ navigation }) => {
       <FlatList
         numColumns={1}
         horizontal={false}
-        data={conversations}
+        data={allConversation}
         renderItem={({ item }) => (
           <View style={styles.container} key={item._id}>
             <TouchableOpacity style={styles.conversation}
@@ -366,9 +405,6 @@ const MessageScreen = ({ navigation }) => {
                   {item.isReadMessage && item.lastMessage.sender === user._id.toString() ? (
 
                     <Text style={styles.message}>{getLastMessage(item)}</Text>
-
-
-
                   ) : (
                     <View style={{
                       flexDirection: 'row',

@@ -31,7 +31,7 @@ const FindFriend = ({ navigation }) => {
                     });
                     return;
                 }
-                console.log('response', data);
+                console.log('response', data.data);
                 navigation.navigate('FriendProfile', { friend: data.data });
             })
             .catch((error) => {

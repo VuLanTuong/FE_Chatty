@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect } from "react";
 import { io } from "socket.io-client";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { getConservations } from "../../rtk/user-slice";
 
 const BASE_URL = "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555"
 
@@ -10,6 +11,7 @@ let socket = io(BASE_URL)
 export const SocketProvider = ({ children }) => {
     const currentUser = useSelector(state => state.user.user);
     console.log(currentUser);
+    const dispatch = useDispatch();
     useEffect(() => {
 
         // socket = io(BASE_URL)
@@ -17,6 +19,10 @@ export const SocketProvider = ({ children }) => {
             const { email, avatar, name, _id } = currentUser;
 
             socket.emit('user_connected', { userId: _id })
+
+            //dispatch conservation
+            dispatch(getConservations())
+            console.log("get conservation");
 
         }
         return () => {

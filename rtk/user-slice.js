@@ -1,4 +1,6 @@
-import { createSlice } from "@reduxjs/toolkit"
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
+import { getAccessToken } from "../screens/user-profile/getAccessToken";
+import { getAllConversation } from "../service/conversation.util";
 const initialState = {
     user: {
         _id: "", // The user's ID.
@@ -16,6 +18,17 @@ const initialState = {
     conversation: [],
     currentConversation: {}
 };
+
+export const getConservations = createAsyncThunk('conservation/getAll', async (values, { rejectWithValue }) => {
+    console.log("redux");
+    try {
+        const data = await getAllConversation();
+        console.log(data);
+        return data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message)
+    }
+})
 
 export const userSlice = createSlice({
     name: 'userSlice',
@@ -45,31 +58,15 @@ export const userSlice = createSlice({
         },
         setCurrentConversation: (state, action) => {
             state.currentConversation = action.payload
-
         }
-        // updated: (state, action) => {
-        //     const commentIndx = state.comment.findIndex(comment =>
-        //         comment.id === action.payload.commentId)
-        //     if (commentIndx) {
-        //         state.comment[commentIndx].content = action
-        //             .payload.content
-        //     }
-        // },
-        // add: (state, action) => {
-        //     const allId = state.comment.map(value => value.id)
-        //     const maxId = Math.max(...allId)
-        //     const id = maxId + 1;
-        //     const content = action.payload.newComment
-        //     const newComment = { id, content }
-        //     const newArray = [...state.comment, newComment]
-        //     state.comment = [...newArray]
-        // },
-        // deleteComment: (state, action) => {
-        //     state.comment = state.comment.filter(comment =>
-        //         comment.id !== action.payload)
-        // }
+    },
+    extraReducers(builders) {
+        builders.addCase(getConservations.fulfilled, (state, action) => {
+            console.log(action.payload);
+            state.conversation = action.payload
+        })
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, } = userSlice.actions;
 export default userSlice.reducer
