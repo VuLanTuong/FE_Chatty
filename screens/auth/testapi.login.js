@@ -112,7 +112,6 @@ const Login = ({ navigation }) => {
           );
           console.log(user);
           fetchAllFriend();
-          dispatch(getConservations())
 
           // const friendList = findFriendById(user._id).then((friend) => {
           //   console.log(friend);
