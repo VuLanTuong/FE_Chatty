@@ -17,7 +17,7 @@ import {
   Checkbox,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
-import { login, setFriend } from "../../rtk/user-slice";
+import { getConservations, login, setFriend } from "../../rtk/user-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
@@ -112,6 +112,7 @@ const Login = ({ navigation }) => {
           );
           console.log(user);
           fetchAllFriend();
+          dispatch(getConservations())
 
           // const friendList = findFriendById(user._id).then((friend) => {
           //   console.log(friend);
