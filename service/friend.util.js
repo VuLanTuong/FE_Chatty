@@ -17,9 +17,6 @@ export async function findFriendById(id) {
         }
 
         const data = await response.json();
-
-        console.log('response', data.data);
-
         return data.data;
     } catch (error) {
         console.log('Error:', error);
