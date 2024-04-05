@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import { SafeAreaView } from "react-native";
 import { useFocusEffect } from '@react-navigation/native';
-import { setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
+import { getConservations, setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
 import { findFriendById } from "../../service/friend.util";
 import ContextMenu from "../context-menu/context-menu";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -127,7 +127,7 @@ const MessageScreen = ({ navigation }) => {
 
       console.log(updatedConversation);
       // dispatch(setAllConversation(updatedConversation));
-      dispatch(getAllConversation());
+      dispatch(getConservations());
       // setConversations(updatedConversation);
       console.log(data);
     };
@@ -161,29 +161,29 @@ const MessageScreen = ({ navigation }) => {
 
 
 
-  async function getAllConversation() {
-    const accessToken = await getAccessToken();
-    await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations', {
-      method: 'get',
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + accessToken
-      }
-    }).then((response) => {
-      return response.json()
-    }).then((data) => {
-      const temp = Object.values(data.data);
+  // async function getAllConversation() {
+  //   const accessToken = await getAccessToken();
+  //   await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations', {
+  //     method: 'get',
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       Authorization: "Bearer " + accessToken
+  //     }
+  //   }).then((response) => {
+  //     return response.json()
+  //   }).then((data) => {
+  //     const temp = Object.values(data.data);
 
-      const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
-      setConversations(updatedConversations);
-      dispatch(setAllConversation(updatedConversations))
-    })
-      .catch((err) => {
-        console.log(err)
-        return;
-      })
+  //     const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
+  //     setConversations(updatedConversations);
+  //     dispatch(setAllConversation(updatedConversations))
+  //   })
+  //     .catch((err) => {
+  //       console.log(err)
+  //       return;
+  //     })
 
-  }
+  // }
 
   // useEffect(() => {
   //   removeConservationNotContent()

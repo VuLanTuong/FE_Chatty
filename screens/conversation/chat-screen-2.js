@@ -107,9 +107,6 @@ const ChatScreen = ({ navigation, route }) => {
         console.log("effect");
         scrollToBottom(),
             groupFriendsByLetter();
-
-
-
     }, []);
 
     console.log(isFriend);
@@ -214,9 +211,6 @@ const ChatScreen = ({ navigation, route }) => {
         });
         setContentForward('');
         setModalVisible(false);
-
-
-
     }
 
 
@@ -273,10 +267,10 @@ const ChatScreen = ({ navigation, route }) => {
         setMessages(data.reverse())
 
     }
-
     const handleSendTextMessage = async (id, text, conversation) => {
         // console.log("send text");
         // console.log(text);
+        console.log(conversation);
         const token = await getAccessToken();
         if (text !== '') {
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
@@ -301,6 +295,7 @@ const ChatScreen = ({ navigation, route }) => {
                     socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
                     //kiem tra dieu kien de set
                     if (conversation._id === currentConversation._id) {
+                        console.log("set roi");
                         setMessages([...messages, data.data])
                     }
                     // setMessages([...messages, data.data])
