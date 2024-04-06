@@ -51,6 +51,9 @@ const ChatScreen = ({ navigation, route }) => {
     const friendInRedux = useSelector((state) => state.user.friends);
     const [file, setFile] = useState(null);
     const [isFriend, setIsFriend] = useState(false);
+    const [replyMessage, setReplyMessage] = useState();
+    const [isReply, setIsReply] = useState(false);
+    const [replyText, setReplyText] = useState('');
     const dispatch = useDispatch()
     const { socket } = useSocket();
     const handleOpenModal = () => {
@@ -154,6 +157,7 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     const openModal = (content) => {
+        console.log(content);
         setContentForward(content);
         setModalVisible(true);
     }
@@ -211,11 +215,60 @@ const ChatScreen = ({ navigation, route }) => {
         });
         setContentForward('');
         setModalVisible(false);
+        setSelectedFriends([]);
     }
 
+    const handleSendTextReply = async () => {
+        console.log(replyText);
+        console.log(replyMessage);
+        const token = await getAccessToken();
+        if (replyMessage) {
+            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages/replyText/${replyMessage._id}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + token
+                    },
+                    body: JSON.stringify({
+                        content: replyText
+                    }
+                    )
+                }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data)
+                    if (data.status === "fail") {
+                        console.log("fail");
+                        return;
+                    }
 
-    const handleReply = () => {
-        console.log("reply");
+                    socket.emit('message:send', { ...data.data, conversation: conversationParams, sender: user._id })
+                    setMessages([...messages, data.data])
+                    setReplyMessage()
+                    setReplyText('')
+                    setIsReply(false)
+                    dispatch(getConservations())
+                    console.log("reply success");
+
+                }).then(() => setText(''))
+                .catch(() => console.log("fetch error"))
+        }
+        else {
+            console.log("empty message");
+            return;
+        }
+
+    }
+
+    const handleReply = async (message) => {
+        console.log(message);
+        console.log(message);
+        setIsReply(true)
+        setReplyMessage(message)
+
+
+
+
     }
 
 
@@ -489,10 +542,230 @@ const ChatScreen = ({ navigation, route }) => {
     };
 
 
+    const cancelReply = () => {
+        setIsReply(false);
+        setReplyMessage(null);
+    }
+
+    const MessageComponent = ({ message }) => {
+        console.log(message);
+        const actionSheetRef = useRef(null);
+
+        const handlePressIcon = () => {
+            actionSheetRef.current.show();
+        };
+
+        const handleActionPress = (index) => {
+            switch (index) {
+                case 0:
+                    handleDelete(message._id);
+                    break;
+                case 1:
+                    openModal(message.content);
+                    break;
+                case 2:
+                    handleReply(message);
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        return (
+            <View
+                key={message._id}
+                style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    alignItems: "flex-end",
+                    marginVertical: 5,
+                    marginHorizontal: 5,
+                    justifyContent: message.isMine ? "flex-end" : "flex-start",
+                }}
+            >
+                {message.isMine === false && (
+                    <Image
+                        source={{ uri: message.avatar }}
+                        style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15,
+                            marginRight: 5,
+                        }}
+                    />
+                )}
+
+                {message.content.length > 20 ? (
+                    <View
+                        style={{
+                            backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
+                            borderRadius: 10,
+                            paddingHorizontal: 5,
+                            paddingVertical: 5,
+                            flexDirection: "column",
+                            gap: 5,
+                        }}
+                    >
+                        <Pressable
+                            style={{
+                                width: "80%",
+                            }}
+                            onPress={handlePressIcon}
+                        >
+
+                            {message.parent !== null ? (
+                                <View>
+                                    {message.parent.isMine == true ? (
+                                        <View style={{
+                                            flexDirection: "column",
+                                        }}>
+                                            <Text style={{
+                                                fontWeight: 'bold'
+                                            }}>Reply for message</Text>
+                                            <View style={{
+                                                flexDirection: 'row',
+
+                                            }}>
+                                                <Text>{user.name} : {formatReplyText(message.parent)}</Text>
+                                            </View>
+                                        </View>
+
+                                    ) : (
+                                        <View style={{
+                                            flexDirection: "column",
+                                        }}>
+                                            <Text style={{
+                                                fontWeight: 'bold'
+                                            }}>Reply for message</Text>
+                                            <View style={{
+                                                flexDirection: 'row',
+
+                                            }}>
+                                                <Text>{message.parent.name} : {formatReplyText(message.parent)}</Text>
 
 
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+                            ) : (
+
+                                <Text
+                                    style={{
+                                        fontSize: 16,
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.content}
+                                </Text>
+                            )}
 
 
+                            <Text
+                                style={{
+                                    fontSize: 10,
+                                }}
+                            >
+                                {getTime(message.updatedAt)}
+                            </Text>
+                        </Pressable>
+                    </View>
+                ) : (
+                    <View
+                        style={{
+                            backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
+                            borderRadius: 10,
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
+                            flexDirection: "column",
+                            gap: 5,
+                        }}
+                    >
+                        <Pressable
+                            style={{
+                                width: "100%",
+                            }}
+                            onPress={handlePressIcon}
+                        >
+                            {message.parent !== null ? (
+                                <View>
+                                    {message.parent.isMine == true ? (
+                                        <View style={{
+                                            flexDirection: "column",
+                                        }}>
+                                            <View style={{
+                                                flexDirection: 'column',
+
+                                            }}>
+                                                <Text style={{
+                                                    fontWeight: 'bold'
+                                                }}>Reply for message</Text>
+                                                <Text>{user.name} : {formatReplyText(message.parent)}</Text>
+                                                <Text>{message.content}</Text>
+
+                                            </View>
+                                        </View>
+
+                                    ) : (
+                                        <View style={{
+                                            flexDirection: "column",
+                                        }}>
+                                            <View style={{
+                                                flexDirection: 'column',
+
+                                            }}>
+                                                <Text style={{
+                                                    fontWeight: 'bold'
+                                                }}>Reply for message</Text>
+                                                <Text>{message.parent.name} : {formatReplyText(message.parent)}</Text>
+                                                <Text>{message.content}</Text>
+
+
+                                            </View>
+                                        </View>
+                                    )}
+                                </View>
+                            ) : (
+
+                                <Text
+                                    style={{
+                                        fontSize: 16,
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.content}
+                                </Text>
+                            )}
+                            <Text
+                                style={{
+                                    fontSize: 10,
+                                }}
+                            >
+                                {getTime(message.updatedAt)}
+                            </Text>
+                        </Pressable>
+                    </View>
+                )}
+
+                <ActionSheet
+                    ref={actionSheetRef}
+                    options={options}
+                    cancelButtonIndex={3}
+                    onPress={handleActionPress}
+                />
+            </View>
+        );
+    };
+
+    const formatReplyText = (text) => {
+
+        if (text.content.length > 20) {
+            console.log(text.content.substring(0, 10) + "...");
+            return text.content.substring(0, 10) + "...";
+        }
+
+        return text.content;
+    }
 
     return (
         <KeyboardAvoidingView
@@ -509,158 +782,10 @@ const ChatScreen = ({ navigation, route }) => {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
 
-                {messages.map((message) => {
-                    return (
-                        <View key={message._id}
-                            style={{
-                                flex: 1,
-                                flexDirection: "row",
-                                alignItems: "flex-end",
-                                marginVertical: 5,
-                                marginHorizontal: 5,
-                                justifyContent:
-                                    message.isMine == true ? "flex-end" : "flex-start",
-                            }}
-                        >
-                            {message.isMine == false && (
-                                <Image
-                                    source={{ uri: message.avatar }}
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        borderRadius: 15,
-                                        marginRight: 5,
-                                    }}
-                                />
-                            )}
 
-                            {/* {message.isMine == true && (
-                                <TouchableOpacity onPress={handlePressIcon}>
-                                    <MaterialCommunityIcons name="dots-vertical-circle-outline" color="black" size={20} />
-                                </TouchableOpacity>
-                            )
-                            } */}
-
-                            {/* <View
-                                style={{
-                                    backgroundColor:
-                                        message.isMine == true ? "#ffadd5" : "lightgray",
-                                    borderRadius: 10,
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5,
-                                    flexDirection: 'column',
-                                    gap: 5,
-
-
-                                }}
-                            > */}
-                            {message.content.length > 20 ? (
-                                <View style={{
-                                    backgroundColor:
-                                        message.isMine == true ? "#ffadd5" : "lightgray",
-                                    borderRadius: 10,
-                                    paddingHorizontal: 5,
-                                    paddingVertical: 5,
-                                    flexDirection: 'column',
-                                    gap: 5,
-
-
-                                }}>
-                                    <Pressable style={{
-                                        width: '80%'
-                                    }} onPress={handlePressIcon}>
-
-                                        <Text style={{
-                                            fontSize: 16,
-                                        }} onTextLayout={onTextLayout}>
-                                            {message.content}
-                                        </Text>
-
-                                        <Text
-                                            style={{
-                                                fontSize: 10,
-                                            }}>{getTime(message.updatedAt)}</Text>
-                                    </Pressable>
-
-                                </View>
-
-                            ) : (
-                                <View style={{
-                                    backgroundColor:
-                                        message.isMine == true ? "#ffadd5" : "lightgray",
-                                    borderRadius: 10,
-                                    paddingHorizontal: 10,
-                                    paddingVertical: 5,
-                                    flexDirection: 'column',
-                                    gap: 5,
-
-
-                                }}>
-                                    <Pressable style={{
-                                        width: '100%'
-                                    }} onPress={handlePressIcon}>
-                                        <Text
-                                            style={{
-                                                fontSize: 16,
-                                            }}
-                                        >{message.content}</Text>
-                                        <Text
-                                            style={{
-                                                fontSize: 10,
-                                            }}>{getTime(message.updatedAt)}</Text>
-                                    </Pressable>
-                                </View>
-
-                            )}
-
-
-
-                            <ActionSheet
-                                ref={actionSheetRef}
-                                options={options}
-                                cancelButtonIndex={3}
-                                onPress={(index) => {
-                                    switch (index) {
-                                        case 0:
-                                            handleDelete(message._id);
-                                            break;
-                                        case 1:
-                                            openModal(message.content);
-                                            break;
-                                        case 2:
-                                            handleReply();
-                                            break;
-                                        default:
-                                            break;
-                                    }
-                                }}
-                            />
-
-                            {/* </View> */}
-                            {/* {message.isMine == false && (
-                                <TouchableOpacity onPress={handlePressIcon}>
-                                    <MaterialCommunityIcons name="dots-vertical-circle-outline" color="black" size={20} />
-                                </TouchableOpacity>
-                            )
-
-
-
-                            } */}
-
-                            {message.isMine == true && (
-                                <Image
-                                    source={{ uri: message.avatar }}
-                                    style={{
-                                        width: 30,
-                                        height: 30,
-                                        borderRadius: 15,
-                                        marginLeft: 5,
-                                    }}
-                                />
-                            )}
-                        </View>
-                    )
-                })}
+                {messages.map((message) => (
+                    <MessageComponent key={message._id} message={message} />
+                ))}
             </ScrollView>
             <View style={{
                 flexDirection: "row",
@@ -686,31 +811,116 @@ const ChatScreen = ({ navigation, route }) => {
                             color="black"
                         />
                     </TouchableOpacity>
-                    <TextInput
-                        placeholder="Message..."
-                        style={[{
-                            fontSize: 20,
-                            height: 50,
-                            width: '60%',
-                            borderRadius: 20,
-                            paddingHorizontal: 10,
-                        }, isFocused && styles.textInputFocused
-                        ]}
-                        value={text}
-                        onChangeText={(text) => { setText(text) }}
-                        onFocus={handleFocus}
-                        onBlur={handleBlur}
-                    />
-                    <Pressable onPress={() => handleChoosePhoto()} >
-                        <Octicons name="image" size={24} color="black" />
-                    </Pressable>
-                    <Pressable style={{ marginHorizontal: 5 }}>
-                        <Octicons name="file" size={24} color="black" />
-                    </Pressable>
-                    <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, conversationParams)}>
-                        <Feather name="send" size={24} color="black" />
-                    </Pressable>
+                    {isReply == true ? (
 
+                        <View style={{
+                            flexDirection: "column",
+                            flex: 1,
+                            justifyContent: "space-between",
+                        }}>
+                            {replyMessage.isMine == true ? (
+                                <View style={{
+                                    flexDirection: "column",
+                                }}>
+                                    <Text style={{
+                                        fontWeight: 'bold'
+                                    }}>Reply for message</Text>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        gap: 25
+                                    }}>
+                                        <Text>{user.name} : {formatReplyText(replyMessage)}</Text>
+                                        <Pressable onPress={() => cancelReply()}>
+                                            <MaterialCommunityIcons name="close" size={20} color="black" />
+                                        </Pressable>
+
+                                    </View>
+
+                                </View>
+
+                            ) : (
+                                <View style={{
+                                    flexDirection: "column",
+                                }}>
+                                    <Text style={{
+                                        fontWeight: 'bold'
+                                    }}>Reply for message</Text>
+                                    <View style={{
+                                        flexDirection: 'row',
+                                        gap: 20
+                                    }}>
+                                        <Text>{replyMessage.name} : {formatReplyText(replyMessage)}</Text>
+                                        <Pressable onPress={() => cancelReply()}>
+                                            <MaterialCommunityIcons name="close" size={20} color="black" />
+                                        </Pressable>
+
+                                    </View>
+                                </View>
+                            )}
+
+                            <View style={{ flexDirection: 'row' }}>
+                                <TextInput
+                                    placeholder="Message..."
+                                    style={[{
+                                        marginTop: 10,
+                                        flex: 1,
+                                        fontSize: 20,
+                                        height: 70,
+                                        width: '80%',
+                                        borderRadius: 20,
+                                        paddingHorizontal: 10,
+                                    }, isFocused && styles.textInputFocused
+                                    ]}
+                                    value={replyText}
+                                    onChangeText={(text) => { setReplyText(text) }}
+                                    onFocus={handleFocus}
+                                    onBlur={handleBlur}
+                                />
+
+                                <Pressable style={{ marginHorizontal: 10, marginTop: 40 }} onPress={() => handleSendTextReply()}>
+                                    <Feather name="send" size={24} color="black" />
+                                </Pressable>
+
+                            </View>
+
+
+
+                        </View>
+                    ) : (
+                        <View style={{
+                            flexDirection: "row",
+                            flex: 1,
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: 10
+
+                        }}>
+                            <TextInput
+                                placeholder="Message..."
+                                style={[{
+                                    fontSize: 20,
+                                    height: 50,
+                                    width: '60%',
+                                    borderRadius: 20,
+                                    paddingHorizontal: 10,
+                                }, isFocused && styles.textInputFocused
+                                ]}
+                                value={text}
+                                onChangeText={(text) => { setText(text) }}
+                                onFocus={handleFocus}
+                                onBlur={handleBlur}
+                            />
+                            <Pressable onPress={() => handleChoosePhoto()} >
+                                <Octicons name="image" size={24} color="black" />
+                            </Pressable>
+                            <Pressable style={{ marginHorizontal: 5 }}>
+                                <Octicons name="file" size={24} color="black" />
+                            </Pressable>
+                            <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, conversationParams)}>
+                                <Feather name="send" size={24} color="black" />
+                            </Pressable>
+                        </View>
+                    )}
                 </View>
             </View>
 
