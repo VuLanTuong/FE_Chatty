@@ -104,9 +104,11 @@ const MessageScreen = ({ navigation }) => {
     const handleConversationUpdate = (data) => {
       const members = data.conversation.members;
 
+      console.log(allConversationAtRedux);
       let updatedConversationArray = allConversationAtRedux;
       const newConversation = checkIsMember(data, members);
 
+      console.log(updatedConversationArray);
       if (newConversation !== null) {
         updatedConversationArray = [...allConversation, newConversation];
       }
@@ -126,15 +128,41 @@ const MessageScreen = ({ navigation }) => {
       });
 
       console.log(updatedConversation);
-      // dispatch(setAllConversation(updatedConversation));
-      dispatch(getConservations());
+      dispatch(setAllConversation(updatedConversation));
+
+
+      // dispatch(getConservations());
+
       // setConversations(updatedConversation);
       console.log(data);
     };
     socket.on('message:receive', (data) => {
       handleConversationUpdate(data);
     });
-  }, []);
+
+
+    socket.on('message:deleted', (data) => {
+      console.log(data);
+      const updateConservation = allConversationAtRedux.map(conversation => {
+        if (conversation._id.toString() === data.conversation._id.toString()) {
+          console.log("update conversation delete");
+          let deleteMessage = { ...conversation.lastMessage, isDelete: true };
+          return { ...conversation, lastMessage: deleteMessage }
+        }
+
+        return conversation;
+      })
+      console.log(updateConservation);
+
+      dispatch(setAllConversation(updateConservation))
+
+
+
+
+
+
+    })
+  }, [allConversationAtRedux]);
 
 
   // useFocusEffect(
@@ -236,14 +264,21 @@ const MessageScreen = ({ navigation }) => {
         else {
           console.log(data.data);
           dispatch(setCurrentConversation(data.data))
+
+          const updatedConversation = allConversationAtRedux.map((conversation) => {
+            if (conversation._id.toString() === data.data._id.toString()) {
+              return { ...conversation, isReadMessage: true }
+
+            }
+            return conversation;
+          })
+          console.log(updatedConversation);
+          dispatch(setAllConversation(updatedConversation));
           navigation.navigate('Chat', { data: data.data, friends: friends })
         }
-
-
       })
 
-      .catch(() => console.log("fetch error"))
-
+      .catch((error) => console.log("fetch error", error))
 
   }
 
@@ -295,17 +330,19 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
-    if (item.lastMessage.sender !== user._id) {
-      return item.name + ": " + item.lastMessage.content;
+    if (item?.lastMessage?.isDelete) {
+      return "This message was deleted";
+    }
+    if (item?.lastMessage?.sender !== user._id) {
+      return item?.name + ": " + item.lastMessage?.content;
     }
 
-    if (item.lastMessage != null) {
-      if (item.lastMessage.isDelete) {
+    if (item?.lastMessage != null) {
+      if (item?.lastMessage?.isDelete) {
         return "This message was deleted";
       }
 
-
-      if (item.lastMessage.content.length > 20) {
+      if (item.lastMessage?.content.length > 20) {
         console.log(item.lastMessage.content.substring(0, 10) + "...");
         return item.lastMessage.content.substring(0, 10) + "...";
       }
@@ -370,6 +407,10 @@ const MessageScreen = ({ navigation }) => {
   }, [])
 
   console.log(conversations);
+
+
+
+
   return (
 
     <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}>
@@ -402,7 +443,7 @@ const MessageScreen = ({ navigation }) => {
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                 }}>
-                  {item.isReadMessage && item.lastMessage.sender === user._id.toString() ? (
+                  {item.isReadMessage ? (
 
                     <Text style={styles.message}>{getLastMessage(item)}</Text>
                   ) : (

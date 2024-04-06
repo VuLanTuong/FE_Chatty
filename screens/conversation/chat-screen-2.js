@@ -35,7 +35,7 @@ import Toast from 'react-native-toast-message';
 import { useSocket } from "../socket.io/socket-context";
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { getConservations } from "../../rtk/user-slice";
+import { getConservations, setAllConversation } from "../../rtk/user-slice";
 const ChatScreen = ({ navigation, route }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -148,12 +148,45 @@ const ChatScreen = ({ navigation, route }) => {
                     console.log("fail");
                     return;
                 }
-                // console.log(data);
+                // setMessages(messages.filter(message => {
+                //     if (message._id === id) {
+                //         return { ...message, content: "This message has been deleted" };
+                //     }
+                //     return message;
+                // }))
+                let deleteMessage;
+                const updateMessage = messages.map(message => {
+
+                    if (message._id === id) {
+                        deleteMessage = { ...message, content: "This message has been deleted" };
+                        return { ...message, content: "This message has been deleted" };
+                    }
+                    return message;
+                })
+                setMessages(updateMessage)
+                socket.emit('message:delete', { id: id, conversation: conversationParams })
+
+                const updateConservation = allConversationAtRedux.map(conversation => {
+                    if (conversation._id.toString() === conversationParams._id.toString()) {
+                        console.log("update conversation delete");
+                        // conversation.lastMessage = deleteMessage;
+                        return { ...conversation, lastMessage: deleteMessage }
+                    }
+
+                    return conversation;
+                })
+                console.log(updateConservation);
+
+                dispatch(setAllConversation(updateConservation))
+
+
             })
 
-            .catch(() => console.log("fetch error"))
+            .catch((error) => console.log("fetch error", error))
 
     }
+
+
 
 
     const openModal = (content) => {
@@ -244,9 +277,10 @@ const ChatScreen = ({ navigation, route }) => {
 
                     socket.emit('message:send', { ...data.data, conversation: conversationParams, sender: user._id })
                     setMessages([...messages, data.data])
+
+                    setIsReply(false)
                     setReplyMessage()
                     setReplyText('')
-                    setIsReply(false)
                     dispatch(getConservations())
                     console.log("reply success");
 
@@ -261,10 +295,10 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const handleReply = async (message) => {
+        setReplyMessage(message)
         console.log(message);
         console.log(message);
         setIsReply(true)
-        setReplyMessage(message)
 
 
 
@@ -288,7 +322,40 @@ const ChatScreen = ({ navigation, route }) => {
                 }
                 return;
 
-            })
+            },
+            ),
+                socket.on('message:deleted', (data) => {
+                    console.log(data);
+                    if (currentConversation._id === data.conversation._id) {
+                        let deleteMessage;
+                        const updateMessage = messages.map(message => {
+
+                            if (message._id === data.id) {
+                                deleteMessage = { ...message, content: "This message has been deleted" };
+                                return deleteMessage;
+                            }
+                            return message;
+                        })
+                        setMessages(updateMessage)
+                        const updateConservation = allConversationAtRedux.map(conversation => {
+                            if (conversation._id.toString() === data.conversation._id.toString()) {
+                                console.log("update conversation delete");
+                                // conversation.lastMessage = deleteMessage;
+                                return { ...conversation, lastMessage: deleteMessage }
+                            }
+
+                            return conversation;
+                        })
+
+
+                        dispatch(setAllConversation(updateConservation))
+
+
+
+                    }
+
+
+                })
         }, [messages])
     );
     const getAllMessage = async () => {
@@ -544,11 +611,11 @@ const ChatScreen = ({ navigation, route }) => {
 
     const cancelReply = () => {
         setIsReply(false);
-        setReplyMessage(null);
+        setReplyMessage();
     }
 
     const MessageComponent = ({ message }) => {
-        console.log(message);
+
         const actionSheetRef = useRef(null);
 
         const handlePressIcon = () => {
@@ -583,7 +650,7 @@ const ChatScreen = ({ navigation, route }) => {
                     justifyContent: message.isMine ? "flex-end" : "flex-start",
                 }}
             >
-                {message.isMine === false && (
+                {message.isMine == false && (
                     <Image
                         source={{ uri: message.avatar }}
                         style={{
@@ -767,6 +834,23 @@ const ChatScreen = ({ navigation, route }) => {
         return text.content;
     }
 
+
+    useEffect(() => {
+        getAccessToken().then((token) => {
+            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/readMessages`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            })
+
+        })
+
+
+
+    }, [allConversationAtRedux])
+
     return (
         <KeyboardAvoidingView
             style={{ flex: 1, justifyContent: 'flex-end' }}
@@ -818,7 +902,7 @@ const ChatScreen = ({ navigation, route }) => {
                             flex: 1,
                             justifyContent: "space-between",
                         }}>
-                            {replyMessage.isMine == true ? (
+                            {replyMessage.isMine ? (
                                 <View style={{
                                     flexDirection: "column",
                                 }}>
