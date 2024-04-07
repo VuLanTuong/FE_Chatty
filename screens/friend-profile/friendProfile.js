@@ -22,6 +22,7 @@ export default function FriendProfile({ route, navigation }) {
     const [isRecipient, setIsRecipient] = useState(false)
     const [friend, setFriend] = useState([]);
     const [friendList, setFriendList] = useState();
+    const [currentFriend, setCurrentFriend] = useState();
 
 
 
@@ -56,6 +57,7 @@ export default function FriendProfile({ route, navigation }) {
         console.log(user);
         findFriendById(user._id).then((friend) => {
             if (friend) {
+                setCurrentFriend(friend)
                 console.log(friend);
                 if (myInfor.user._id === friend.friend.requester && friend.status != "accecpt") {
                     console.log("isSendRequest");
@@ -172,6 +174,7 @@ export default function FriendProfile({ route, navigation }) {
     }
 
     const handleUnfriend = async () => {
+        console.log(currentFriend);
         const accessToken = await getAccessToken();
         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/remove/${friend._id}`, {
             method: 'post',
@@ -228,7 +231,7 @@ export default function FriendProfile({ route, navigation }) {
                 return;
             }
             else {
-                dispatch(updateFriend(data.data))
+                dispatch(updateFriend(currentFriend))
             }
 
         })

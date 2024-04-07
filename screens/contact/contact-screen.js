@@ -183,7 +183,7 @@ export function ContactScreen({ navigation }) {
 
     const groupFriendsByLetter = (friends) => {
         const friendGroupByName = friends.reduce((result, friend) => {
-            const letter = friend.name.charAt(0).toUpperCase();
+            const letter = friend?.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
             }

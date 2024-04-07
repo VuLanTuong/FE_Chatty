@@ -329,15 +329,14 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
-    console.log(item);
     if (item?.lastMessage?.isDelete) {
       return "This message was deleted";
     }
     if (item?.lastMessage?.sender !== user._id) {
       if (item?.lastMessage?.type === "file") {
-        return item?.name + ": Attachment file"
+        return ": Attachment file"
       }
-      return item?.name + ": " + item.lastMessage?.content;
+      return ": " + item.lastMessage?.content;
     }
 
     if (item?.lastMessage != null) {
@@ -414,6 +413,19 @@ const MessageScreen = ({ navigation }) => {
 
   console.log(conversations);
 
+  const getName = (conversation) => {
+    if (conversation.members.length === 2 && conversation.name === user.name) {
+      return conversation.members.find((member) => member._id !== user._id).name;
+    }
+    return conversation.name;
+  };
+  const getAvatar = (conversation) => {
+    if (conversation.members.length === 2 && conversation.image === user.avatar) {
+      return conversation.members.find((member) => member._id !== user._id).avatar;
+    }
+    return conversation.image;
+  };
+
 
 
 
@@ -429,7 +441,7 @@ const MessageScreen = ({ navigation }) => {
               onPress={() => handleOpenConversation(item.members, item._id)}
             >
               <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
-                <Image style={styles.image} source={{ uri: item.image }} />
+                <Image style={styles.image} source={{ uri: getAvatar(item) }} />
               </TouchableOpacity>
               <View style={{
                 flex: 1,
@@ -439,7 +451,7 @@ const MessageScreen = ({ navigation }) => {
                   flexDirection: 'row',
                   justifyContent: 'space-between',
                 }}>
-                  <Text numberOfLines={1} style={styles.username}>{item.name}</Text>
+                  <Text numberOfLines={1} style={styles.username}>{getName(item)}</Text>
                   <Text style={styles.time}>{getTime(item.updatedAt)}</Text>
 
                 </View>
