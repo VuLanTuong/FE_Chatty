@@ -23,7 +23,7 @@ export const getConservations = createAsyncThunk('conservation/getAll', async (v
     console.log("redux");
     try {
         const data = await getAllConversation();
-        console.log(data);
+        // console.log(data);
         return data;
     } catch (error) {
         return rejectWithValue(error.response.data.message)
@@ -62,7 +62,7 @@ export const userSlice = createSlice({
     },
     extraReducers(builders) {
         builders.addCase(getConservations.fulfilled, (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
             state.conversation = action.payload
         })
     }

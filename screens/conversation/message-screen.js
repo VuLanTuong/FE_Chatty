@@ -37,7 +37,7 @@ const MessageScreen = ({ navigation }) => {
 
   const dispatch = useDispatch()
   const allConversation = useSelector((state) => state.user.conversation);
-  console.log(allConversation);
+  // console.log(allConversation);
 
 
   // get current user
@@ -60,6 +60,7 @@ const MessageScreen = ({ navigation }) => {
         ...data.conversation,
         lastMessage: data.conversation,
         isReadMessage: false,
+
       };
     }
 
@@ -67,55 +68,21 @@ const MessageScreen = ({ navigation }) => {
   };
 
 
-  // const handleConversationUpdate = (data) => {
-  //   const members = data.conversation.members;
-
-  //   let updatedConversationArray = allConversationAtRedux;
-  //   const newConversation = checkIsMember(data, members);
-
-  //   if (newConversation !== null) {
-  //     updatedConversationArray = [...allConversationAtRedux, newConversation];
-  //   }
-  //   console.log(updatedConversationArray);
-  //   const updatedConversation = updatedConversationArray.map((item) => {
-  //     console.log(item);
-  //     if (item._id.toString() === data.conversation._id.toString()) {
-  //       return {
-  //         ...item,
-  //         lastMessage: data,
-  //         updateAt: Date.now(),
-  //         isReadMessage: false,
-  //       };
-  //     }
-  //     return item;
-  //   });
-
-  //   console.log(updatedConversation);
-  //   dispatch(setAllConversation(updatedConversation));
-  //   setConversations(updatedConversation);
-  //   console.log(data);
-  // };
-
-  // socket.on('message:receive', (data) => {
-  //   handleConversationUpdate(data);
-  // });
-
   useEffect(() => {
     const handleConversationUpdate = (data) => {
       const members = data.conversation.members;
 
-      console.log(allConversationAtRedux);
+      // console.log(allConversationAtRedux);
       let updatedConversationArray = allConversationAtRedux;
       const newConversation = checkIsMember(data, members);
 
-      console.log(updatedConversationArray);
+      // console.log(updatedConversationArray);
       if (newConversation !== null) {
         updatedConversationArray = [...allConversation, newConversation];
       }
-      console.log(updatedConversationArray);
+      // console.log(updatedConversationArray);
 
       const updatedConversation = updatedConversationArray.map((item) => {
-        console.log(item);
         if (item._id.toString() === data.conversation._id.toString()) {
           return {
             ...item,
@@ -126,14 +93,8 @@ const MessageScreen = ({ navigation }) => {
         }
         return item;
       });
-
-      console.log(updatedConversation);
       dispatch(setAllConversation(updatedConversation));
 
-
-      // dispatch(getConservations());
-
-      // setConversations(updatedConversation);
       console.log(data);
     };
     socket.on('message:receive', (data) => {
@@ -165,13 +126,6 @@ const MessageScreen = ({ navigation }) => {
   }, [allConversationAtRedux]);
 
 
-  // useFocusEffect(
-  //   React.useCallback(() => {
-  //     // scrollToTop();
-  //     getAllConversation();
-  //   }, [])
-  // );
-
   const scrollToTop = () => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ y: 0, animated: false })
@@ -188,34 +142,6 @@ const MessageScreen = ({ navigation }) => {
   }
 
 
-
-  // async function getAllConversation() {
-  //   const accessToken = await getAccessToken();
-  //   await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations', {
-  //     method: 'get',
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: "Bearer " + accessToken
-  //     }
-  //   }).then((response) => {
-  //     return response.json()
-  //   }).then((data) => {
-  //     const temp = Object.values(data.data);
-
-  //     const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
-  //     setConversations(updatedConversations);
-  //     dispatch(setAllConversation(updatedConversations))
-  //   })
-  //     .catch((err) => {
-  //       console.log(err)
-  //       return;
-  //     })
-
-  // }
-
-  // useEffect(() => {
-  //   removeConservationNotContent()
-  // }, [conversations])
   const handleChangeState = (data) => {
     setConversations(data, () => {
       removeConservationNotContent()
@@ -282,58 +208,23 @@ const MessageScreen = ({ navigation }) => {
 
   }
 
-  // const handleSendMessage = async (id) => {
-  //   // console.log(user._id);
-
-  //   // const filteredItems = members.filter(member => member._id !== user._id);
-  //   // console.log(filteredItems[0]._id);
-  //   const token = await getAccessToken();
-
-  //   fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages?page=1&limit=50`,
-  //     {
-  //       method: "GET",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: "Bearer " + token
-  //       }
-  //     }).then((response) => response.json())
-  //     .then((data) => {
-  //       console.log(data)
-  //       if (data.status === "fail") {
-  //         console.log("fail");
-  //         return;
-  //       }
-  //       else {
-  //         console.log(data.data._id);
-  //         navigation.navigate('Chat', { data: data.data })
-  //       }
-
-
-  //     })
-
-  //     .catch(() => console.log("fetch error"))
-
-
-  // }
-
-  console.log(conversations);
-
   const getTime = (updateAt) => {
 
-    console.log(typeof (updateAt));
     const date = new Date(updateAt);
-
     const hour = date.getHours();
     const minute = date.getMinutes();
-
     return `${hour}:${minute}`;
   }
 
   const getLastMessage = (item) => {
+    console.log(item);
     if (item?.lastMessage?.isDelete) {
       return "This message was deleted";
     }
     if (item?.lastMessage?.sender !== user._id) {
+      if (item?.lastMessage?.type === "file") {
+        return item?.name + ": Attachment file"
+      }
       return item?.name + ": " + item.lastMessage?.content;
     }
 
@@ -345,6 +236,9 @@ const MessageScreen = ({ navigation }) => {
       if (item.lastMessage?.content.length > 20) {
         console.log(item.lastMessage.content.substring(0, 10) + "...");
         return item.lastMessage.content.substring(0, 10) + "...";
+      }
+      if (item?.lastMessage?.type === "file") {
+        return "Attachment file"
       }
 
       return item.lastMessage.content;
@@ -366,20 +260,17 @@ const MessageScreen = ({ navigation }) => {
       },
       headerLeft: () => (
         <View style={{ height: 50, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
-          {/* <View style={{ flexDirection: 'row', gap: 10 }}> */}
           <MaterialCommunityIcons name="magnify" color="white" size={20} />
           <TextInput
             placeholder="Search"
             placeholderTextColor="white"
             style={{ height: 20, fontSize: 17, color: 'white' }}
           />
-          {/* </View> */}
         </View>
       ),
       headerRight: () =>
         <View style={{ position: 'relative' }}>
           <View style={{ marginRight: 20 }}>
-            {/* <ContextMenu /> */}
             <Pressable onPress={handlePress}>
               <MaterialCommunityIcons name="plus" color="white" size={25} />
             </Pressable>
@@ -406,7 +297,7 @@ const MessageScreen = ({ navigation }) => {
     })
   }, [])
 
-  console.log(conversations);
+  // console.log(conversations);
 
 
 
