@@ -138,17 +138,12 @@ export default function FileMessageComponent({ message }) {
                         flexDirection: "column",
                         marginTop: 5
                     }}>
-                        <View style={{
-                            height: 150,
-                            width: 150
-                        }}>
-                            <Image
-                                key={index}
-                                source={{ uri: attachment.url }}
-                                style={styles.image}
-                                resizeMode="contain"
-                            />
-                        </View>
+
+                        <Image
+                            key={index}
+                            source={{ uri: attachment.url }}
+                            style={styles.image}
+                        />
 
                         <Text
                             style={{
@@ -172,6 +167,7 @@ export default function FileMessageComponent({ message }) {
                 flex: 1,
                 flexDirection: "row",
                 alignItems: "flex-end",
+                flexBasis: "auto",
                 marginVertical: 5,
                 marginHorizontal: 5,
                 justifyContent: message.isMine ? "flex-end" : "flex-start",
@@ -209,7 +205,7 @@ export default function FileMessageComponent({ message }) {
             >
                 <Pressable
                     style={{
-                        width: "80%",
+                        // width: "80%",
                     }}
                 // onPress={handlePressIcon}
                 >
@@ -351,7 +347,8 @@ const styles = StyleSheet.create({
         color: "#a0a0a0",
     },
     image: {
-        height: '100%',
+        flex: 1,
+        height: 150,
         borderRadius: 10,
         marginBottom: 10,
         borderColor: "#f9f9f9",
