@@ -329,13 +329,13 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
+    console.log(item);
     if (item?.lastMessage?.isDelete) {
       return "This message was deleted";
     }
     if (item?.lastMessage?.sender !== user._id) {
-      if (item.lastMessage?.content.length > 20) {
-        console.log(item.lastMessage.content.substring(0, 10) + "...");
-        return item?.name + item.lastMessage.content.substring(0, 10) + "...";
+      if (item?.lastMessage?.type === "file") {
+        return item?.name + ": Attachment file"
       }
       return item?.name + ": " + item.lastMessage?.content;
     }
@@ -348,6 +348,9 @@ const MessageScreen = ({ navigation }) => {
       if (item.lastMessage?.content.length > 20) {
         console.log(item.lastMessage.content.substring(0, 10) + "...");
         return item.lastMessage.content.substring(0, 10) + "...";
+      }
+      if (item?.lastMessage?.type === "file") {
+        return "Attachment file"
       }
 
       return item.lastMessage.content;

@@ -456,6 +456,7 @@ const ChatScreen = ({ navigation, route }) => {
         // console.log("send text");
         // console.log(text);
         console.log(conversation);
+        console.log(currentConversation);
         const token = await getAccessToken();
         if (text !== '') {
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
@@ -481,7 +482,15 @@ const ChatScreen = ({ navigation, route }) => {
                     //kiem tra dieu kien de set
                     if (conversation._id === currentConversation._id) {
                         console.log("set roi");
+                        console.log(currentConversation.lastMessage);
+                        if (currentConversation.lastMessage == null) {
+                            getAllMessage().then(() => {
+                                console.log("get all message");
+                            })
+                        }
                         setMessages([...messages, data.data])
+
+
                     }
                     // setMessages([...messages, data.data])
                     setText('');

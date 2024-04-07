@@ -176,6 +176,7 @@ export default function FileMessageComponent({ message }) {
 
                 // height: isImage ? "250%" : "20%",
                 marginLeft: message.isMine ? 'auto' : 0,
+                flexGrow: 0
 
 
 
