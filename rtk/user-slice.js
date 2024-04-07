@@ -58,6 +58,7 @@ export const userSlice = createSlice({
             state.conversation = sortedObjects;
         },
         updateFriend: (state, action) => {
+            console.log(action.payload);
             state.friends = [...state.friends, action.payload]
         },
         setCurrentConversation: (state, action) => {
