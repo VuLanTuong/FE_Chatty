@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useDispatch } from "react-redux"
-import { setFriend, updateFriend } from "../../rtk/user-slice";
+import { setCurrentConversation, setFriend, updateFriend } from "../../rtk/user-slice";
 import { findFriendById } from '../../service/friend.util';
 import { getAllConversation } from '../../service/conversation.util';
 export default function FriendProfile({ route, navigation }) {
@@ -257,7 +257,9 @@ export default function FriendProfile({ route, navigation }) {
                 }
                 else {
                     console.log(data.data._id);
+                    dispatch(setCurrentConversation(data.data))
                     navigation.navigate('Chat', { data: data.data })
+
                 }
 
 
