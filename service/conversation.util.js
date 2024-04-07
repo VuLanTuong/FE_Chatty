@@ -15,7 +15,7 @@ export async function getAllConversation() {
 
         const temp = Object.values(data.data);
         const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
-        console.log(updatedConversations);
+        // console.log(updatedConversations);
         return updatedConversations;
     } catch (err) {
         console.log(err);

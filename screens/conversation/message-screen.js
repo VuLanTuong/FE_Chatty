@@ -120,7 +120,7 @@ const MessageScreen = ({ navigation }) => {
           return {
             ...item,
             lastMessage: data,
-            updateAt: Date.now(),
+            updatedAt: new Date(Date.now()).toISOString(),
             isReadMessage: false,
           };
         }
@@ -225,7 +225,6 @@ const MessageScreen = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
-
 
     }, [])
   );
@@ -334,6 +333,10 @@ const MessageScreen = ({ navigation }) => {
       return "This message was deleted";
     }
     if (item?.lastMessage?.sender !== user._id) {
+      if (item.lastMessage?.content.length > 20) {
+        console.log(item.lastMessage.content.substring(0, 10) + "...");
+        return item?.name + item.lastMessage.content.substring(0, 10) + "...";
+      }
       return item?.name + ": " + item.lastMessage?.content;
     }
 
@@ -412,7 +415,6 @@ const MessageScreen = ({ navigation }) => {
 
 
   return (
-
     <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}>
       <FlatList
         numColumns={1}

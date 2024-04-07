@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, TextInput, Pressable } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Pressable, Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MenuContext, Menu, MenuOptions, MenuOption, MenuTrigger, MenuProvider } from 'react-native-popup-menu';
@@ -40,10 +40,17 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function MyTab() {
+  const isIOSPlatform = () => {
+    if (Platform.OS === 'ios') {
+      return true
+    }
+    return false
+  }
   return (
     <Tab.Navigator
       initialRouteName="Messgae">
       <Tab.Screen options={{
+        headerShown: isIOSPlatform(),
         headerTitle: '',
         tabBarLabel: 'Message',
         tabBarActiveTintColor: '#f558a4',
@@ -54,19 +61,21 @@ function MyTab() {
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
+        headerShown: isIOSPlatform(),
         tabBarActiveTintColor: '#f558a4',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
         ),
       }} name="Contact" component={ContactStack} />
       <Tab.Screen options={{
+        headerShown: isIOSPlatform(),
         headerTitle: '',
         tabBarLabel: 'Profile',
         tabBarActiveTintColor: '#f558a4',
         tabBarIcon: ({ color, size }) => (
           <MaterialCommunityIcons name='account' color={'#f558a4'} size={size} />
         ),
-        headerShown: false
+        headerShown: isIOSPlatform()
       }} name="Profile" component={ProfileStack} />
     </Tab.Navigator >
 
@@ -306,4 +315,3 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
-
