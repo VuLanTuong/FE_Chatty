@@ -31,6 +31,11 @@ import { io } from "socket.io-client";
 
 
 export default function FileMessageComponent({ message }) {
+
+    const actionSheetRef = useRef(null);
+    const handlePressIcon = () => {
+        actionSheetRef.current.show();
+    };
     const user = useSelector((state) => state.user.user);
     const formatReplyText = (text) => {
         if (text.content.length > 20) {
@@ -208,7 +213,7 @@ export default function FileMessageComponent({ message }) {
                     style={{
                         // width: "80%",
                     }}
-                // onPress={handlePressIcon}
+                    onPress={handlePressIcon}
                 >
 
                     {message.parent !== null ? (
@@ -270,7 +275,7 @@ export default function FileMessageComponent({ message }) {
                     style={{
                         width: "100%",
                     }}
-                // onPress={handlePressIcon}
+                    onPress={handlePressIcon}
                 >
                     {message.parent !== null && (
                         <View>
