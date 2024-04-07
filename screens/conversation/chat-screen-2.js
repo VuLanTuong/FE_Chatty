@@ -720,9 +720,9 @@ const ChatScreen = ({ navigation, route }) => {
 
         // })
 
-        files.map((file) => {
+        files.map(async (file) => {
             // console.log(file);
-            fetch(
+            await fetch(
                 `http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/messages/sendFilesV2`,
                 {
                     method: "POST",
@@ -743,13 +743,11 @@ const ChatScreen = ({ navigation, route }) => {
 
                 })
                 .then((data) => {
-                    socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
-                    // if (conversation._id === currentConversation._id) {
-                    //     console.log("set roi");
-                    //     setMessages([...messages, data.data])
-                    // }
-                    console.log(data.data);
                     setMessages([...messages, data.data])
+                    socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
+                    console.log(data.data);
+                    console.log(file);
+                    // dispatch(getConservations())
                 })
                 .catch((error) => {
                     console.log("error", error);
