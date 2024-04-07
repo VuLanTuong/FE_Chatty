@@ -23,7 +23,7 @@ export const getConservations = createAsyncThunk('conservation/getAll', async (v
     console.log("redux");
     try {
         const data = await getAllConversation();
-        // console.log(data);
+        console.log(data);
         return data;
     } catch (error) {
         return rejectWithValue(error.response.data.message)
@@ -51,7 +51,11 @@ export const userSlice = createSlice({
         setAllConversation: (state, action) => {
             console.log(action.payload);
             console.log("ok");
-            state.conversation = action.payload
+
+            const sortedObjects = action.payload.sort((a, b) => {
+                return new Date(b.updatedAt) - new Date(a.updatedAt);
+            });
+            state.conversation = sortedObjects;
         },
         updateFriend: (state, action) => {
             state.friends = [...state.friends, action.payload]

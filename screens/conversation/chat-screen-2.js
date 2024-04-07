@@ -324,15 +324,14 @@ const ChatScreen = ({ navigation, route }) => {
     useFocusEffect(
         React.useCallback(() => {
             socket.on('message:receive', (data) => {
-                // console.log(data);
-                // console.log(user);
+                console.log(data);
+                console.log(currentConversation._id.toString(), data.conversation._id.toString());
                 if (data.conversation._id.toString() === currentConversation._id.toString()) {
                     if (data.sender._id !== user._id) {
                         return setMessages([...messages, { ...data, isMine: false }])
                     }
                 }
                 return;
-
             },
             ),
                 socket.on('message:deleted', (data) => {
@@ -357,15 +356,8 @@ const ChatScreen = ({ navigation, route }) => {
 
                             return conversation;
                         })
-
-
                         dispatch(setAllConversation(updateConservation))
-
-
-
                     }
-
-
                 })
         }, [messages])
     );
@@ -398,6 +390,68 @@ const ChatScreen = ({ navigation, route }) => {
         setMessages(data.reverse())
 
     }
+    // const handleSendTextMessage = async (id, text, conversation) => {
+    //     // console.log("send text");
+    //     // console.log(text);
+    //     console.log(conversation);
+    //     const token = await getAccessToken();
+    //     if (text !== '') {
+    //         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
+    //             {
+    //                 method: "POST",
+    //                 headers: {
+    //                     "Content-Type": "application/json",
+    //                     Authorization: "Bearer " + token
+    //                 },
+    //                 body: JSON.stringify({
+    //                     content: text
+    //                 }
+    //                 )
+    //             }).then((response) => response.json())
+    //             .then((data) => {
+    //                 console.log(data)
+    //                 if (data.status === "fail") {
+    //                     console.log("fail");
+    //                     return;
+    //                 }
+
+    //                 socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
+    //                 //kiem tra dieu kien de set
+    //                 if (conversation._id === conversationParams._id) {
+    //                     console.log("set roi");
+    //                     setMessages([...messages, data.data])
+    //                 }
+    //                 // const updatedConversation = allConversationAtRedux.map((item) => {
+    //                 //     // console.log(item._id.toString(), data.data._id.toString());
+    //                 //     if (item._id.toString() === conversationParams._id.toString()) {
+    //                 //         console.log();
+    //                 //         return {
+    //                 //             ...item,
+    //                 //             lastMessage: data.data,
+    //                 //             updatedAt: new Date(Date.now()).toISOString(),
+    //                 //             isReadMessage: true,
+    //                 //         };
+    //                 //     }
+    //                 //     return item;
+    //                 // });
+    //                 // console.log(updatedConversation);
+    //                 // dispatch(setAllConversation(updatedConversation));
+    //                 dispatch(getConservations());
+
+
+    //                 // setMessages([...messages, data.data])
+    //                 setText('');
+
+    //                 // dispatch(getConservations())
+    //             }).then(() => setText(''))
+    //             .catch((error) => console.log("fetch error", error))
+    //     }
+    //     else {
+    //         console.log("empty text");
+    //         return;
+    //     }
+
+    // }
     const handleSendTextMessage = async (id, text, conversation) => {
         // console.log("send text");
         // console.log(text);
@@ -431,8 +485,7 @@ const ChatScreen = ({ navigation, route }) => {
                     }
                     // setMessages([...messages, data.data])
                     setText('');
-
-                    // dispatch(getConservations())
+                    dispatch(getConservations())
                 }).then(() => setText(''))
                 .catch(() => console.log("fetch error"))
         }
@@ -714,16 +767,11 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
 
-
-
     const MessageComponent = ({ message }) => {
         const actionSheetRef = useRef(null);
         const handlePressIcon = () => {
             actionSheetRef.current.show();
         };
-
-
-
         const handleActionPress = (index) => {
             switch (index) {
                 case 0:
@@ -739,19 +787,33 @@ const ChatScreen = ({ navigation, route }) => {
                     break;
             }
         };
+
+        const renderReplyMessage = () => {
+            if (message.parent) {
+                const replyFrom = message.parent.isMine ? user.name : message.parent.name;
+                return (
+                    <View style={{ flexDirection: 'column' }}>
+                        <Text style={{ fontWeight: 'bold' }}>Reply for message</Text>
+                        <Text>{replyFrom}: {formatReplyText(message.parent)}</Text>
+                    </View>
+                );
+            }
+            return null;
+        };
+
         return (
             <View
                 key={message._id}
                 style={{
-                    flex: 1,
-                    flexDirection: "row",
-                    alignItems: "flex-end",
+                    flexDirection: 'row',
+                    alignItems: 'flex-end',
                     marginVertical: 5,
                     marginHorizontal: 5,
-                    justifyContent: message.isMine ? "flex-end" : "flex-start",
+                    justifyContent: message.isMine ? 'flex-end' : 'flex-start',
+
                 }}
             >
-                {message.isMine == false && (
+                {!message.isMine && (
                     <Image
                         source={{ uri: message.avatar }}
                         style={{
@@ -763,157 +825,44 @@ const ChatScreen = ({ navigation, route }) => {
                     />
                 )}
 
-                {message.content.length > 20 ? (
-                    <View
+                <View
+                    style={{
+                        backgroundColor: message.isMine ? '#ffadd5' : 'lightgray',
+                        borderRadius: 10,
+                        paddingHorizontal: 5,
+                        paddingVertical: 5,
+                        flexDirection: 'column',
+                        gap: 5,
+                        width: message.content.length > 15 ? '60%' : '20%',
+                        ...(message.parent !== null && { width: '50%' }),
+                    }}
+                >
+                    <Pressable
                         style={{
-                            backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
-                            borderRadius: 10,
-                            paddingHorizontal: 5,
-                            paddingVertical: 5,
-                            flexDirection: "column",
-                            gap: 5,
+                            // width: message.content.length > 20 ? '80%' : '100%',
                         }}
+                        onPress={handlePressIcon}
                     >
-                        <Pressable
+                        {renderReplyMessage()}
+
+                        <Text
                             style={{
-                                width: "80%",
+                                fontSize: 16,
                             }}
-                            onPress={handlePressIcon}
+                            onTextLayout={onTextLayout}
                         >
+                            {message.content}
+                        </Text>
 
-                            {message.parent !== null ? (
-                                <View>
-                                    {message.parent.isMine == true ? (
-                                        <View style={{
-                                            flexDirection: "column",
-                                        }}>
-                                            <Text style={{
-                                                fontWeight: 'bold'
-                                            }}>Reply for message</Text>
-                                            <View style={{
-                                                flexDirection: 'row',
-
-                                            }}>
-                                                <Text>{user.name} : {formatReplyText(message.parent)}</Text>
-                                            </View>
-                                        </View>
-
-                                    ) : (
-                                        <View style={{
-                                            flexDirection: "column",
-                                        }}>
-                                            <Text style={{
-                                                fontWeight: 'bold'
-                                            }}>Reply for message</Text>
-                                            <View style={{
-                                                flexDirection: 'row',
-
-                                            }}>
-                                                <Text>{message.parent.name} : {formatReplyText(message.parent)}</Text>
-
-
-                                            </View>
-                                        </View>
-                                    )}
-                                </View>
-                            ) : (
-
-                                <Text
-                                    style={{
-                                        fontSize: 16,
-                                    }}
-                                    onTextLayout={onTextLayout}
-                                >
-                                    {message.content}
-                                </Text>
-                            )}
-
-
-                            <Text
-                                style={{
-                                    fontSize: 10,
-                                }}
-                            >
-                                {getTime(message.updatedAt)}
-                            </Text>
-                        </Pressable>
-                    </View>
-                ) : (
-                    <View
-                        style={{
-                            backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
-                            borderRadius: 10,
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            flexDirection: "column",
-                            gap: 5,
-                        }}
-                    >
-                        <Pressable
+                        <Text
                             style={{
-                                width: "100%",
+                                fontSize: 10,
                             }}
-                            onPress={handlePressIcon}
                         >
-                            {message.parent !== null ? (
-                                <View>
-                                    {message.parent.isMine == true ? (
-                                        <View style={{
-                                            flexDirection: "column",
-                                        }}>
-                                            <View style={{
-                                                flexDirection: 'column',
-
-                                            }}>
-                                                <Text style={{
-                                                    fontWeight: 'bold'
-                                                }}>Reply for message</Text>
-                                                <Text>{user.name} : {formatReplyText(message.parent)}</Text>
-                                                <Text>{message.content}</Text>
-
-                                            </View>
-                                        </View>
-
-                                    ) : (
-                                        <View style={{
-                                            flexDirection: "column",
-                                        }}>
-                                            <View style={{
-                                                flexDirection: 'column',
-
-                                            }}>
-                                                <Text style={{
-                                                    fontWeight: 'bold'
-                                                }}>Reply for message</Text>
-                                                <Text>{message.parent.name} : {formatReplyText(message.parent)}</Text>
-                                                <Text>{message.content}</Text>
-
-
-                                            </View>
-                                        </View>
-                                    )}
-                                </View>
-                            ) : (
-
-                                <Text
-                                    style={{
-                                        fontSize: 16,
-                                    }}
-                                    onTextLayout={onTextLayout}
-                                >
-                                    {message.content}
-                                </Text>
-                            )}
-                            <Text
-                                style={{
-                                    fontSize: 10,
-                                }}
-                            >
-                                {getTime(message.updatedAt)}
-                            </Text>
-                        </Pressable>
-                    </View>
-                )}
+                            {getTime(message.updatedAt)}
+                        </Text>
+                    </Pressable>
+                </View>
 
                 <ActionSheet
                     ref={actionSheetRef}
@@ -924,11 +873,9 @@ const ChatScreen = ({ navigation, route }) => {
             </View>
         );
     };
-
     const formatReplyText = (text) => {
 
         if (text.content.length > 20) {
-            console.log(text.content.substring(0, 10) + "...");
             return text.content.substring(0, 10) + "...";
         }
 
@@ -957,15 +904,12 @@ const ChatScreen = ({ navigation, route }) => {
             keyboardVerticalOffset={Platform.OS === 'ios' ? 70 : 0}
         >
 
-            {/* <ScrollView ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}> */}
             <ScrollView
                 ref={scrollViewRef}
-                contentContainerStyle={{ flexGrow: 1 }}
+                contentContainerStyle={{ flexGrow: 1, gap: 10, justifyContent: 'flex-end' }}
                 inverted
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
-
-
                 {messages.map((message) => (
                     message?.type === 'file' ? (
                         <FileMessageComponent key={message._id} message={message} />

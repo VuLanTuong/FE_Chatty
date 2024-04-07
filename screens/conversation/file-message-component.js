@@ -33,12 +33,10 @@ import { io } from "socket.io-client";
 export default function FileMessageComponent({ message }) {
     const user = useSelector((state) => state.user.user);
     const formatReplyText = (text) => {
-
         if (text.content.length > 20) {
             console.log(text.content.substring(0, 10) + "...");
             return text.content.substring(0, 10) + "...";
         }
-
         return text.content;
     }
     const getTime = (updateAt) => {
@@ -82,31 +80,56 @@ export default function FileMessageComponent({ message }) {
 
     const checkFileName = (url) => {
         const name = url.split('/').pop();
+        if (name.length > 20) {
+            return name.substring(0, 20) + "...";
+        }
         return name;
+    }
+    const isImage = (message) => {
+        message.attachments.map((attachment, index) => {
+            if (attachment.type === "image") {
+                return true;
+            }
+            if (attachment.type === "application") {
+                return true;
+            }
+            return false;
+
+        })
+    }
+    const isFile = (message) => {
+        message.attachments.map((attachment, index) => {
+            if (attachment.type === "application") {
+                return true;
+            }
+            return false;
+
+        })
     }
     const renderAttachments = (message) => {
         return message.attachments.map((attachment, index) => {
             if (attachment.type === "application") {
                 return (
-                    <View key={index} style={styles.fileContainer}>
-                        <View style={styles.fileDetailsContainer}>
+                    // <View key={index} style={styles.fileContainer}>
+                    <View key={index} style={styles.fileDetailsContainer}>
+                        <MaterialCommunityIcons name="file" size={24} color="#a0a0a0" />
 
-                            <Text style={styles.fileName}>{checkFileName(attachment.url)}</Text>
-                            <Text style={styles.fileSize}>{checkFileType(attachment.url)}</Text>
-                            <Pressable onPress={() => Linking.openURL(attachment.url)} >
-                                <Text>
-                                    Open file
-                                </Text>
-                            </Pressable>
-                            <Text
-                                style={{
-                                    fontSize: 10,
-                                }}
-                            >
-                                {getTime(message.updatedAt)}
+                        <Text style={styles.fileName}>{checkFileName(attachment.url)}</Text>
+                        <Text style={styles.fileSize}>{checkFileType(attachment.url)}</Text>
+                        <Pressable onPress={() => Linking.openURL(attachment.url)} >
+                            <Text>
+                                Open file
                             </Text>
-                        </View>
+                        </Pressable>
+                        <Text
+                            style={{
+                                fontSize: 10,
+                            }}
+                        >
+                            {getTime(message.updatedAt)}
+                        </Text>
                     </View>
+
                 );
             }
             if (attachment.type === "image") {
@@ -115,11 +138,18 @@ export default function FileMessageComponent({ message }) {
                         flexDirection: "column",
                         marginTop: 5
                     }}>
-                        <Image
-                            key={index}
-                            source={{ uri: attachment.url }}
-                            style={styles.image}
-                        />
+                        <View style={{
+                            height: 150,
+                            width: 150
+                        }}>
+                            <Image
+                                key={index}
+                                source={{ uri: attachment.url }}
+                                style={styles.image}
+                                resizeMode="contain"
+                            />
+                        </View>
+
                         <Text
                             style={{
                                 fontSize: 10,
@@ -134,7 +164,7 @@ export default function FileMessageComponent({ message }) {
             }
         })
     }
-    console.log(message);
+
     return (
         <View
             key={message._id}
@@ -145,6 +175,14 @@ export default function FileMessageComponent({ message }) {
                 marginVertical: 5,
                 marginHorizontal: 5,
                 justifyContent: message.isMine ? "flex-end" : "flex-start",
+                width: isImage ? "40%" : "20%",
+                // ...(message.atta !== null && { width: '50%' }),
+
+                // height: isImage ? "250%" : "20%",
+                marginLeft: message.isMine ? 'auto' : 0,
+
+
+
             }}
         >
             {message.isMine == false && (
@@ -160,12 +198,13 @@ export default function FileMessageComponent({ message }) {
             )}
             <View
                 style={{
-                    backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
+                    // backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
                     borderRadius: 10,
                     paddingHorizontal: 5,
                     paddingVertical: 5,
                     flexDirection: "column",
                     gap: 5,
+                    flex: 1,
                 }}
             >
                 <Pressable
@@ -299,9 +338,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     fileDetailsContainer: {
-        marginLeft: 10,
+
         flexDirection: "column",
-        backgroundColor: "#f9f9f9",
+
     },
     fileName: {
         fontSize: 16,
@@ -312,9 +351,9 @@ const styles = StyleSheet.create({
         color: "#a0a0a0",
     },
     image: {
-        width: 100,
-        height: 100,
+        height: '100%',
         borderRadius: 10,
         marginBottom: 10,
+        borderColor: "#f9f9f9",
     },
 })
