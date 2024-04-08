@@ -269,7 +269,7 @@ const ChatScreen = ({ navigation, route }) => {
         console.log(replyText);
         console.log(replyMessage);
         const token = await getAccessToken();
-        if (replyMessage) {
+        if (replyMessage && replyMessage.content !== "This message has been deleted" && replyText !== '') {
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages/replyText/${replyMessage._id}`,
                 {
                     method: "POST",
@@ -302,6 +302,12 @@ const ChatScreen = ({ navigation, route }) => {
                 .catch(() => console.log("fetch error"))
         }
         else {
+            Toast.show({
+                type: 'error',
+                text1: "Can't reply this message",
+                visibilityTime: 3000,
+                position: 'top'
+            })
             console.log("empty message");
             return;
         }
@@ -309,6 +315,15 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const handleReply = async (message) => {
+        if (message.content === "This message has been deleted") {
+            Toast.show({
+                type: 'error',
+                text1: "Can't reply this message",
+                visibilityTime: 3000,
+                position: 'top'
+            })
+            return;
+        }
         setReplyMessage(message)
         console.log(message);
         console.log(message);
@@ -502,6 +517,12 @@ const ChatScreen = ({ navigation, route }) => {
                 .catch(() => console.log("fetch error"))
         }
         else {
+            Toast.show({
+                type: 'error',
+                text1: "Can't send empty message",
+                visibilityTime: 3000,
+                position: 'top'
+            })
             console.log("empty text");
             return;
         }
@@ -712,6 +733,13 @@ const ChatScreen = ({ navigation, route }) => {
         }
         const renderAttachments = (message) => {
             return message.attachments.map((attachment, index) => {
+                // if (message.content === "This message has been deleted") {
+                //     return (
+                //         <View>
+                //             <Text>This message has been deleted</Text>
+                //         </View>
+                //     )
+                // }
                 if (attachment.type === "application") {
                     return (
                         // <View key={index} style={styles.fileContainer}>
@@ -1238,7 +1266,7 @@ const ChatScreen = ({ navigation, route }) => {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
                 {messages.map((message) => (
-                    message?.type === 'file' ? (
+                    message?.type === 'file' && message?.content !== "This message has been deleted" ? (
                         <FileMessageComponent key={message._id} message={message} />
                     ) :
                         <MessageComponent key={message._id} message={message} />
