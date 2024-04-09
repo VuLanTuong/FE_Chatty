@@ -476,7 +476,7 @@ const MessageScreen = ({ navigation }) => {
                       }}>{getLastMessage(item)}</Text>
 
                       <Badge
-                        value="1" // Convert the unreadCount to string for display
+                        value=" " // Convert the unreadCount to string for display
                         status="error"
                       />
                     </View>
