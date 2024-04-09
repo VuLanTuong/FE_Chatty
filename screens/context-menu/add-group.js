@@ -47,7 +47,7 @@ const AddGroup = ({ navigation }) => {
         Object.keys(friendGroupByName).sort().forEach((letter) => {
             sortedFriendGroups[letter] = friendGroupByName[letter];
             setFriends(sortedFriendGroups);
-            console.log(sortedFriendGroups);
+
         });
 
         return sortedFriendGroups;
@@ -66,7 +66,7 @@ const AddGroup = ({ navigation }) => {
             allowsMultipleSelection: true,
 
         });
-        console.log(result);
+
         if (!result.canceled) {
             setAvatar(result.assets[0].uri);
         }
@@ -79,14 +79,9 @@ const AddGroup = ({ navigation }) => {
             console.log(friend);
             return friend
         })
-        console.log(members);
 
-        const newGroup = {
-            name: nameGroup,
-            members: members,
-            image: avatar
-        }
-        console.log(newGroup);
+
+
 
         if (nameGroup !== "") {
             if (members.length >= 2) {
@@ -115,6 +110,7 @@ const AddGroup = ({ navigation }) => {
 
                             })
                         }
+
 
                         Toast.show({
                             type: 'success',

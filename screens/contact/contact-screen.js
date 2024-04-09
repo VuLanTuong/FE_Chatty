@@ -64,11 +64,6 @@ export function ContactScreen({ navigation }) {
             });
     }
 
-
-    // useFocusEffect(() => {
-    //     fetchAllFriend();
-    // }, []);
-
     useFocusEffect(
         React.useCallback(() => {
             fetchAllFriend();
@@ -77,108 +72,9 @@ export function ContactScreen({ navigation }) {
     );
 
     const friends = useSelector((state) => state.user.friends);
-    // const friends = user.friends;
-    // console.log(user);
     console.log(friends);
 
     const user = useSelector((state) => state.user.user);
-
-    // async function findFriendById(friendId) {
-    //     const response = await fetch(`http://localhost:3000/users?id=${friendId}`);
-    //     const friendInfo = await response.json();
-    //     return friendInfo;
-    // }
-
-    // recieve list friend id and return list friend info
-
-    //     async function fetchFriendsInfo(friendIds) {
-    //         // const friendsTemp = await Promise.all(friendIds.map(
-    //         //     friendId => findFriendById(friendId)
-
-    //         // ));
-
-
-    //         const friendsTemp = await Promise.all(friendIds.map(
-    //             friendId => findFriendById(friendId)
-    //         ));
-    //         console.log(friendsTemp);
-    //         // sort friends by full name
-
-    //         const flattenedFriends = friendsTemp.flat();
-
-    //         const uniqueFriends = flattenedFriends.filter(
-    //             (friend, index, self) => self.findIndex(f => f.id === friend.id) === index
-    //         );
-
-    //         console.log(uniqueFriends); // Single array without duplicates
-
-    //         // Sort friends by full name
-    //         const sortedFriends = uniqueFriends.sort((a, b) => a.fullName.localeCompare(b.fullName));
-    //         setFriends(sortedFriends);
-
-    //         return friends;
-    //     }
-
-    //     async function fetchCoversation() {
-    //         // use redux to get current user
-    //         const response = await fetch('http://localhost:3000/conversations');
-    //         const conversations = await response.json();
-    //         console.log(conversations);
-
-
-    //         const findGroupOfUser = (userId, type) => conversations.filter(
-    //             (conversation) => conversation.userId.includes(userId) && conversation.type === type
-    //         );
-
-
-    //         const groupedConversations = findGroupOfUser(1, 'group');
-
-
-    //         const sortedGroup = groupedConversations.sort((a, b) => a.nameGroup.localeCompare(b.nameGroup));
-    //         setGroups(sortedGroup);
-
-    //         return conversations;
-    //     }
-
-    //     async function findFriendById(friendId) {
-    //         const response = await fetch(`http://localhost:3000/users?id${friendId}`);
-    //         const friendInfo = await response.json();
-    //         console.log(friendInfo);
-    //         return friendInfo;
-    //     }
-
-
-
-    //     fetchFriendIds();
-    //     fetchCoversation();
-    //     // fetchFriendsInfo();
-    // }, []);
-
-    // console.log(friendIds);
-    // console.log(friends);
-    // console.log(groups);
-
-
-    // group friends by a starting letter
-    // const groupFriendsByLetter = (friends) => {
-    //     console.log(friends);
-    //     const friendGroupByName = friends.reduce((result, friend) => {
-    //         // get first letter of each friend
-    //         const letter = friend.name.charAt(0).toUpperCase();
-    //         if (!result[letter]) {
-    //             result[letter] = [];
-    //         }
-    //         console.log(result);
-    //         console.log(letter);
-    //         console.log(result['A'])
-    //         // add friend to group
-    //         // result is a list of friends
-    //         // result[letter] is a list of friends with the same starting letter
-    //         result[letter].push(friend);
-    //         return result;
-    //     }, {});
-    //     return friendGroupByName;
-    // };
 
 
     const groupFriendsByLetter = (friends) => {
@@ -253,9 +149,9 @@ export function ContactScreen({ navigation }) {
     }, [])
 
 
-    // const handleOptionSelect = (option) => {
-    //     setSelectedOption(option);
-    // };
+    const handleOptionSelect = (option) => {
+        setSelectedOption(option);
+    };
     const groupedFriends = groupFriendsByLetter(friends);
     return (
         <View>
@@ -427,7 +323,7 @@ export function ContactScreen({ navigation }) {
                                     marginTop: 10,
                                     marginLeft: 10
 
-                                }}>
+                                }} onPress={() => handleAddGroup()}>
                                     <View style={{
                                         height: 50,
                                         width: 50,
