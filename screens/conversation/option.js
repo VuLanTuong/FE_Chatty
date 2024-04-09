@@ -13,6 +13,8 @@ import { useSelector } from "react-redux";
 import { findFriendById } from "../../service/friend.util";
 export default function option({ navigation, route }) {
   const conservationParam = route.params.data;
+
+  console.log(conservationParam);
   const user = useSelector((state) => state.user.user);
 
   //  navigation.navigate('FriendProfile', { friend: data.data });

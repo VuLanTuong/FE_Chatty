@@ -681,10 +681,13 @@ const ChatScreen = ({ navigation, route }) => {
     };
 
     const handleOption = () => {
+        if (conversationParams.type === 'group') {
+            navigation.navigate('OptionGroup', { data: conversationParams });
+            return;
+
+        }
         navigation.navigate('Option', { data: conversationParams });
     }
-
-
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: "",

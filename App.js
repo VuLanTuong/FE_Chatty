@@ -34,6 +34,8 @@ import ForgotPassword from "./screens/auth/forgot-password";
 import { SafeAreaView } from 'react-native';
 import { SocketProvider } from './screens/socket.io/socket-context';
 import OptionScreen from "./screens/conversation/option";
+import OptionGroup from './screens/group-chat/option-for-group';
+import MemberList from './screens/group-chat/member-list';
 
 
 const Tab = createBottomTabNavigator();
@@ -159,6 +161,42 @@ function AppNavigator() {
 
           }
         }} />
+        <Stack.Screen name='Option' component={OptionScreen} options={{
+          headerTitle: '',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 60,
+          }
+        }} />
+        <Stack.Screen name='OptionGroup' component={OptionGroup} options={{
+          headerTitle: '',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 60,
+          }
+        }} />
+        <Stack.Screen name='MemberList' component={MemberList} options={{
+          headerTitle: '',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 60,
+          }
+        }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -168,18 +206,6 @@ const MessageStack = () => {
   return (
     <Stack.Navigator>
       <Stack.Screen name='MessageScreen' component={MessageScreen} options={{
-        headerTitle: '',
-        headerTintColor: 'white',
-        headerTitleStyle: {
-          fontWeight: 'normal',
-          fontSize: 17,
-        },
-        headerStyle: {
-          backgroundColor: '#f558a4',
-          height: 60,
-        }
-      }} />
-      <Stack.Screen name='Option' component={OptionScreen} options={{
         headerTitle: '',
         headerTintColor: 'white',
         headerTitleStyle: {
