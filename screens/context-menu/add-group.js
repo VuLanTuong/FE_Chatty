@@ -1,149 +1,171 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image } from 'react-native';
 import { TextInput } from 'react-native-paper';
+import { Checkbox } from 'react-native-paper';
 
 import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
+import { useSelector } from 'react-redux';
+import * as ImagePicker from 'expo-image-picker';
+import { getAccessToken } from '../user-profile/getAccessToken';
+import Toast from 'react-native-toast-message';
 
 
-const AddGroup = () => {
+
+const AddGroup = ({ navigation }) => {
     const [nameGroup, setNameGroup] = useState("");
-    const [selectedOption, setSelectedOption] = useState('friends');
-    const [friendIds, setFriendIds] = useState();
+    const [selectedFriends, setSelectedFriends] = useState([]);
+    const friendInRedux = useSelector((state) => state.user.friends);
+
     const [friends, setFriends] = useState([]);
-    const [groups, setGroups] = useState([]);
-    const [selectedFriend, setSelectedFriend] = useState([]);
-    useEffect(() => {
-        // find id list of friends
-        async function fetchFriendIds() {
-            // use redux to get current user
-            const response = await fetch('http://localhost:3000/users?id=1');
-            const currentUser = await response.json();
-            const userTemp = currentUser[0];
+    const [searchFriend, setSearchFriend] = useState();
+    const [avatar, setAvatar] = useState("");
 
-
-            setFriendIds(userTemp.listFriend);
-            // pass list friend id to fetchFriendsInfo
-            fetchFriendsInfo(userTemp.listFriend);
+    const handleCheckboxToggle = (userId) => {
+        if (selectedFriends.includes(userId)) {
+            setSelectedFriends(selectedFriends.filter((id) => id !== userId));
+        } else {
+            setSelectedFriends([...selectedFriends, userId]);
         }
-
-        async function findFriendById(friendId) {
-            const response = await fetch(`http://localhost:3000/users?id=${friendId}`);
-            const friendInfo = await response.json();
-            return friendInfo;
-        }
-
-        // recieve list friend id and return list friend info
-        async function fetchFriendsInfo(friendIds) {
-            // const friendsTemp = await Promise.all(friendIds.map(
-            //     friendId => findFriendById(friendId)
-
-            // ));
+    };
 
 
-            const friendsTemp = await Promise.all(friendIds.map(
-                friendId => findFriendById(friendId)
-            ));
-            // console.log(friendsTemp);
-            // sort friends by full name
-
-            const flattenedFriends = friendsTemp.flat();
-
-            const uniqueFriends = flattenedFriends.filter(
-                (friend, index, self) => self.findIndex(f => f.id === friend.id) === index
-            );
-
-            // console.log(uniqueFriends); // Single array without duplicates
-
-            // Sort friends by full name
-            const sortedFriends = uniqueFriends.sort((a, b) => a.fullName.localeCompare(b.fullName));
-            setFriends(sortedFriends);
-
-            return friends;
-        }
-
-        async function fetchCoversation() {
-            // use redux to get current user
-            const response = await fetch('http://localhost:3000/conversations');
-            const conversations = await response.json();
-            // console.log(conversations);
-
-
-            const findGroupOfUser = (userId, type) => conversations.filter(
-                (conversation) => conversation.userId.includes(userId) && conversation.type === type
-            );
-
-
-            const groupedConversations = findGroupOfUser(1, 'group');
-
-
-            const sortedGroup = groupedConversations.sort((a, b) => a.nameGroup.localeCompare(b.nameGroup));
-            setGroups(sortedGroup);
-
-            return conversations;
-        }
-
-        async function findFriendById(friendId) {
-            const response = await fetch(`http://localhost:3000/users?id${friendId}`);
-            const friendInfo = await response.json();
-            // console.log(friendInfo);
-            return friendInfo;
-        }
-
-
-
-        fetchFriendIds();
-        fetchCoversation();
-        // fetchFriendsInfo();
-    }, []);
-
-    // console.log(friendIds);
-    // console.log(friends);
-    // console.log(groups);
-
-
-    // group friends by a starting letter
-    const groupFriendsByLetter = () => {
-        const groupedFriends = friends.reduce((result, friend) => {
-            // get first letter of each friend
-            const letter = friend.fullName.charAt(0).toUpperCase();
+    function groupFriendsByLetter() {
+        const friendGroupByName = friendInRedux.reduce((result, friend) => {
+            const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
             }
-            // console.log(result);
-            // console.log(letter);
-            // console.log(result['A'])
-            // add friend to group
-            // result is a list of friends
-            // result[letter] is a list of friends with the same starting letter
             result[letter].push(friend);
             return result;
         }, {});
-        return groupedFriends;
+
+        // Sort the friend groups alphabetically
+        const sortedFriendGroups = {};
+        Object.keys(friendGroupByName).sort().forEach((letter) => {
+            sortedFriendGroups[letter] = friendGroupByName[letter];
+            setFriends(sortedFriendGroups);
+            console.log(sortedFriendGroups);
+        });
+
+        return sortedFriendGroups;
     };
 
-    const groupedFriends = groupFriendsByLetter();
 
-    const handleRadioButtonPress = (friendId) => {
-        console.log(friendId);
-        if (selectedFriend.includes(friendId)) {
-            setSelectedFriend(selectedFriend.filter((id) => id !== friendId));
-        } else {
-            setSelectedFriend([...selectedFriend, friendId]);
+    useEffect(() => {
+        groupFriendsByLetter();
+    }, [])
+
+
+    const handleChooseAvatar = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            quality: 1,
+            allowsMultipleSelection: true,
+
+        });
+        console.log(result);
+        if (!result.canceled) {
+            setAvatar(result.assets[0].uri);
         }
 
+    }
 
-    };
+    const handleAddGroup = async () => {
+        const accessToken = await getAccessToken();
+        let members = selectedFriends.map((friend) => {
+            console.log(friend);
+            return friend
+        })
+        console.log(members);
+
+        const newGroup = {
+            name: nameGroup,
+            members: members,
+            image: avatar
+        }
+        console.log(newGroup);
+
+        if (nameGroup !== "") {
+            if (members.length >= 2) {
+                await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/createGroup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${accessToken}`
+
+                    },
+                    body: JSON.stringify({
+                        name: nameGroup,
+                        members: members,
+                        image: avatar
+
+
+                    })
+                }).then((response) => response.json())
+                    .then((data) => {
+                        if (data.status === 'fail') {
+                            Toast.show({
+                                type: 'error',
+                                position: 'top',
+                                text1: 'Cannot create group',
+                                visibilityTime: 3000
+
+                            })
+                        }
+
+                        Toast.show({
+                            type: 'success',
+                            position: 'top',
+                            text1: 'Create group successfully',
+                            visibilityTime: 3000
+
+                        })
+                        navigation.navigate('Home');
+                    }
+
+                    ).catch((error) => {
+                        console.log(error);
+                    })
+            }
+            else {
+                Toast.show({
+                    type: 'error',
+                    position: 'top',
+                    text1: 'Group must have at least 2 members',
+                    visibilityTime: 2000
+                })
+                return;
+
+            }
+        }
+        else {
+            Toast.show({
+                type: 'error',
+                position: 'top',
+                text1: 'Group name cannot be empty',
+                visibilityTime: 2000
+            })
+            return;
+        }
+
+    }
 
     return (
-        <View>
+        <View style={{
+            flexDirection: 'column',
+            flex: 1,
+
+        }}>
             <View style={{
                 flexDirection: 'row',
                 height: 50,
                 marginTop: 20,
-                gap: 10
+                gap: 20,
+
+
             }}>
                 <Pressable style={{
                     height: 40,
@@ -154,101 +176,140 @@ const AddGroup = () => {
                     alignItems: 'center',
                     marginLeft: 20,
                     marginTop: 10
-                }}>
-                    <MaterialCommunityIcons name="camera" size={24} color="grey" />
+                }} onPress={() => handleChooseAvatar()}>
+                    {avatar ? <Image source={{ uri: avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} /> :
+                        <MaterialCommunityIcons name="camera" size={24} color="grey" />}
                 </Pressable>
                 <TextInput
                     style={{
                         fontSize: 18,
                         width: '60%',
-                        backgroundColor: '#fcbbdc',
                         height: 50,
-                        borderRadius: 10
+                        borderRadius: 10,
+                        borderWidth: 1,
+
                     }}
                     selectionColor='white'
-                    placeholder="Name group"
+                    placeholder="Group Name"
                     value={nameGroup}
                     onChangeText={text => setNameGroup(text)}
-                // contentStyle={{
-                //   fontSize: 18
-                // }}
+
                 />
 
                 <Pressable style={{
-                    marginTop: 10
+
+                    flexDirection: 'column',
+                    borderWidth: 1,
+                    borderColor: "#fc58ac",
+                    padding: 5,
                 }}
+                    onPress={() => handleAddGroup()}
                 >
-                    <MaterialCommunityIcons name="check" size={30} color="#fc58ac" />
+                    <Text>Done</Text>
+                    <MaterialCommunityIcons name="check" size={25} color="#fc58ac" />
                 </Pressable>
 
             </View>
+            <View style={styles.dividerForMenu} />
 
-            <View>
-                {/* <Divider style={{
-          backgroundColor: '#f558a4',
-          height: 2,
-          width: '20%',
-          marginTop: -12,
-          marginLeft: 60,
+            <View style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 15,
+                marginTop: 30,
+                width: '80%',
+                margin: 'auto'
+            }}>
+                <TextInput
+                    placeholder="Search friend..."
+                    style={{
+                        width: '100%',
+                        height: 50,
+                        borderRadius: 10,
+                        fontSize: 18,
+                        backgroundColor: '#f0f0f0',
+                    }}
+                    value={searchFriend}
+                    onChangeText={(text) => setSearchFriend(text)}
+                />
+                <Pressable style={{}}>
+                    <MaterialCommunityIcons name='magnify' color='black' size={30} />
+                </Pressable>
+            </View>
 
-        }} /> */}
+            <View style={{
+                flex: 1,
 
-                <View style={styles.dividerForMenu} />
-                <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                    <View>
-                        {Object.keys(groupedFriends).map((letter) => (
-                            <View key={letter}>
-                                <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
-                                {groupedFriends[letter].map((friend) => (
-                                    <View key={friend.id}
-                                        style={{
-                                            flexDirection: 'row',
-                                            gap: 10,
-                                            marginTop: 10,
-                                            marginLeft: 10
-                                        }}>
-                                        <View style={{
-                                            flexDirection: 'row',
-                                            gap: 20
-                                        }}>
+            }}>
 
-                                            <Pressable
-                                                style={[
-                                                    styles.circle,
-                                                    selectedFriend.includes(friend.id) && styles.circleSelected
-                                                ]}
-                                                onPress={() => handleRadioButtonPress(friend.id)}
-                                            >
-                                                {selectedFriend.includes(friend.id) ? (
-                                                    <MaterialCommunityIcons name="check" size={20} color="white" />
-                                                ) : null}
-                                            </Pressable>
+                <ScrollView style={{
 
-                                            {/* onPress to go to message screen with friend */}
-                                            <Pressable style={{
-                                                flexDirection: 'row',
-                                                gap: 20
-                                            }}>
-                                                {/* // api to get avatar */}
-                                                <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
-                                                    width: 50,
-                                                    height: 50,
-                                                    borderRadius: 50
+                    flex: 1,
+                    width: '95%',
+                    flexDirection: 'column',
 
-                                                }} />
+                }}>
 
-                                                <Text style={{
-                                                    marginTop: 10,
+                    {Object.keys(friends).map((letter) => (
+                        <View style={{
+                            width: '95%',
 
-                                                    fontSize: 20
-                                                }}>{friend.fullName}</Text>
-                                            </Pressable>
-                                        </View>
+                        }} key={letter}>
+                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
+                            {friends[letter].map((friend) => (
+
+                                <View key={friend.userId}
+                                    style={{
+                                        flexDirection: 'row',
+                                        gap: 10,
+                                        marginTop: 10,
+                                        marginLeft: 10,
+                                        flex: 1,
+
+
+
+                                    }}>
+
+
+                                    {/* // api to get avatar */}
+                                    <Image source={{ uri: friend.avatar }} style={{
+                                        width: 50,
+                                        height: 50,
+                                        borderRadius: 50
+
+                                    }} />
+
+                                    <Text style={{
+                                        marginTop: 10,
+                                        fontSize: 20
+                                    }}>{friend.name}</Text>
+                                    <View style={{
+                                        flex: 1,
+                                        flexDirection: "column",
+                                        justifyContent: "center",
+                                        // alignContent: 'center',
+                                        alignItems: 'end',
+
+                                    }}>
+                                        <Checkbox.Android
+                                            status={selectedFriends.includes(friend.userId) ? 'checked' : 'unchecked'}
+                                            onPress={() => handleCheckboxToggle(friend.userId)}
+                                        />
+
+
                                     </View>
-                                ))}
-                            </View>
-                        ))}
-                    </View>
+
+
+                                </View>
+
+
+
+                            ))}
+                        </View>
+                    ))}
+
                 </ScrollView>
 
             </View>
@@ -261,8 +322,8 @@ const AddGroup = () => {
 const styles = StyleSheet.create({
     dividerForMenu: {
         height: 2,
-        backgroundColor: '#bebec2',
-        marginTop: 10,
+        backgroundColor: 'grey',
+        marginTop: 20,
         marginBottom: 10,
     },
     circle: {
@@ -276,6 +337,34 @@ const styles = StyleSheet.create({
     },
     circleSelected: {
         backgroundColor: 'black'
-    }
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 16,
+    },
+    closeButton: {
+        marginTop: 10,
+        fontSize: 16,
+        backgroundColor: '#f558a4',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 20
+    },
+    biggerModalContent: {
+        width: '80%',
+        height: '80%',
+    },
 })
 export default AddGroup;
