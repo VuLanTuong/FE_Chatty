@@ -101,6 +101,7 @@ const AddGroup = ({ navigation }) => {
                     })
                 }).then((response) => response.json())
                     .then((data) => {
+                        console.log(data);
                         if (data.status === 'fail') {
                             Toast.show({
                                 type: 'error',
@@ -110,8 +111,6 @@ const AddGroup = ({ navigation }) => {
 
                             })
                         }
-
-
                         Toast.show({
                             type: 'success',
                             position: 'top',

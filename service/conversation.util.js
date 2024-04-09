@@ -14,7 +14,8 @@ export async function getAllConversation() {
         const data = await response.json();
 
         const temp = Object.values(data.data);
-        const updatedConversations = temp.filter(cv => cv.lastMessage !== null);
+
+        const updatedConversations = temp.filter(cv => cv.lastMessage !== null || cv.type === 'group');
         // console.log(updatedConversations);
         return updatedConversations;
     } catch (err) {
