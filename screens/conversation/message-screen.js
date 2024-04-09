@@ -333,7 +333,7 @@ const MessageScreen = ({ navigation }) => {
       return "This message was deleted";
     }
     if (item?.lastMessage?.sender !== user._id) {
-      if (item?.lastMessage?.type === "file") {
+      if (item?.lastMessage?.type === "file" && item?.content !== "This message has been deleted") {
         return ": Attachment file"
       }
       return ": " + item.lastMessage?.content;
@@ -348,7 +348,7 @@ const MessageScreen = ({ navigation }) => {
         console.log(item.lastMessage.content.substring(0, 10) + "...");
         return item.lastMessage.content.substring(0, 10) + "...";
       }
-      if (item?.lastMessage?.type === "file") {
+      if (item?.lastMessage?.type === "file" && item?.lastMessage.content !== "This message has been deleted") {
         return "Attachment file"
       }
 
@@ -476,7 +476,7 @@ const MessageScreen = ({ navigation }) => {
                       }}>{getLastMessage(item)}</Text>
 
                       <Badge
-                        value="1" // Convert the unreadCount to string for display
+                        value=" " // Convert the unreadCount to string for display
                         status="error"
                       />
                     </View>

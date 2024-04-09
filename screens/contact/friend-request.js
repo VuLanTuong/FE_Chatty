@@ -5,6 +5,7 @@ import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { findFriendById } from '../../service/friend.util';
+import { useSelector } from 'react-redux';
 
 export function FriendRequest({ navigation }) {
     const [requests, setRequests] = useState([]);
@@ -90,6 +91,8 @@ export function FriendRequest({ navigation }) {
 
     }, [])
 
+    const friends = useSelector(state => state.friends)
+
 
     const addFriend = async (id) => {
         const accessToken = await getAccessToken();
@@ -111,6 +114,7 @@ export function FriendRequest({ navigation }) {
             console.log('success');
             setIsAcptrRequest(true);
             fetchFriendRequest();
+
 
 
         }
