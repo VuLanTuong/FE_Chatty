@@ -21,6 +21,8 @@ export default function OptionGroup({ navigation, route }) {
     const [searchFriend, setSearchFriend] = useState();
     const user = useSelector((state) => state.user.user);
 
+    const currentConversation = useSelector((state) => state.user.currentConversation);
+
 
 
     const conservationParam = route.params.data;
@@ -33,7 +35,8 @@ export default function OptionGroup({ navigation, route }) {
         }
     };
     function groupFriendsByLetter() {
-        const friendGroupByName = conservationParam.members.reduce((result, friend) => {
+        console.log(currentConversation);
+        const friendGroupByName = currentConversation.members.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -127,11 +130,12 @@ export default function OptionGroup({ navigation, route }) {
                         justifyContent: "center",
                     }}
                 >
-                    <Avatar.Image
+                    <Image
                         source={{
                             uri: conservationParam.image,
                         }}
-                        size={100}
+
+                        style={{ width: 100, height: 100, borderRadius: 50 }}
                     />
 
                     <Text style={styles.userName}>{conservationParam.name}</Text>

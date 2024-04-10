@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, Modal, TextInput, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Avatar, Button, Divider } from "react-native-paper";
@@ -11,11 +11,15 @@ import {
     Octicons,
 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { findFriendById } from "../../service/friend.util";
 import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
+import { useSocket } from "../socket.io/socket-context";
+import { setCurrentConversation, updateConversation } from "../../rtk/user-slice";
+import ActionSheet from 'react-native-actionsheet';
+
 export default function MemberList({ navigation, route }) {
     const conservationParam = route.params.data;
     const user = useSelector((state) => state.user.user);
@@ -27,6 +31,10 @@ export default function MemberList({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [members, setMembers] = useState([]);
     const [selectedFriends, setSelectedFriends] = useState([]);
+    const [isRemove, setIsRemove] = useState(false);
+    const [newMember, setNewMember] = useState();
+    const dispatch = useDispatch()
+    const currentConversation = useSelector((state) => state.user.currentConversation);
 
     const handleCheckboxToggle = (userId) => {
         if (selectedFriends.includes(userId)) {
@@ -36,10 +44,11 @@ export default function MemberList({ navigation, route }) {
         }
     };
 
+    const { socket } = useSocket();
 
 
     function groupMembersByLetter() {
-        const friendGroupByName = conservationParam.members.reduce((result, friend) => {
+        const friendGroupByName = currentConversation.members.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -96,7 +105,7 @@ export default function MemberList({ navigation, route }) {
                     >
                         <AntDesign name="arrowleft" size={24} color="white" />
                     </TouchableOpacity>
-                    <Text>Memmber List</Text>
+                    <Text style={styles.modalText}>Memmber List</Text>
 
                 </View>
             ),
@@ -105,6 +114,10 @@ export default function MemberList({ navigation, route }) {
     useEffect(() => {
         groupMembersByLetter()
         groupFriendsByLetter();
+
+
+
+
     }, [])
 
     const handleOpenModal = () => {
@@ -112,6 +125,7 @@ export default function MemberList({ navigation, route }) {
     }
     const handleCloseModal = () => {
         setModalVisible(false);
+        setSelectedFriends([]);
     };
 
     const handleAddMember = async () => {
@@ -136,19 +150,24 @@ export default function MemberList({ navigation, route }) {
                         type: 'error',
                         text1: data.message,
                         visibilityTime: 2000,
-                        position: top
+                        position: 'top'
 
                     })
                     return;
                 }
+
+
+
                 setModalVisible(false);
                 setSelectedFriends([]);
                 Toast.show({
                     type: 'success',
                     text1: "Add member successfully",
                     visibilityTime: 2000,
-                    position: top
+                    position: 'top'
                 })
+                dispatch(setCurrentConversation(data.data))
+                dispatch(updateConversation(data.data))
             }).catch((err) => {
                 console.log(err);
             })
@@ -156,76 +175,163 @@ export default function MemberList({ navigation, route }) {
 
 
     }
+    const options = ['View profile', 'Delete', 'Cancel'];
+    const actionSheetRef = useRef();
+    const handlePress = () => {
+        actionSheetRef.current.show();
+    };
+
+    const handleViewProfile = async (friend) => {
+        // members.map(async (member) => {
+        // if (member._id !== user._id) {
+        //     const friend = await findFriendById(member._id);
+        //     console.log(friend);
+        navigation.navigate('FriendProfile', { friend: friend });
+
+        // }
+        // else {
+        //     return;
+
+        // }
+        // })
+    }
+
 
     const listIdsOfMembers = conservationParam.members.map(member => member._id);
+    const handleRemoveMultipleChoose = () => {
+        setIsRemove(!isRemove);
+
+    }
+
+    const handleRemoveMember = async () => {
+
+    }
+
+    const EachMemberComponent = ({ friend }) => {
+        const actionSheetRef = useRef(null);
+        const handlePressIcon = () => {
+            actionSheetRef.current.show();
+        };
+        const handleActionPress = (index) => {
+            switch (index) {
+                case 0:
+                    handleViewProfile(friend);
+                    break;
+                case 1:
+                    handleRemoveMember();
+                    break;
+                default:
+                    break;
+            }
+
+        };
+
+        return (
+            <Pressable onPress={() => handlePressIcon()}>
+                <View key={friend.userId}
+                    style={{
+                        flexDirection: 'row',
+                        gap: 10,
+                        marginTop: 10,
+                        marginLeft: 10,
+                        flex: 1,
+                    }}>
+                    {/* // api to get avatar */}
+                    <Image source={{ uri: friend.avatar }} style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 50
+
+                    }} />
+
+                    <Text style={{
+                        marginTop: 10,
+                        fontSize: 20
+                    }}>{friend.name}</Text>
+
+
+                    {isRemove ? (
+                        <View style={{
+                            flex: 1,
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            // alignContent: 'center',
+                            alignItems: 'end',
+
+                        }}>
+                            <Checkbox.Android
+                                status={selectedFriends.includes(friend._id) ? 'checked' : 'unchecked'}
+                                disabled={user._id === friend._id}
+                                onPress={() => handleCheckboxToggle(friend._id)}
+                            />
+                        </View>
+                    ) : null}
+                    <ActionSheet
+                        ref={actionSheetRef}
+                        options={options}
+                        cancelButtonIndex={2}
+                        onPress={handleActionPress}
+                    />
+                </View>
+            </Pressable>
+        )
+    }
+
+    const memberComponent = () => {
+
+        return (
+            <View style={{
+                flex: 1,
+
+            }}>
+                <ScrollView style={{
+
+                    flex: 1,
+                    width: '95%',
+                    flexDirection: 'column',
+
+                }}>
+                    {Object.keys(members).map((letter) => (
+                        <View style={{
+                            width: '95%',
+
+                        }} key={letter}>
+                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
+                            {members[letter].map((friend) =>
+
+                                <EachMemberComponent key={friend.userId} friend={friend} />
+
+
+
+                            )}
+
+                        </View>
+
+                    ))}
+
+                </ScrollView>
+
+            </View>
+        )
+
+    }
+
     return (
         <View style={{
             flexDirection: 'column',
             flex: 1,
 
         }}>
-            <View style={{
-                flexDirection: 'row',
-                height: 50,
-                marginTop: 20,
-                gap: 20,
-
-
-            }}>
-                <Pressable style={{
-                    height: 40,
-                    width: 40,
-                    borderWidth: 1,
-                    borderRadius: 20,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    marginLeft: 20,
-                    marginTop: 10
-                }} >
-                    {image ? <Image source={{ uri: image }} style={{ width: 40, height: 40, borderRadius: 20 }} /> :
-                        <MaterialCommunityIcons name="camera" size={24} color="grey" />}
-                </Pressable>
-                <TextInput
-                    style={{
-                        fontSize: 18,
-                        width: '60%',
-                        height: 50,
-                        borderRadius: 10,
-                        borderWidth: 1,
-
-                    }}
-                    selectionColor='white'
-                    placeholder="Group Name"
-                    value={nameGroup}
-                    onChangeText={text => setNameGroup(text)}
-
-                />
-
-                <Pressable style={{
-
-                    flexDirection: 'column',
-                    borderWidth: 1,
-                    borderColor: "#fc58ac",
-                    padding: 5,
-                }}
-                    onPress={() => handleAddGroup()}
-                >
-                    <Text>Done</Text>
-                    <MaterialCommunityIcons name="check" size={25} color="#fc58ac" />
-                </Pressable>
-
-            </View>
-            <View style={styles.dividerForMenu} />
 
             <View style={{
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'center',
                 alignItems: 'center',
-                gap: 25,
-                marginTop: 30,
-                width: '80%',
-                margin: 'auto'
+                gap: 15,
+                marginTop: 10,
+                width: '90%',
+                marginLeft: 20
             }}>
                 <TextInput
                     placeholder="Search friend..."
@@ -245,69 +351,21 @@ export default function MemberList({ navigation, route }) {
                 <Pressable onPress={() => handleOpenModal()}>
                     <MaterialCommunityIcons name="account-plus" size={30} color="black" />
                 </Pressable>
+                <Pressable onPress={() => handleRemoveMultipleChoose()}>
+                    <MaterialCommunityIcons name="account-remove" size={30} color="black" />
+                </Pressable>
+                {isRemove ? (
+                    <Pressable onPress={() => handleRemoveMember()}>
+                        <MaterialCommunityIcons name="delete" size={30} color="red" />
+                    </Pressable>
+                ) : null}
+
             </View>
             <View style={styles.dividerForMenu} />
-
-
-            <View style={{
-                flex: 1,
-
-            }}>
-
-                <ScrollView style={{
-
-                    flex: 1,
-                    width: '95%',
-                    flexDirection: 'column',
-
-                }}>
-
-                    {Object.keys(members).map((letter) => (
-                        <View style={{
-                            width: '95%',
-
-                        }} key={letter}>
-                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
-                            {members[letter].map((friend) => (
-
-                                <View key={friend.userId}
-                                    style={{
-                                        flexDirection: 'row',
-                                        gap: 10,
-                                        marginTop: 10,
-                                        marginLeft: 10,
-                                        flex: 1,
+            {memberComponent()}
 
 
 
-                                    }}>
-
-
-                                    {/* // api to get avatar */}
-                                    <Image source={{ uri: friend.avatar }} style={{
-                                        width: 50,
-                                        height: 50,
-                                        borderRadius: 50
-
-                                    }} />
-
-                                    <Text style={{
-                                        marginTop: 10,
-                                        fontSize: 20
-                                    }}>{friend.name}</Text>
-
-
-                                </View>
-
-
-
-                            ))}
-                        </View>
-                    ))}
-
-                </ScrollView>
-
-            </View>
             <View style={{}}>
                 <Modal
                     visible={modalVisible}
@@ -344,78 +402,86 @@ export default function MemberList({ navigation, route }) {
                                 flex: 1,
                                 width: '100%',
                             }}>
-                                {Object.keys(friends).map((letter) => (
-                                    <View style={{
-                                        width: '100%'
-                                    }}>
-                                        <View key={letter} >
-                                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
 
-                                            {friends[letter].map((friend) => (
+                                {/* {isRemove ? memberComponent() : ( */}
+                                <View>
+                                    {Object.keys(friends).map((letter) => (
+                                        <View style={{
+                                            width: '100%'
+                                        }}>
+                                            <View key={letter} >
+                                                <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
 
-                                                <View key={friend.userId}
-                                                    style={{
-                                                        flexDirection: 'row',
-                                                        gap: 10,
-                                                        marginTop: 10,
-                                                        marginLeft: 10,
+                                                {friends[letter].map((friend) => (
+
+                                                    <View key={friend.userId}
+                                                        style={{
+                                                            flexDirection: 'row',
+                                                            gap: 10,
+                                                            marginTop: 10,
+                                                            marginLeft: 10,
 
 
-                                                    }}>
+                                                        }}>
 
-                                                    <View style={{
-                                                        flexDirection: 'row',
-                                                        gap: 20,
-                                                        flex: 1,
-
-                                                    }}>
                                                         <View style={{
                                                             flexDirection: 'row',
                                                             gap: 20,
                                                             flex: 1,
+
                                                         }}>
-                                                            {/* // api to get avatar */}
-                                                            <Image source={{ uri: friend.avatar }} style={{
-                                                                width: 50,
-                                                                height: 50,
-                                                                borderRadius: 50
-
-                                                            }} />
-
-                                                            <Text style={{
-                                                                marginTop: 10,
-                                                                fontSize: 20
-                                                            }}>{friend.name}</Text>
                                                             <View style={{
+                                                                flexDirection: 'row',
+                                                                gap: 20,
                                                                 flex: 1,
-                                                                flexDirection: "column",
-                                                                justifyContent: "center",
-                                                                // alignContent: 'center',
-                                                                alignItems: 'end',
-
                                                             }}>
-                                                                <Checkbox.Android
-                                                                    status={selectedFriends.includes(friend.userId) || listIdsOfMembers.includes(friend.userId) ? 'checked' : 'unchecked'}
-                                                                    disabled={listIdsOfMembers.includes(friend.userId)}
-                                                                    onPress={() => handleCheckboxToggle(friend.userId)}
-                                                                />
+                                                                {/* // api to get avatar */}
+                                                                <Image source={{ uri: friend.avatar }} style={{
+                                                                    width: 50,
+                                                                    height: 50,
+                                                                    borderRadius: 50
+
+                                                                }} />
+
+                                                                <Text style={{
+                                                                    marginTop: 10,
+                                                                    fontSize: 20
+                                                                }}>{friend.name}</Text>
+                                                                <View style={{
+                                                                    flex: 1,
+                                                                    flexDirection: "column",
+                                                                    justifyContent: "center",
+                                                                    // alignContent: 'center',
+                                                                    alignItems: 'end',
+
+                                                                }}>
+                                                                    <Checkbox.Android
+                                                                        status={selectedFriends.includes(friend.userId) || listIdsOfMembers.includes(friend.userId) ? 'checked' : 'unchecked'}
+                                                                        disabled={listIdsOfMembers.includes(friend.userId)}
+                                                                        onPress={() => handleCheckboxToggle(friend.userId)}
+                                                                    />
+
+
+                                                                </View>
 
 
                                                             </View>
-
-
                                                         </View>
+
                                                     </View>
 
-                                                </View>
 
 
+                                                ))}
+                                            </View>
 
-                                            ))}
                                         </View>
 
-                                    </View>
-                                ))}
+
+                                    ))
+                                    }
+                                </View>
+                                {/* )} */}
 
                             </ScrollView>
                             <View style={{
@@ -447,7 +513,6 @@ const styles = StyleSheet.create({
     dividerForMenu: {
         height: 2,
         backgroundColor: 'grey',
-        marginTop: 20,
         marginBottom: 10,
     },
     openButton: {
@@ -470,7 +535,9 @@ const styles = StyleSheet.create({
     },
     modalText: {
         fontSize: 18,
-        marginBottom: 16,
+        color: 'white',
+        fontSize: 20,
+
     },
     closeButton: {
         marginTop: 10,

@@ -329,27 +329,18 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
-    if (item?.lastMessage?.isDelete) {
-      return "This message was deleted";
-    }
-    if (item?.lastMessage?.sender !== user._id) {
-      if (item?.lastMessage?.type === "file" && item?.content !== "This message has been deleted") {
-        return ": Attachment file"
-      }
-      return ": " + item.lastMessage?.content;
-    }
-
     if (item?.lastMessage != null) {
       if (item?.lastMessage?.isDelete) {
         return "This message was deleted";
       }
 
       if (item.lastMessage?.content.length > 20) {
-        console.log(item.lastMessage.content.substring(0, 10) + "...");
-        return item.lastMessage.content.substring(0, 10) + "...";
+        console.log(item.lastMessage.content.substring(0, 20) + "...");
+        return item.lastMessage.content.substring(0, 20) + "...";
       }
+
       if (item?.lastMessage?.type === "file" && item?.lastMessage.content !== "This message has been deleted") {
-        return "Attachment file"
+        return "Attachment file";
       }
 
       return item.lastMessage.content;
