@@ -7,14 +7,17 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { RadioButton } from 'react-native-paper';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import * as ImagePicker from 'expo-image-picker';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import Toast from 'react-native-toast-message';
+import { getAllConversation } from '../../service/conversation.util';
+import { getConservations } from '../../rtk/user-slice';
 
 
 
 const AddGroup = ({ navigation }) => {
+    const dispatch = useDispatch()
     const [nameGroup, setNameGroup] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
     const friendInRedux = useSelector((state) => state.user.friends);
@@ -111,6 +114,8 @@ const AddGroup = ({ navigation }) => {
 
                             })
                         }
+                        dispatch(getConservations())
+
                         Toast.show({
                             type: 'success',
                             position: 'top',
@@ -118,7 +123,9 @@ const AddGroup = ({ navigation }) => {
                             visibilityTime: 3000
 
                         })
+
                         navigation.navigate('Home');
+
                     }
 
                     ).catch((error) => {

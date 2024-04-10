@@ -58,6 +58,7 @@ const ChatScreen = ({ navigation, route }) => {
     const [replyText, setReplyText] = useState('');
     const dispatch = useDispatch()
     const { socket } = useSocket();
+    const [newMember, setNewMember] = useState();
     const handleOpenModal = () => {
         setModalVisible(true);
     };
@@ -441,8 +442,17 @@ const ChatScreen = ({ navigation, route }) => {
                         dispatch(setAllConversation(updateConservation))
                     }
                 })
+
+
         }, [messages])
     );
+
+
+
+    useFocusEffect(React.useCallback(() => {
+        getAllMessage();
+    }, []));
+
     const getAllMessage = async () => {
         const token = await getAccessToken();
         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages?page=1&limit=50`,
@@ -1528,6 +1538,23 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     useEffect(() => {
+        socket.on("message:notification", (data) => {
+            console.log(data);
+            if (currentConversation._id === data.conversationId) {
+                let currentMessage = { ...data.messages }
+                setMessages([...messages, currentMessage])
+                const updateConservation = allConversationAtRedux.map(conversation => {
+                    if (conversation._id.toString() === data.conversation._id.toString()) {
+                        console.log("update conversation delete");
+
+                        return { ...conversation, lastMessage: currentMessage }
+                    }
+                    return conversation;
+                })
+                dispatch(setAllConversation(updateConservation))
+            }
+
+        })
         getAccessToken().then((token) => {
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/readMessages`, {
                 method: 'POST',
@@ -1555,12 +1582,35 @@ const ChatScreen = ({ navigation, route }) => {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
                 {messages.map((message) => (
-                    message?.type === 'file' && message?.content !== "This message has been deleted" ? (
-                        <FileMessageComponent key={message._id} message={message} />
-                    ) :
-                        <MessageComponent key={message._id} message={message} />
+                    message.type === 'notification' ? (
+                        <View style={{
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: 'lightgray',
+                            borderRadius: 10,
+                            flexDirection: 'row',
+                            width: '80%',
+                            height: 30,
+                            margin: 'auto',
+                            gap: 15
 
+
+                        }} key={message._id}>
+                            <Image
+                                source={{ uri: message.avatar }}
+                                style={styles.iconImage}
+                            />
+                            <Text>{message.content}</Text>
+                        </View>
+                    ) : (
+                        message.type === 'file' && message.content !== 'This message has been deleted' ? (
+                            <FileMessageComponent key={message._id} message={message} />
+                        ) : (
+                            <MessageComponent key={message._id} message={message} />
+                        )
+                    )
                 ))}
+
             </ScrollView>
             <View style={{
                 flexDirection: "row",
@@ -1910,6 +1960,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
         borderColor: "#f9f9f9",
     },
+
+    iconImage: {
+        width: 30,
+        height: 30,
+        borderRadius: 25,
+        justifyContent: 'flex-start',
+        alignItems: 'flex-start'
+    }
 
 });
 export default ChatScreen;

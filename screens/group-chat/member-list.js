@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState, useEffect } from "react";
+import React, { useLayoutEffect, useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, Pressable, Modal, TextInput, Image } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Avatar, Button, Divider } from "react-native-paper";
@@ -11,12 +11,14 @@ import {
     Octicons,
 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { findFriendById } from "../../service/friend.util";
 import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
 import { useSocket } from "../socket.io/socket-context";
+import { setCurrentConversation, updateConversation } from "../../rtk/user-slice";
+import ActionSheet from 'react-native-actionsheet';
 
 export default function MemberList({ navigation, route }) {
     const conservationParam = route.params.data;
@@ -31,6 +33,8 @@ export default function MemberList({ navigation, route }) {
     const [selectedFriends, setSelectedFriends] = useState([]);
     const [isRemove, setIsRemove] = useState(false);
     const [newMember, setNewMember] = useState();
+    const dispatch = useDispatch()
+    const currentConversation = useSelector((state) => state.user.currentConversation);
 
     const handleCheckboxToggle = (userId) => {
         if (selectedFriends.includes(userId)) {
@@ -44,7 +48,7 @@ export default function MemberList({ navigation, route }) {
 
 
     function groupMembersByLetter() {
-        const friendGroupByName = conservationParam.members.reduce((result, friend) => {
+        const friendGroupByName = currentConversation.members.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -110,6 +114,10 @@ export default function MemberList({ navigation, route }) {
     useEffect(() => {
         groupMembersByLetter()
         groupFriendsByLetter();
+
+
+
+
     }, [])
 
     const handleOpenModal = () => {
@@ -149,6 +157,7 @@ export default function MemberList({ navigation, route }) {
                 }
 
 
+
                 setModalVisible(false);
                 setSelectedFriends([]);
                 Toast.show({
@@ -157,6 +166,8 @@ export default function MemberList({ navigation, route }) {
                     visibilityTime: 2000,
                     position: 'top'
                 })
+                dispatch(setCurrentConversation(data.data))
+                dispatch(updateConversation(data.data))
             }).catch((err) => {
                 console.log(err);
             })
@@ -164,6 +175,27 @@ export default function MemberList({ navigation, route }) {
 
 
     }
+    const options = ['View profile', 'Delete', 'Cancel'];
+    const actionSheetRef = useRef();
+    const handlePress = () => {
+        actionSheetRef.current.show();
+    };
+
+    const handleViewProfile = async (friend) => {
+        // members.map(async (member) => {
+        // if (member._id !== user._id) {
+        //     const friend = await findFriendById(member._id);
+        //     console.log(friend);
+        navigation.navigate('FriendProfile', { friend: friend });
+
+        // }
+        // else {
+        //     return;
+
+        // }
+        // })
+    }
+
 
     const listIdsOfMembers = conservationParam.members.map(member => member._id);
     const handleRemoveMultipleChoose = () => {
@@ -174,7 +206,79 @@ export default function MemberList({ navigation, route }) {
     const handleRemoveMember = async () => {
 
     }
+
+    const EachMemberComponent = ({ friend }) => {
+        const actionSheetRef = useRef(null);
+        const handlePressIcon = () => {
+            actionSheetRef.current.show();
+        };
+        const handleActionPress = (index) => {
+            switch (index) {
+                case 0:
+                    handleViewProfile(friend);
+                    break;
+                case 1:
+                    handleRemoveMember();
+                    break;
+                default:
+                    break;
+            }
+
+        };
+
+        return (
+            <Pressable onPress={() => handlePressIcon()}>
+                <View key={friend.userId}
+                    style={{
+                        flexDirection: 'row',
+                        gap: 10,
+                        marginTop: 10,
+                        marginLeft: 10,
+                        flex: 1,
+                    }}>
+                    {/* // api to get avatar */}
+                    <Image source={{ uri: friend.avatar }} style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 50
+
+                    }} />
+
+                    <Text style={{
+                        marginTop: 10,
+                        fontSize: 20
+                    }}>{friend.name}</Text>
+
+
+                    {isRemove ? (
+                        <View style={{
+                            flex: 1,
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            // alignContent: 'center',
+                            alignItems: 'end',
+
+                        }}>
+                            <Checkbox.Android
+                                status={selectedFriends.includes(friend._id) ? 'checked' : 'unchecked'}
+                                disabled={user._id === friend._id}
+                                onPress={() => handleCheckboxToggle(friend._id)}
+                            />
+                        </View>
+                    ) : null}
+                    <ActionSheet
+                        ref={actionSheetRef}
+                        options={options}
+                        cancelButtonIndex={2}
+                        onPress={handleActionPress}
+                    />
+                </View>
+            </Pressable>
+        )
+    }
+
     const memberComponent = () => {
+
         return (
             <View style={{
                 flex: 1,
@@ -193,53 +297,13 @@ export default function MemberList({ navigation, route }) {
 
                         }} key={letter}>
                             <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
-                            {members[letter].map((friend) => (
+                            {members[letter].map((friend) =>
 
-                                <View key={friend.userId}
-                                    style={{
-                                        flexDirection: 'row',
-                                        gap: 10,
-                                        marginTop: 10,
-                                        marginLeft: 10,
-                                        flex: 1,
-                                    }}>
-
-
-                                    {/* // api to get avatar */}
-                                    <Image source={{ uri: friend.avatar }} style={{
-                                        width: 50,
-                                        height: 50,
-                                        borderRadius: 50
-
-                                    }} />
-
-                                    <Text style={{
-                                        marginTop: 10,
-                                        fontSize: 20
-                                    }}>{friend.name}</Text>
-
-
-                                    {isRemove ? (
-                                        <View style={{
-                                            flex: 1,
-                                            flexDirection: "column",
-                                            justifyContent: "center",
-                                            // alignContent: 'center',
-                                            alignItems: 'end',
-
-                                        }}>
-                                            <Checkbox.Android
-                                                status={selectedFriends.includes(friend._id) ? 'checked' : 'unchecked'}
-                                                disabled={user._id === friend._id}
-                                                onPress={() => handleCheckboxToggle(friend._id)}
-                                            />
-                                        </View>
-                                    ) : null}
-                                </View>
+                                <EachMemberComponent key={friend.userId} friend={friend} />
 
 
 
-                            ))}
+                            )}
 
                         </View>
 
@@ -249,6 +313,7 @@ export default function MemberList({ navigation, route }) {
 
             </View>
         )
+
     }
 
     return (
@@ -294,6 +359,7 @@ export default function MemberList({ navigation, route }) {
                         <MaterialCommunityIcons name="delete" size={30} color="red" />
                     </Pressable>
                 ) : null}
+
             </View>
             <View style={styles.dividerForMenu} />
             {memberComponent()}

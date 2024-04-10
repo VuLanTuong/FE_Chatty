@@ -64,7 +64,11 @@ export const userSlice = createSlice({
         setCurrentConversation: (state, action) => {
             console.log("set current conv");
             state.currentConversation = action.payload
-        }
+        },
+        updateConversation: (state, action) => {
+            console.log(action.payload);
+            state.conversation = [...state.conversation, action.payload]
+        },
     },
     extraReducers(builders) {
         builders.addCase(getConservations.fulfilled, (state, action) => {
@@ -74,5 +78,5 @@ export const userSlice = createSlice({
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation } = userSlice.actions;
 export default userSlice.reducer
