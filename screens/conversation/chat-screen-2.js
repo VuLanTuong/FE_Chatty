@@ -688,6 +688,8 @@ const ChatScreen = ({ navigation, route }) => {
         }
         navigation.navigate('Option', { data: conversationParams });
     }
+
+    console.log(messages);
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: "",
@@ -954,15 +956,19 @@ const ChatScreen = ({ navigation, route }) => {
                 }}
             >
                 {message.isMine == false && (
-                    <Image
-                        source={{ uri: message.avatar }}
-                        style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15,
-                            marginRight: 5,
-                        }}
-                    />
+                    <Pressable onPress={() => handleProfileScreen(message.sender._id)}>
+                        <Image
+                            source={{ uri: message.avatar }}
+                            style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 15,
+                                marginRight: 5,
+                            }}
+                        />
+
+                    </Pressable>
+
                 )}
                 <View
                     style={{
@@ -1278,6 +1284,20 @@ const ChatScreen = ({ navigation, route }) => {
         }
     };
 
+    const handleProfileScreen = async (id) => {
+        if (id) {
+            const friend = await findFriendById(id);
+            console.log(friend);
+            navigation.navigate('FriendProfile', { friend: friend });
+
+        }
+        else {
+            return;
+
+        }
+
+    }
+
     const handleChooseFile = async () => {
         // let result = await ImagePicker.launchImageLibraryAsync({
         //     mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -1381,6 +1401,8 @@ const ChatScreen = ({ navigation, route }) => {
     };
 
 
+
+
     const cancelReply = () => {
         setIsReply(false);
         setReplyMessage();
@@ -1434,15 +1456,17 @@ const ChatScreen = ({ navigation, route }) => {
                 }}
             >
                 {!message.isMine && (
-                    <Image
-                        source={{ uri: message.avatar }}
-                        style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15,
-                            marginRight: 5,
-                        }}
-                    />
+                    <Pressable onPress={() => handleProfileScreen(message.sender._id)}>
+                        <Image
+                            source={{ uri: message.avatar }}
+                            style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: 15,
+                                marginRight: 5,
+                            }}
+                        />
+                    </Pressable>
                 )}
 
                 <View
