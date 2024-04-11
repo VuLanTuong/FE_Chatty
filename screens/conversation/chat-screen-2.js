@@ -133,7 +133,7 @@ const ChatScreen = ({ navigation, route }) => {
     const handlePressIcon = () => {
         actionSheetRef.current.show();
     };
-    const options = ['Delete', 'Forward', 'Reply', 'Cancel'];
+    const options = ['Delete', 'Forward', 'Reply', 'Remove', 'Cancel'];
 
     const handleDelete = async (mess) => {
         // console.log(id);
@@ -809,6 +809,7 @@ const ChatScreen = ({ navigation, route }) => {
                 case 2:
                     handleReply(message);
                     break;
+
                 default:
                     break;
             }
@@ -1417,6 +1418,36 @@ const ChatScreen = ({ navigation, route }) => {
         setIsReply(false);
         setReplyMessage();
     }
+    const handleRemove = async (message) => {
+        const token = await getAccessToken();
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/messages/${message._id}`,
+            {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                }
+            }).then((response) => response.json())
+            .then((data) => {
+                console.log(data)
+                if (data.status === "fail") {
+                    console.log("fail");
+                    return;
+                }
+                const updateMessage = messages.filter((item) => item._id !== message._id);
+                setMessages(updateMessage)
+                // const updateConservation = allConversationAtRedux.map(conversation => {
+                //     if (conversation._id.toString() === data.conversation._id.toString()) {
+                //         console.log("update conversation delete");
+                //         return { ...conversation, lastMessage: data.data }
+                //     }
+                //     return conversation;
+                // })
+                // dispatch(setAllConversation(updateConservation))
+            })
+
+            .catch(() => console.log("fetch error"))
+    }
 
 
     const MessageComponent = ({ message }) => {
@@ -1435,6 +1466,8 @@ const ChatScreen = ({ navigation, route }) => {
                 case 2:
                     handleReply(message);
                     break;
+                case 3:
+                    handleRemove(message);
                 default:
                     break;
             }
@@ -1521,7 +1554,7 @@ const ChatScreen = ({ navigation, route }) => {
                 <ActionSheet
                     ref={actionSheetRef}
                     options={options}
-                    cancelButtonIndex={3}
+                    cancelButtonIndex={4}
                     onPress={handleActionPress}
                 />
             </View>

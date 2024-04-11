@@ -17,7 +17,7 @@ import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
 import { useSocket } from "../socket.io/socket-context";
-import { setCurrentConversation, updateConversation } from "../../rtk/user-slice";
+import { setAllConversation, setCurrentConversation, updateConversation } from "../../rtk/user-slice";
 import ActionSheet from 'react-native-actionsheet';
 
 export default function MemberList({ navigation, route }) {
@@ -35,7 +35,9 @@ export default function MemberList({ navigation, route }) {
     const [newMember, setNewMember] = useState();
     const dispatch = useDispatch()
     const currentConversation = useSelector((state) => state.user.currentConversation);
+    const allConversationAtRedux = useSelector((state) => state.user.conversation);
 
+    console.log(currentConversation.members);
     const handleCheckboxToggle = (userId) => {
         if (selectedFriends.includes(userId)) {
             setSelectedFriends(selectedFriends.filter((id) => id !== userId));
@@ -45,10 +47,14 @@ export default function MemberList({ navigation, route }) {
     };
 
     const { socket } = useSocket();
+    useEffect(() => {
+        groupMembersByLetter(currentConversation.members)
+        groupFriendsByLetter();
+    }, [])
 
 
-    function groupMembersByLetter() {
-        const friendGroupByName = currentConversation.members.reduce((result, friend) => {
+    function groupMembersByLetter(members) {
+        const friendGroupByName = members.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -111,14 +117,10 @@ export default function MemberList({ navigation, route }) {
             ),
         })
     }, [])
-    useEffect(() => {
-        groupMembersByLetter()
-        groupFriendsByLetter();
-
-
-
-
-    }, [])
+    // useEffect(() => {
+    //     groupMembersByLetter()
+    //     groupFriendsByLetter();
+    // }, [])
 
     const handleOpenModal = () => {
         setModalVisible(true);
@@ -166,8 +168,7 @@ export default function MemberList({ navigation, route }) {
                     visibilityTime: 2000,
                     position: 'top'
                 })
-                dispatch(setCurrentConversation(data.data))
-                dispatch(updateConversation(data.data))
+                // dispatch(updateConversation(data.data))
             }).catch((err) => {
                 console.log(err);
             })
@@ -175,6 +176,10 @@ export default function MemberList({ navigation, route }) {
 
 
     }
+
+
+
+
     const options = ['View profile', 'Delete', 'Cancel'];
     const actionSheetRef = useRef();
     const handlePress = () => {
@@ -200,12 +205,117 @@ export default function MemberList({ navigation, route }) {
     const listIdsOfMembers = conservationParam.members.map(member => member._id);
     const handleRemoveMultipleChoose = () => {
         setIsRemove(!isRemove);
+        setSelectedFriends([]);
 
     }
 
     const handleRemoveMember = async () => {
+        if (user._id === conservationParam.leaders[0]._id) {
+            if (selectedFriends.length !== 0) {
+                const accessToken = await getAccessToken();
+                fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/removeMembers`, {
+                    method: 'post',
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: "Bearer " + accessToken
+
+                    },
+                    body: JSON.stringify({ members: selectedFriends })
+                }).then((response) => {
+                    return response.json()
+                })
+                    .then((data) => {
+                        console.log(data);
+                        if (data.status === 'fail') {
+                            setModalVisible(false);
+                            setSelectedFriends([]);
+                            Toast.show({
+                                type: 'error',
+                                text1: data.message,
+                                visibilityTime: 2000,
+                                position: 'top'
+
+                            })
+                            return;
+                        }
+
+
+
+                        setModalVisible(false);
+                        Toast.show({
+                            type: 'success',
+                            text1: "Remove member successfully",
+                            visibilityTime: 2000,
+                            position: 'top'
+                        })
+                        setSelectedFriends([]);
+                        setIsRemove(false);
+
+                        const updateConservation = allConversationAtRedux.map(conversation => {
+                            if (conversation._id.toString() === data.data.conservationId.toString()) {
+                                console.log("update conversation delete");
+                                return { ...data.data.conversation }
+                            }
+                            return conversation;
+                        })
+                        // dispatch(setAllConversation(updateConservation))
+                        // dispatch(setCurrentConversation({...currentConversation}))
+                    }).catch((err) => {
+                        console.log(err);
+                    })
+            }
+            else {
+                Toast.show({
+                    type: 'error',
+                    text1: "Please choose member to remove",
+                    visibilityTime: 2000,
+                    position: 'top'
+                })
+                return;
+            }
+        }
+        else {
+            Toast.show({
+                type: 'error',
+                text1: "You are not leader of this group",
+                visibilityTime: 2000,
+                position: 'top'
+            })
+            setSelectedFriends([]);
+            return;
+        }
+
 
     }
+    useEffect(() => {
+        console.log("effect member list");
+        socket.on("message:notification", (data) => {
+            console.log(data);
+            console.log(currentConversation._id);
+            if (data) {
+                if (currentConversation._id.toString() === data.conservationId.toString()) {
+                    console.log(data.conversation.members);
+                    groupMembersByLetter(data.conversation.members)
+                    dispatch(setCurrentConversation(data.conversation))
+                    const updateConservation = allConversationAtRedux.map(conversation => {
+                        if (conversation._id.toString() === data.conversation._id.toString()) {
+                            console.log("update conversation delete");
+
+                            return { ...data.conversation }
+                        }
+                        return conversation;
+                    })
+                    dispatch(setAllConversation(updateConservation))
+                }
+
+            }
+
+
+
+        }),
+
+            groupFriendsByLetter();
+    }, [selectedFriends])
 
     const EachMemberComponent = ({ friend }) => {
         const actionSheetRef = useRef(null);
@@ -217,9 +327,7 @@ export default function MemberList({ navigation, route }) {
                 case 0:
                     handleViewProfile(friend);
                     break;
-                case 1:
-                    handleRemoveMember();
-                    break;
+
                 default:
                     break;
             }
@@ -269,7 +377,7 @@ export default function MemberList({ navigation, route }) {
                     <ActionSheet
                         ref={actionSheetRef}
                         options={options}
-                        cancelButtonIndex={2}
+                        cancelButtonIndex={1}
                         onPress={handleActionPress}
                     />
                 </View>

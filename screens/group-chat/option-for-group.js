@@ -14,6 +14,8 @@ import { TouchableOpacity } from "react-native";
 import { useSelector } from "react-redux";
 import { findFriendById } from "../../service/friend.util";
 import { ScrollView } from "react-native";
+import { getAccessToken } from "../user-profile/getAccessToken";
+import Toast from "react-native-toast-message";
 export default function OptionGroup({ navigation, route }) {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -120,6 +122,55 @@ export default function OptionGroup({ navigation, route }) {
         navigation.navigate('MemberList', { data: conservationParam });
 
     }
+    const handleLeaveGroup = async () => {
+        if (user._id !== conservationParam.leaders[0]._id) {
+            const accessToken = await getAccessToken();
+            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/leaveGroup`, {
+                method: 'post',
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + accessToken
+
+                }
+
+            }).then((response) => {
+                return response.json()
+            })
+                .then((data) => {
+                    console.log(data);
+                    if (data.status === 'fail') {
+
+                        Toast.show({
+                            type: 'error',
+                            text1: data.message,
+                            visibilityTime: 2000,
+                            position: 'top'
+
+                        })
+                        return;
+                    }
+
+                    Toast.show({
+                        type: 'success',
+                        text1: "Leave group successfully",
+                        visibilityTime: 2000,
+                        position: 'top'
+                    })
+                    navigation.navigate('MessageScreen');
+                }).catch((err) => {
+                    console.log(err);
+                })
+        }
+        else {
+            Toast.show({
+                type: 'error',
+                text1: "You can't leave this group",
+                visibilityTime: 2000,
+                position: 'top'
+            })
+            return;
+        }
+    }
     return (
         <View style={styles.container}>
             <View style={styles.profileContainer}>
@@ -215,6 +266,14 @@ export default function OptionGroup({ navigation, route }) {
                         color="red"
                     />
                     <Text style={{ color: "red", marginLeft: 20 }}>Delete chat history</Text>
+                </Button>
+                <Button onPress={() => handleLeaveGroup()}>
+                    <MaterialCommunityIcons
+                        name="exit-to-app"
+                        size={24}
+                        color="red"
+                    />
+                    <Text style={{ color: "red", marginLeft: 20 }}>Leave group</Text>
                 </Button>
             </View>
 

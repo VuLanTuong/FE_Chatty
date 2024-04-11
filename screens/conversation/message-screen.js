@@ -432,7 +432,7 @@ const MessageScreen = ({ navigation }) => {
               onPress={() => handleOpenConversation(item.members, item._id)}
             >
               <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
-                <Image style={styles.image} source={{ uri: getAvatar(item) }} />
+                <Image style={styles.image} source={{ uri: item.image }} />
               </TouchableOpacity>
               <View style={{
                 flex: 1,
