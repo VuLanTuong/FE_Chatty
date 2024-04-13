@@ -131,7 +131,7 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const actionSheetRef = useRef();
-    const actionSheetRef2 = useRef();
+
 
 
     const handlePressIcon = () => {
@@ -821,6 +821,7 @@ const ChatScreen = ({ navigation, route }) => {
         const actionSheetRef = useRef(null);
 
         const handlePressIcon = () => {
+            console.log("press icon");
             actionSheetRef.current.show();
         };
 
@@ -1633,10 +1634,14 @@ const ChatScreen = ({ navigation, route }) => {
                             backgroundColor: 'lightgray',
                             borderRadius: 10,
                             flexDirection: 'row',
-                            width: '80%',
+                            width: Platform.OS === 'ios' ? '90%' : '80%',
                             height: 30,
                             margin: 'auto',
-                            gap: 15
+                            gap: 15,
+                            alignSelf: 'center'
+
+
+
 
 
                         }} key={message._id}>

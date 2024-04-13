@@ -133,6 +133,7 @@ export default function OptionGroup({ navigation, route }) {
                         visibilityTime: 2000,
                         position: 'top'
                     })
+
                     const updateConversation = allConversationAtRedux.filter(conversation =>
                         conversation._id.toString() !== conservationParam._id.toString());
                     dispatch(setAllConversation(updateConversation));
@@ -469,24 +470,24 @@ export default function OptionGroup({ navigation, route }) {
                         />
                         <Text style={{ color: "red", marginLeft: 20 }}>Delete chat history</Text>
                     </Button>
-                    <Button onPress={() => modalConfirmLeaveGroup()}>
+
+                    {checkLeader(user._id) ? (
+                        <Button onPress={() => modalConfirm()}>
+                            <MaterialCommunityIcons
+                                name="cancel"
+                                size={24}
+                                color="red"
+                            />
+                            <Text style={{ color: "red", marginLeft: 20 }}>Disband group</Text>
+                        </Button>
+                    ) : <Button onPress={() => modalConfirmLeaveGroup()}>
                         <MaterialCommunityIcons
                             name="exit-to-app"
                             size={24}
                             color="red"
                         />
                         <Text style={{ color: "red", marginLeft: 20 }}>Leave group</Text>
-                    </Button>
-                    {checkLeader(user._id) ? (
-                        <Button onPress={() => modalConfirm()}>
-                            <MaterialCommunityIcons
-                                name="cancel"
-                                size={24}
-                                color="black"
-                            />
-                            <Text style={{ color: "red", marginLeft: 20 }}>Disband group</Text>
-                        </Button>
-                    ) : null}
+                    </Button>}
 
                 </View>
 
