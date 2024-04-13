@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useState, useEffect } from "react";
-import { View, Text, StyleSheet, Pressable, Modal, TextInput, Image } from "react-native";
+import { View, Text, StyleSheet, Pressable, Modal, TextInput, Image, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Avatar, Button, Divider } from "react-native-paper";
 import { Checkbox } from 'react-native-paper';
@@ -23,6 +23,8 @@ export default function OptionGroup({ navigation, route }) {
     const currentConversation = useSelector((state) => state.user.currentConversation);
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalLeaveGroupVisible, setModalLeaveGroupVisible] = useState(false);
+
     const [selectedFriends, setSelectedFriends] = useState([]);
     const [friends, setFriends] = useState([]);
     const [searchFriend, setSearchFriend] = useState();
@@ -131,6 +133,9 @@ export default function OptionGroup({ navigation, route }) {
                         visibilityTime: 2000,
                         position: 'top'
                     })
+                    const updateConversation = allConversationAtRedux.filter(conversation =>
+                        conversation._id.toString() !== conservationParam._id.toString());
+                    dispatch(setAllConversation(updateConversation));
                     navigation.navigate('MessageScreen');
                 }).catch((err) => {
                     console.log(err);
@@ -225,17 +230,52 @@ export default function OptionGroup({ navigation, route }) {
 
     }
 
+
+    // const modalConfirm = () => {
+    //     setModalVisible(!modalVisible);
+    //     modalDisbandGroup()
+    // }
+
+    const modalConfirm = () => {
+
+        if (Platform.OS === 'ios' || Platform.OS === 'android') {
+            Alert.alert('Confirm disband group', 'This action is not undo', [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+                { text: 'OK', onPress: () => handleDisbandGroup() },
+            ]);
+
+        }
+        console.log("disband group");
+        console.log(modalVisible);
+        setModalVisible(!modalVisible)
+
+    }
+
+    const modalConfirmLeaveGroup = () => {
+
+
+        if (Platform.OS === 'ios' || Platform.OS === 'android') {
+            Alert.alert('Confirm leave this group?', 'This action is not undo', [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+                { text: 'OK', onPress: () => handleLeaveGroup() },
+            ]);
+
+        }
+        setModalLeaveGroupVisible(!modalLeaveGroupVisible)
+    }
+
     // const alertDisbandGroup = () => {
 
     //     console.log("alert disband group")
-    //     Alert.alert('Confirm disband group', 'This action is not undo', [
-    //         {
-    //             text: 'Cancel',
-    //             onPress: () => console.log('Cancel Pressed'),
-    //             style: 'cancel',
-    //         },
-    //         { text: 'OK', onPress: () => handleDisbandGroup() },
-    //     ]);
+
     // };
 
     const handleDisbandGroup = async () => {
@@ -429,7 +469,7 @@ export default function OptionGroup({ navigation, route }) {
                         />
                         <Text style={{ color: "red", marginLeft: 20 }}>Delete chat history</Text>
                     </Button>
-                    <Button onPress={() => handleLeaveGroup()}>
+                    <Button onPress={() => modalConfirmLeaveGroup()}>
                         <MaterialCommunityIcons
                             name="exit-to-app"
                             size={24}
@@ -438,7 +478,7 @@ export default function OptionGroup({ navigation, route }) {
                         <Text style={{ color: "red", marginLeft: 20 }}>Leave group</Text>
                     </Button>
                     {checkLeader(user._id) ? (
-                        <Button onPress={() => handleDisbandGroup()}>
+                        <Button onPress={() => modalConfirm()}>
                             <MaterialCommunityIcons
                                 name="cancel"
                                 size={24}
@@ -451,6 +491,72 @@ export default function OptionGroup({ navigation, route }) {
                 </View>
 
             </View>
+            {Platform.OS === 'web' ? (
+                <Modal visible={modalVisible}>
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalText}>Are you sure you want to disband group?</Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                gap: 40
+                            }}>
+                                <Pressable style={{
+                                    marginTop: 10,
+                                    fontSize: 16,
+                                    backgroundColor: 'lightgray',
+                                    padding: 10,
+                                    color: '#fff',
+                                    borderRadius: 20
+                                }} onPress={() => setModalVisible(false)}>
+                                    <Text>Close</Text>
+                                </Pressable>
+                                <Pressable style={styles.closeButton} onPress={() => handleDisbandGroup()}>
+                                    <Text>Confirm</Text>
+                                </Pressable>
+
+                            </View>
+
+
+                        </View>
+                    </View>
+
+                </Modal>
+            ) : null
+            }
+            {Platform.OS === 'web' ? (
+                <Modal visible={modalLeaveGroupVisible}>
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalText}>Are you sure you want to leave this group?</Text>
+                            <View style={{
+                                flexDirection: 'row',
+                                gap: 40
+                            }}>
+                                <Pressable style={{
+                                    marginTop: 10,
+                                    fontSize: 16,
+                                    backgroundColor: 'lightgray',
+                                    padding: 10,
+                                    color: '#fff',
+                                    borderRadius: 20
+
+                                }} onPress={() => setModalLeaveGroupVisible(false)}>
+                                    <Text>Close</Text>
+                                </Pressable>
+                                <Pressable style={styles.closeButton} onPress={() => handleLeaveGroup()}>
+                                    <Text>Confirm</Text>
+                                </Pressable>
+
+                            </View>
+
+
+                        </View>
+                    </View>
+
+                </Modal>
+            ) : null
+            }
+
         </View>
     );
 }
