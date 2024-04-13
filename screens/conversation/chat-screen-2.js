@@ -36,7 +36,7 @@ import Toast from 'react-native-toast-message';
 import { useSocket } from "../socket.io/socket-context";
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
-import { getConservations, setAllConversation } from "../../rtk/user-slice";
+import { getConservations, setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
 import FileMessageComponent from "./file-message-component";
 const ChatScreen = ({ navigation, route }) => {
     const [modalVisible, setModalVisible] = useState(false);
@@ -59,6 +59,7 @@ const ChatScreen = ({ navigation, route }) => {
     const dispatch = useDispatch()
     const { socket } = useSocket();
     const [newMember, setNewMember] = useState();
+
     const handleOpenModal = () => {
         setModalVisible(true);
     };
@@ -114,6 +115,9 @@ const ChatScreen = ({ navigation, route }) => {
             groupFriendsByLetter();
     }, []);
 
+
+
+    const [nameGroup, setNameGroup] = useState(currentConversation.name);
     // console.log(isFriend);
 
     const scrollToBottom = () => {
@@ -441,6 +445,28 @@ const ChatScreen = ({ navigation, route }) => {
                         })
                         dispatch(setAllConversation(updateConservation))
                     }
+                }),
+                socket.on("message:notification", (data) => {
+                    if (currentConversation._id === data.conservationId) {
+                        setNameGroup(data.conversation.name)
+                        console.log(data);
+                        let currentMessage = data.messages.map((message) => {
+                            console.log(message);
+                            return message;
+
+                        })
+                        setMessages([...messages, ...currentMessage])
+                        const updateConservation = allConversationAtRedux.map(conversation => {
+                            if (conversation._id.toString() === data.conversation._id.toString()) {
+                                console.log("update conversation");
+                                return { ...data.conversation, lastMessage: null }
+                            }
+                            return conversation;
+                        })
+                        dispatch(setCurrentConversation({ ...data.conversation, lastMessage: null }))
+                        dispatch(setAllConversation(updateConservation))
+                    }
+
                 })
 
 
@@ -450,6 +476,7 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     useFocusEffect(React.useCallback(() => {
+        console.log("get all message");
         getAllMessage();
     }, []));
 
@@ -464,7 +491,7 @@ const ChatScreen = ({ navigation, route }) => {
                 }
             }).then((response) => response.json())
             .then((data) => {
-                // console.log(data)
+
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
@@ -479,6 +506,7 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const reverseData = (data) => {
+
         setMessages(data.reverse())
 
     }
@@ -545,8 +573,6 @@ const ChatScreen = ({ navigation, route }) => {
 
     // }
     const handleSendTextMessage = async (id, text, conversation) => {
-        // console.log("send text");
-        // console.log(text);
         console.log(conversation);
         console.log(currentConversation);
         const token = await getAccessToken();
@@ -699,7 +725,7 @@ const ChatScreen = ({ navigation, route }) => {
         navigation.navigate('Option', { data: conversationParams });
     }
 
-    console.log(messages);
+
     useLayoutEffect(() => {
         navigation.setOptions({
             headerTitle: "",
@@ -737,7 +763,7 @@ const ChatScreen = ({ navigation, route }) => {
                                 }}
                             />
                             <Image
-                                source={{ uri: conversationParams.image }}
+                                source={{ uri: currentConversation.image }}
                                 resizeMode="contain"
                                 style={{
                                     width: 50,
@@ -754,7 +780,7 @@ const ChatScreen = ({ navigation, route }) => {
                                     color: "white",
                                 }}
                             >
-                                {conversationParams.name}
+                                {nameGroup}
                             </Text>
 
                             {/* {isFriend ?
@@ -788,7 +814,7 @@ const ChatScreen = ({ navigation, route }) => {
                 </View>
 
         })
-    }, [])
+    }, [nameGroup])
 
     function FileMessageComponent({ message }) {
 
@@ -1571,23 +1597,8 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     useEffect(() => {
-        socket.on("message:notification", (data) => {
-            console.log(data);
-            if (currentConversation._id === data.conversationId) {
-                let currentMessage = { ...data.messages }
-                setMessages([...messages, currentMessage])
-                const updateConservation = allConversationAtRedux.map(conversation => {
-                    if (conversation._id.toString() === data.conversation._id.toString()) {
-                        console.log("update conversation delete");
+        // getAllMessage()
 
-                        return { ...conversation, lastMessage: currentMessage }
-                    }
-                    return conversation;
-                })
-                dispatch(setAllConversation(updateConservation))
-            }
-
-        })
         getAccessToken().then((token) => {
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/readMessages`, {
                 method: 'POST',

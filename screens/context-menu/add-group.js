@@ -82,10 +82,6 @@ const AddGroup = ({ navigation }) => {
             console.log(friend);
             return friend
         })
-
-
-
-
         if (nameGroup !== "") {
             if (members.length >= 2) {
                 await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/createGroup', {
@@ -124,6 +120,8 @@ const AddGroup = ({ navigation }) => {
 
                         })
 
+
+                        setSelectedFriends([]);
                         navigation.navigate('Home');
 
                     }
@@ -152,6 +150,7 @@ const AddGroup = ({ navigation }) => {
             })
             return;
         }
+        setSelectedFriends([]);
 
     }
 
