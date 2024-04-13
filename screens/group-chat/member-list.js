@@ -162,8 +162,6 @@ export default function MemberList({ navigation, route }) {
                 }
 
                 setOnChange(!onChange)
-
-
                 setModalVisible(false);
                 setSelectedFriends([]);
                 Toast.show({
@@ -184,7 +182,7 @@ export default function MemberList({ navigation, route }) {
 
 
 
-    const options = ['View profile', 'Delete', 'Cancel'];
+    const options = ['View profile', 'Transfer group leader', 'Cancel'];
     const actionSheetRef = useRef();
     const handlePress = () => {
         actionSheetRef.current.show();
@@ -284,6 +282,30 @@ export default function MemberList({ navigation, route }) {
 
 
     }
+    const handleConversationUpdate = (data) => {
+        const members = data.conversation.members;
+        let updatedConversationArray = allConversationAtRedux;
+        const newConversation = checkIsMember(data, members);
+        if (newConversation !== null) {
+            updatedConversationArray = [...allConversationAtRedux, newConversation];
+        }
+
+        const updatedConversation = updatedConversationArray.map((item) => {
+            if (item._id.toString() === data.conversation._id.toString()) {
+                return {
+                    ...item,
+                    lastMessage: data,
+                    updatedAt: new Date(Date.now()).toISOString(),
+                    isReadMessage: false,
+                };
+            }
+            return item;
+        });
+
+
+        dispatch(setAllConversation(updatedConversation));
+
+    };
     useEffect(() => {
         console.log("effect member list");
         socket.on("message:notification", (data) => {
@@ -312,8 +334,18 @@ export default function MemberList({ navigation, route }) {
 
 
         }),
+            socket.on("conversation:new", (data) => {
+                console.log(data);
+                data.conversation.members.map((member) => {
+                    if (member._id.toString() === user._id.toString()) {
+                        console.log("notification");
+                        handleConversationUpdate(data);
+                    }
+                }
+                )
+            })
 
-            groupFriendsByLetter();
+        groupFriendsByLetter();
     }, [currentConversation.members])
 
     const checkLeader = (id) => {
@@ -322,6 +354,48 @@ export default function MemberList({ navigation, route }) {
         }
         return false;
 
+    }
+    const handleTransferLeader = async (friend) => {
+        console.log(friend);
+        //conservations/661a5ce649564aa5a3dec8a0/transfer/65bedb350b324b838f18a699
+        if (user._id !== conservationParam.leaders[0]._id) {
+            Toast.show({
+                type: 'error',
+                text1: "You are not leader of this group",
+                visibilityTime: 2000,
+                position: 'top'
+            })
+            return;
+        }
+        const accessToken = await getAccessToken();
+        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/transfer/${friend._id}`, {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + accessToken
+            }
+        }).then((response) => {
+            return response.json()
+        }).then((data) => {
+
+            if (data.status === 'fail') {
+                Toast.show({
+                    type: 'error',
+                    text1: data.message,
+                    visibilityTime: 2000,
+                    position: 'top'
+                })
+                return;
+            }
+            setOnChange(!onChange)
+
+            Toast.show({
+                type: 'success',
+                text1: data.message,
+                visibilityTime: 2000,
+                position: 'top'
+            })
+        })
     }
 
     const EachMemberComponent = ({ friend }) => {
@@ -334,7 +408,8 @@ export default function MemberList({ navigation, route }) {
                 case 0:
                     handleViewProfile(friend);
                     break;
-
+                case 1:
+                    handleTransferLeader(friend);
                 default:
                     break;
             }
@@ -391,7 +466,7 @@ export default function MemberList({ navigation, route }) {
                     <ActionSheet
                         ref={actionSheetRef}
                         options={options}
-                        cancelButtonIndex={1}
+                        cancelButtonIndex={2}
                         onPress={handleActionPress}
                     />
                 </View>

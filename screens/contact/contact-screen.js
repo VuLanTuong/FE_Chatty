@@ -4,7 +4,7 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setFriend } from '../../rtk/user-slice';
+import { setCurrentConversation, setFriend } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
@@ -173,6 +173,10 @@ export function ContactScreen({ navigation }) {
         setSelectedOption(option);
     };
     const groupedFriends = groupFriendsByLetter(friends);
+    const handleToChatScreen = (group) => {
+        dispatch(setCurrentConversation(group))
+        navigation.navigate('Chat', { data: group })
+    }
     return (
         <View>
             <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
@@ -374,7 +378,7 @@ export function ContactScreen({ navigation }) {
                                 marginLeft: 5,
                                 fontSize: 17,
                                 fontWeight: 'bold'
-                            }}>Join group (15) </Text>
+                            }}>Join group ({groups.length.toString()}) </Text>
                             {groups.map((group) => (
                                 <View key={group.id}
                                     style={{
@@ -392,7 +396,7 @@ export function ContactScreen({ navigation }) {
                                         <Pressable style={{
                                             flexDirection: 'row',
                                             gap: 20
-                                        }}>
+                                        }} onPress={() => handleToChatScreen(group)}>
                                             {/* // api to get avatar */}
                                             <Image source={{ uri: group.image }} style={{
                                                 width: 50,
@@ -407,6 +411,8 @@ export function ContactScreen({ navigation }) {
                                             }}>{group.name}</Text>
                                         </Pressable>
                                     </View>
+
+
                                 </View>
                             ))}
                         </View>

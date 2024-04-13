@@ -158,7 +158,20 @@ const MessageScreen = ({ navigation }) => {
         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
         dispatch(setAllConversation(updatedConversation));
 
+      }),
+      socket.on("message:notification", (data) => {
+        console.log(data);
+        if (data.conversation.members.some(member => member._id === user._id)) {
+          handleConversationUpdate(data);
+          return;
+
+        }
+        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+        dispatch(setAllConversation(updatedConversation));
+        return;
+
       })
+
   }, [allConversationAtRedux]);
 
 
