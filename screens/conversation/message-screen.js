@@ -99,48 +99,36 @@ const MessageScreen = ({ navigation }) => {
   // socket.on('message:receive', (data) => {
   //   handleConversationUpdate(data);
   // });
+  const handleConversationUpdate = (data) => {
+    const members = data.conversation.members;
+    let updatedConversationArray = allConversationAtRedux;
+    const newConversation = checkIsMember(data, members);
+    if (newConversation !== null) {
+      updatedConversationArray = [...allConversation, newConversation];
+    }
 
-  useEffect(() => {
-    const handleConversationUpdate = (data) => {
-      const members = data.conversation.members;
-
-      console.log(allConversationAtRedux);
-      let updatedConversationArray = allConversationAtRedux;
-      const newConversation = checkIsMember(data, members);
-
-      console.log(updatedConversationArray);
-      if (newConversation !== null) {
-        updatedConversationArray = [...allConversation, newConversation];
+    const updatedConversation = updatedConversationArray.map((item) => {
+      if (item._id.toString() === data.conversation._id.toString()) {
+        return {
+          ...item,
+          lastMessage: data,
+          updatedAt: new Date(Date.now()).toISOString(),
+          isReadMessage: false,
+        };
       }
-      console.log(updatedConversationArray);
-
-      const updatedConversation = updatedConversationArray.map((item) => {
-        console.log(item);
-        if (item._id.toString() === data.conversation._id.toString()) {
-          return {
-            ...item,
-            lastMessage: data,
-            updatedAt: new Date(Date.now()).toISOString(),
-            isReadMessage: false,
-          };
-        }
-        return item;
-      });
-
-      console.log(updatedConversation);
-      dispatch(setAllConversation(updatedConversation));
-
-
-      // dispatch(getConservations());
-
-      // setConversations(updatedConversation);
-      console.log(data);
-    };
-    socket.on('message:receive', (data) => {
-      handleConversationUpdate(data);
+      return item;
     });
 
 
+    dispatch(setAllConversation(updatedConversation));
+
+  };
+
+  useEffect(() => {
+    // dispatch(getConservations());
+    socket.on('message:receive', (data) => {
+      handleConversationUpdate(data);
+    });
     socket.on('message:deleted', (data) => {
       console.log(data);
       const updateConservation = allConversationAtRedux.map(conversation => {
@@ -149,20 +137,31 @@ const MessageScreen = ({ navigation }) => {
           let deleteMessage = { ...conversation.lastMessage, isDelete: true };
           return { ...conversation, lastMessage: deleteMessage }
         }
-
         return conversation;
       })
       console.log(updateConservation);
 
       dispatch(setAllConversation(updateConservation))
+    }),
+      socket.on("conversation:new", (data) => {
+        console.log(data);
+        data.conversation.members.map((member) => {
+          if (member._id.toString() === user._id.toString()) {
+            console.log("notification");
+            handleConversationUpdate(data);
+          }
+        }
+        )
+      }),
+      socket.on("conversation:disband", (data) => {
+        console.log(data);
+        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+        dispatch(setAllConversation(updatedConversation));
 
-
-
-
-
-
-    })
+      })
   }, [allConversationAtRedux]);
+
+
 
 
   // useFocusEffect(
@@ -186,6 +185,8 @@ const MessageScreen = ({ navigation }) => {
     setConversations(data)
     console.log("set");
   }
+
+  // const getAllConversations = dispatch(getConservations());
 
 
 
@@ -329,24 +330,29 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const getLastMessage = (item) => {
-    if (item?.lastMessage != null) {
-      if (item?.lastMessage?.isDelete) {
-        return "This message was deleted";
+    if (item?.lastMessage?.content === undefined) return "";
+    else {
+      if (item?.lastMessage != null) {
+        if (item?.lastMessage?.isDelete) {
+          return "This message was deleted";
+        }
+
+        if (item.lastMessage?.content.length > 20) {
+          console.log(item.lastMessage.content.substring(0, 20) + "...");
+          return item.lastMessage.content.substring(0, 20) + "...";
+        }
+
+        if (item?.lastMessage?.type === "file" && item?.lastMessage.content !== "This message has been deleted") {
+          return "Attachment file";
+        }
+
+        return item.lastMessage.content;
       }
 
-      if (item.lastMessage?.content.length > 20) {
-        console.log(item.lastMessage.content.substring(0, 20) + "...");
-        return item.lastMessage.content.substring(0, 20) + "...";
-      }
+      return "";
 
-      if (item?.lastMessage?.type === "file" && item?.lastMessage.content !== "This message has been deleted") {
-        return "Attachment file";
-      }
-
-      return item.lastMessage.content;
     }
 
-    return "";
   }
   const handlePress = () => {
     actionSheetRef.current.show();
@@ -420,12 +426,13 @@ const MessageScreen = ({ navigation }) => {
 
 
 
+
   return (
     <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}>
       <FlatList
         numColumns={1}
         horizontal={false}
-        data={allConversation}
+        data={allConversationAtRedux}
         renderItem={({ item }) => (
           <View style={styles.container} key={item._id}>
             <TouchableOpacity style={styles.conversation}

@@ -64,9 +64,29 @@ export function ContactScreen({ navigation }) {
             });
     }
 
+    async function fetchAllGroup() {
+        // use redux to get current user
+        const accessToken = await getAccessToken();
+
+        await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations?type=group", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + accessToken,
+            },
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log(data);
+                setGroups(data.data);
+                console.log("ok");
+            })
+    }
+
     useFocusEffect(
         React.useCallback(() => {
             fetchAllFriend();
+            fetchAllGroup();
 
         }, [])
     );
@@ -374,7 +394,7 @@ export function ContactScreen({ navigation }) {
                                             gap: 20
                                         }}>
                                             {/* // api to get avatar */}
-                                            <Image source={{ uri: 'https://i.pinimg.com/736x/4b/e5/f3/4be5f377959674df9c2fe172df272482.jpg' }} style={{
+                                            <Image source={{ uri: group.image }} style={{
                                                 width: 50,
                                                 height: 50,
                                                 borderRadius: 50
@@ -384,7 +404,7 @@ export function ContactScreen({ navigation }) {
                                                 marginTop: 10,
 
                                                 fontSize: 20
-                                            }}>{group.nameGroup}</Text>
+                                            }}>{group.name}</Text>
                                         </Pressable>
                                     </View>
                                 </View>

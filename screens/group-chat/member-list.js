@@ -36,8 +36,11 @@ export default function MemberList({ navigation, route }) {
     const dispatch = useDispatch()
     const currentConversation = useSelector((state) => state.user.currentConversation);
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
+    const [onChange, setOnChange] = useState(false);
+    const [isLeader, setIsLeader] = useState(false);
 
-    console.log(currentConversation.members);
+
+
     const handleCheckboxToggle = (userId) => {
         if (selectedFriends.includes(userId)) {
             setSelectedFriends(selectedFriends.filter((id) => id !== userId));
@@ -158,6 +161,7 @@ export default function MemberList({ navigation, route }) {
                     return;
                 }
 
+                setOnChange(!onChange)
 
 
                 setModalVisible(false);
@@ -202,7 +206,7 @@ export default function MemberList({ navigation, route }) {
     }
 
 
-    const listIdsOfMembers = conservationParam.members.map(member => member._id);
+    const listIdsOfMembers = currentConversation.members.map(member => member._id);
     const handleRemoveMultipleChoose = () => {
         setIsRemove(!isRemove);
         setSelectedFriends([]);
@@ -238,8 +242,7 @@ export default function MemberList({ navigation, route }) {
                             })
                             return;
                         }
-
-
+                        setOnChange(!onChange)
 
                         setModalVisible(false);
                         Toast.show({
@@ -251,13 +254,7 @@ export default function MemberList({ navigation, route }) {
                         setSelectedFriends([]);
                         setIsRemove(false);
 
-                        const updateConservation = allConversationAtRedux.map(conversation => {
-                            if (conversation._id.toString() === data.data.conservationId.toString()) {
-                                console.log("update conversation delete");
-                                return { ...data.data.conversation }
-                            }
-                            return conversation;
-                        })
+
                         // dispatch(setAllConversation(updateConservation))
                         // dispatch(setCurrentConversation({...currentConversation}))
                     }).catch((err) => {
@@ -300,8 +297,10 @@ export default function MemberList({ navigation, route }) {
                     const updateConservation = allConversationAtRedux.map(conversation => {
                         if (conversation._id.toString() === data.conversation._id.toString()) {
                             console.log("update conversation delete");
+                            const updateConservation1 = { ...data.conversation, lastMessage: data.messages[0] }
+                            console.log(updateConservation1);
 
-                            return { ...data.conversation }
+                            return updateConservation1;
                         }
                         return conversation;
                     })
@@ -315,7 +314,15 @@ export default function MemberList({ navigation, route }) {
         }),
 
             groupFriendsByLetter();
-    }, [selectedFriends])
+    }, [currentConversation.members])
+
+    const checkLeader = (id) => {
+        if (currentConversation.leaders[0]._id === id) {
+            return true;
+        }
+        return false;
+
+    }
 
     const EachMemberComponent = ({ friend }) => {
         const actionSheetRef = useRef(null);
@@ -356,6 +363,13 @@ export default function MemberList({ navigation, route }) {
                         marginTop: 10,
                         fontSize: 20
                     }}>{friend.name}</Text>
+
+                    {(checkLeader(friend._id)) ? (
+                        <MaterialCommunityIcons name="key" size={24} color="gold" style={{
+                            marginTop: 10,
+                        }} />
+                    ) : null
+                    }
 
 
                     {isRemove ? (

@@ -20,7 +20,7 @@ const initialState = {
 };
 
 export const getConservations = createAsyncThunk('conservation/getAll', async (values, { rejectWithValue }) => {
-    console.log("redux");
+
     try {
         const data = await getAllConversation();
         console.log(data);
@@ -63,6 +63,7 @@ export const userSlice = createSlice({
         },
         setCurrentConversation: (state, action) => {
             console.log("set current conv");
+            console.log(action.payload);
             state.currentConversation = action.payload
         },
         updateConversation: (state, action) => {
