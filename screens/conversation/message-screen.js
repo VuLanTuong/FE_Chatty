@@ -12,6 +12,7 @@ import ActionSheet from 'react-native-actionsheet';
 
 import { Badge } from '@rneui/themed';
 import { useSocket } from "../socket.io/socket-context";
+import { fetchAllGroup } from "../../service/conversation.util";
 const MessageScreen = ({ navigation }) => {
 
 
@@ -241,6 +242,7 @@ const MessageScreen = ({ navigation }) => {
 
   useFocusEffect(
     React.useCallback(() => {
+      fetchAllGroup();
 
     }, [])
   );
@@ -258,8 +260,7 @@ const MessageScreen = ({ navigation }) => {
   };
 
   const handleOpenConversation = async (members, id) => {
-    const filteredItems = members.filter(member => member._id !== user._id);
-    console.log(filteredItems[0]._id);
+    // const filteredItems = members.filter(member => member._id !== user._id);
     const token = await getAccessToken();
 
     fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}`,

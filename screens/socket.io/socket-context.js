@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useDispatch, useSelector } from "react-redux";
-import { getConservations } from "../../rtk/user-slice";
+import { getConservations, getGroup } from "../../rtk/user-slice";
+import { fetchAllGroup } from "../../service/conversation.util";
 
 const BASE_URL = "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555"
 
@@ -23,6 +24,7 @@ export const SocketProvider = ({ children }) => {
             //dispatch conservation
             dispatch(getConservations())
             console.log("get conservation");
+            dispatch(getGroup())
 
         }
         return () => {

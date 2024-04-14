@@ -16,7 +16,7 @@ import { findFriendById } from "../../service/friend.util";
 import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
-import { setCurrentConversation, setAllConversation } from "../../rtk/user-slice";
+import { setCurrentConversation, setAllConversation, getConservations } from "../../rtk/user-slice";
 import { useSocket } from "../socket.io/socket-context";
 import { Alert } from "react-native";
 export default function OptionGroup({ navigation, route }) {
@@ -137,6 +137,7 @@ export default function OptionGroup({ navigation, route }) {
                     const updateConversation = allConversationAtRedux.filter(conversation =>
                         conversation._id.toString() !== conservationParam._id.toString());
                     dispatch(setAllConversation(updateConversation));
+                    dispatch(getConservations())
                     navigation.navigate('MessageScreen');
                 }).catch((err) => {
                     console.log(err);

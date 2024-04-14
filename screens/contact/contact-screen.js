@@ -4,7 +4,7 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setCurrentConversation, setFriend } from '../../rtk/user-slice';
+import { setAllGroup, setCurrentConversation, setFriend } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
@@ -79,6 +79,7 @@ export function ContactScreen({ navigation }) {
             .then((data) => {
                 console.log(data);
                 setGroups(data.data);
+                dispatch(setAllGroup(data.data))
                 console.log("ok");
             })
     }
