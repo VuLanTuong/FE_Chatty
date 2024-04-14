@@ -16,7 +16,7 @@ import { findFriendById } from "../../service/friend.util";
 import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
-import { setCurrentConversation, setAllConversation } from "../../rtk/user-slice";
+import { setCurrentConversation, setAllConversation, getConservations } from "../../rtk/user-slice";
 import { useSocket } from "../socket.io/socket-context";
 import { Alert } from "react-native";
 export default function OptionGroup({ navigation, route }) {
@@ -137,6 +137,7 @@ export default function OptionGroup({ navigation, route }) {
                     const updateConversation = allConversationAtRedux.filter(conversation =>
                         conversation._id.toString() !== conservationParam._id.toString());
                     dispatch(setAllConversation(updateConversation));
+                    dispatch(getConservations())
                     navigation.navigate('MessageScreen');
                 }).catch((err) => {
                     console.log(err);
@@ -342,7 +343,10 @@ export default function OptionGroup({ navigation, route }) {
                         {!isEditName ? (
                             <View style={{
                                 flexDirection: 'row',
-                                gap: 15
+                                gap: 15,
+                                width: 300,
+                                justifyContent: 'center'
+
                             }}>
                                 <Text style={styles.userName}>{currentConversation.name}</Text>
                                 <Pressable onPress={() => isEditNameGroup()}>
@@ -355,17 +359,21 @@ export default function OptionGroup({ navigation, route }) {
                             (
                                 <View style={{
                                     flexDirection: 'row',
-                                    gap: 15
+                                    gap: 15,
+                                    width: Platform.OS === 'web' ? 300 : 400,
+
+
                                 }}>
                                     <TextInput style={{
                                         flex: 1,
                                         fontSize: 17,
-                                        fontWeight: "600",
                                         textAlign: "center",
                                         height: 40,
                                         marginTop: 20,
                                         borderWidth: 1,
-                                        borderColor: '#f558a4'
+                                        borderColor: '#f558a4',
+                                        borderRadius: 10,
+
 
                                     }}
                                         value={newName}

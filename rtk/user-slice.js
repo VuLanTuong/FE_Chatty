@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { getAccessToken } from "../screens/user-profile/getAccessToken";
-import { getAllConversation } from "../service/conversation.util";
+import { fetchAllGroup, getAllConversation } from "../service/conversation.util";
 const initialState = {
     user: {
         _id: "", // The user's ID.
@@ -16,7 +16,8 @@ const initialState = {
     },
     friends: [],
     conversation: [],
-    currentConversation: {}
+    currentConversation: {},
+    group: []
 };
 
 export const getConservations = createAsyncThunk('conservation/getAll', async (values, { rejectWithValue }) => {
@@ -28,6 +29,18 @@ export const getConservations = createAsyncThunk('conservation/getAll', async (v
     } catch (error) {
         return rejectWithValue(error.response.data.message)
     }
+})
+
+export const getGroup = createAsyncThunk('group/getAll', async (values, { rejectWithValue }) => {
+
+    try {
+        const data = await fetchAllGroup();
+        console.log(data);
+        return data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message)
+    }
+
 })
 
 export const userSlice = createSlice({
@@ -70,14 +83,22 @@ export const userSlice = createSlice({
             console.log(action.payload);
             state.conversation = [...state.conversation, action.payload]
         },
+        setAllGroup: (state, action) => {
+            console.log(action.payload);
+            state.group = action.payload
+        },
     },
     extraReducers(builders) {
         builders.addCase(getConservations.fulfilled, (state, action) => {
             // console.log(action.payload);
             state.conversation = action.payload
-        })
+        }),
+            builders.addCase(getGroup.fulfilled, (state, action) => {
+                // console.log(action.payload);
+                state.group = action.payload
+            })
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation, setAllGroup } = userSlice.actions;
 export default userSlice.reducer

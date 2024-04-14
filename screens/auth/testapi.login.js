@@ -23,6 +23,7 @@ import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
 import Toast from "react-native-toast-message";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { fetchAllGroup } from "../../service/conversation.util";
 
 const Login = ({ navigation }) => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -110,6 +111,7 @@ const Login = ({ navigation }) => {
               user: user,
             })
           );
+          fetchAllGroup()
           console.log(user);
           fetchAllFriend();
 

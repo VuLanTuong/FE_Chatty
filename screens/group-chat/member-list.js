@@ -19,6 +19,7 @@ import Toast from "react-native-toast-message";
 import { useSocket } from "../socket.io/socket-context";
 import { setAllConversation, setCurrentConversation, updateConversation } from "../../rtk/user-slice";
 import ActionSheet from 'react-native-actionsheet';
+import { Platform } from "react-native";
 
 export default function MemberList({ navigation, route }) {
     const conservationParam = route.params.data;
@@ -440,7 +441,7 @@ export default function MemberList({ navigation, route }) {
                     }}>{friend.name}</Text>
 
                     {(checkLeader(friend._id)) ? (
-                        <MaterialCommunityIcons name="key" size={24} color="gold" style={{
+                        <MaterialCommunityIcons name="key" size={24} color="#f558a4" style={{
                             marginTop: 10,
                         }} />
                     ) : null
@@ -527,17 +528,20 @@ export default function MemberList({ navigation, route }) {
                 alignItems: 'center',
                 gap: 15,
                 marginTop: 10,
-                width: '90%',
-                marginLeft: 20
+                width: Platform.OS === 'web' ? '90%' : '60%',
+
+                marginLeft: Platform.OS === 'web' ? 20 : 50,
+
             }}>
                 <TextInput
                     placeholder="Search friend..."
                     style={{
-                        width: '100%',
+                        width: Platform.OS === 'web' ? '100%' : '80%',
                         height: 50,
                         borderRadius: 10,
                         fontSize: 18,
                         backgroundColor: '#f0f0f0',
+
                     }}
                     value={searchFriend}
                     onChangeText={(text) => setSearchFriend(text)}

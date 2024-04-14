@@ -38,8 +38,10 @@ import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { getConservations, setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
 import FileMessageComponent from "./file-message-component";
+import { fetchAllGroup } from "../../service/conversation.util";
 const ChatScreen = ({ navigation, route }) => {
     const [modalVisible, setModalVisible] = useState(false);
+    const [modalFileVisible, setModalFileVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [messages, setMessages] = useState([]);
     const [member, setMember] = useState();
@@ -59,12 +61,16 @@ const ChatScreen = ({ navigation, route }) => {
     const dispatch = useDispatch()
     const { socket } = useSocket();
     const [newMember, setNewMember] = useState();
+    const [messageToForward, setMessageToForward] = useState();
+
+    const groupsInRedux = useSelector((state) => state.user.group);
 
     const handleOpenModal = () => {
         setModalVisible(true);
     };
 
     const handleCheckboxToggle = (userId) => {
+
         if (selectedFriends.includes(userId)) {
             setSelectedFriends(selectedFriends.filter((id) => id !== userId));
         } else {
@@ -91,7 +97,14 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     const handleCloseModal = () => {
+        setSelectedFriends([]);
         setModalVisible(false);
+    };
+
+
+    const handleCloseModalFile = () => {
+        setSelectedFriends([]);
+        setModalFileVisible(false);
     };
 
     const conversationParams = route.params.data;
@@ -214,55 +227,78 @@ const ChatScreen = ({ navigation, route }) => {
         setModalVisible(true);
     }
 
-    const openModalFile = () => {
-        setModalVisible(true);
+    const openModalFile = (message) => {
+        setMessageToForward(message)
+        setModalFileVisible(true);
     }
 
 
 
     const handleForward = async () => {
+        const token = await getAccessToken();
         console.log("press forward");
+        console.log(contentForward);
         // console.log("send text");
         // console.log(contentForward);
         console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
-            console.log("friend forward", friendId);
-            const token = await getAccessToken();
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: "Bearer " + token
-                    }
-                }).then((response) => response.json())
-                .then(async (data) => {
-                    // console.log(data)
+            await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${friendId}`, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                }
+            }).then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
                     if (data.status === "fail") {
-                        console.log("fail");
-                        return;
+                        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: "Bearer " + token
+                                }
+                            }).then((response) => response.json())
+                            .then(async (data) => {
+                                // console.log(data)
+                                if (data.status === "fail") {
+                                    console.log("fail");
+                                    return;
+                                }
+                                else {
+                                    let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
+                                        method: "GET",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: "Bearer " + token
+                                        }
+                                    });
+                                    const conversationWithFriend = await response.json();
+
+                                    console.log(contentForward);
+                                    console.log(conversationWithFriend);
+                                    handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
+                                }
+                            })
+
+                            .catch(() => console.log("fetch error"))
+
+
                     }
                     else {
-                        let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: "Bearer " + token
-                            }
-                        });
-                        const conversationWithFriend = await response.json();
-
-                        console.log(contentForward);
-                        console.log(conversationWithFriend);
-                        handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
+                        handleSendTextMessage(data.data._id, contentForward, data.data);
                     }
 
 
-                })
+                }
 
-                .catch(() => console.log("fetch error"))
 
-        })
+                )
+        }
+
+
+        )
         Toast.show({
             type: 'success',
             text1: 'Forward message successful',
@@ -270,55 +306,60 @@ const ChatScreen = ({ navigation, route }) => {
             visibilityTime: 2000,
 
         });
-
-        setModalVisible(false);
         setSelectedFriends([]);
-        setContentForward('');
+        setModalVisible(false);
     }
 
-    const handleForwardFile = async (message) => {
-        console.log("press forward");
-        // console.log("send text");
-        // console.log(contentForward);
-        console.log(selectedFriends);
+    const handleForwardFile = async () => {
+        const token = await getAccessToken();
         selectedFriends.map(async (friendId) => {
-            console.log("friend forward", friendId);
-            const token = await getAccessToken();
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: "Bearer " + token
-                    }
-                }).then((response) => response.json())
-                .then(async (data) => {
-                    // console.log(data)
+            await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${friendId}`, {
+                method: 'GET',
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: "Bearer " + token
+                }
+            }).then((response) => response.json())
+                .then((data) => {
                     if (data.status === "fail") {
-                        console.log("fail");
-                        return;
-                    }
-                    else {
-                        let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
-                            method: "GET",
-                            headers: {
-                                "Content-Type": "application/json",
-                                Authorization: "Bearer " + token
-                            }
-                        });
-                        const conversationWithFriend = await response.json();
+                        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    Authorization: "Bearer " + token
+                                }
+                            }).then((response) => response.json())
+                            .then(async (data) => {
+                                // console.log(data)
+                                if (data.status === "fail") {
+                                    console.log("fail");
+                                    return;
+                                }
+                                else {
+                                    let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
+                                        method: "GET",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                            Authorization: "Bearer " + token
+                                        }
+                                    });
+                                    const conversationWithFriend = await response.json();
 
-                        console.log(contentForward);
-                        console.log(conversationWithFriend);
-                        handleSendFile(data.data._id, message.attachments, conversationWithFriend.data);
-                        // handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
+                                    console.log(contentForward);
+                                    console.log(conversationWithFriend);
+                                    handleSendFile(data.data._id, messageToForward.attachments, conversationWithFriend.data);
+                                    // handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
+                                }
+                            })
+                            .catch(() => console.log("fetch error"))
+
                     }
+
+                    handleSendFile(data.data._id, messageToForward.attachments, data.data);
 
 
                 })
-
-                .catch(() => console.log("fetch error"))
-
         })
         Toast.show({
             type: 'success',
@@ -328,7 +369,7 @@ const ChatScreen = ({ navigation, route }) => {
 
         });
 
-        setModalVisible(false);
+        setModalFileVisible(false);
         setSelectedFriends([]);
     }
 
@@ -411,8 +452,6 @@ const ChatScreen = ({ navigation, route }) => {
     useFocusEffect(
         React.useCallback(() => {
             socket.on('message:receive', (data) => {
-                console.log(data);
-                console.log(currentConversation._id.toString(), data.conversation._id.toString());
                 if (data.conversation._id.toString() === currentConversation._id.toString()) {
                     if (data.sender._id !== user._id) {
                         return setMessages([...messages, { ...data, isMine: false }])
@@ -467,9 +506,14 @@ const ChatScreen = ({ navigation, route }) => {
                         dispatch(setAllConversation(updateConservation))
                     }
 
+                }),
+                socket.on("conversation:disband", (data) => {
+                    console.log(data);
+                    const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+                    dispatch(setAllConversation(updatedConversation));
+                    navigation.navigate('MessageScreen');
+
                 })
-
-
         }, [messages])
     );
 
@@ -817,14 +861,10 @@ const ChatScreen = ({ navigation, route }) => {
     }, [nameGroup])
 
     function FileMessageComponent({ message }) {
-
         const actionSheetRef = useRef(null);
-
         const handlePressIcon = () => {
-            console.log("press icon");
             actionSheetRef.current.show();
         };
-
         const handleActionPress = (index) => {
             switch (index) {
                 case 0:
@@ -912,17 +952,22 @@ const ChatScreen = ({ navigation, route }) => {
         }
         const renderAttachments = (message) => {
             return message.attachments.map((attachment, index) => {
-                // if (message.content === "This message has been deleted") {
-                //     return (
-                //         <View>
-                //             <Text>This message has been deleted</Text>
-                //         </View>
-                //     )
-                // }
                 if (attachment.type === "application") {
                     return (
                         // <View key={index} style={styles.fileContainer}>
                         <View key={index} style={styles.fileDetailsContainer}>
+                            {!message.isMine && currentConversation.type === "group" && (
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: 'black',
+                                        fontWeight: '600'
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.name}
+                                </Text>
+                            )}
                             <MaterialCommunityIcons name="file" size={24} color="#a0a0a0" />
 
                             <Text style={styles.fileName}>{checkFileName(attachment.url)}</Text>
@@ -949,6 +994,18 @@ const ChatScreen = ({ navigation, route }) => {
                             flexDirection: "column",
                             marginTop: 5
                         }}>
+                            {!message.isMine && currentConversation.type === "group" && (
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: 'black',
+                                        fontWeight: '600'
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.name}
+                                </Text>
+                            )}
 
                             <Image
                                 key={index}
@@ -1024,7 +1081,7 @@ const ChatScreen = ({ navigation, route }) => {
                         style={{
                             // width: "80%",
                         }}
-                        onPress={handlePressIcon}
+                        onPress={() => handlePressIcon()}
                     >
 
                         {message.parent !== null ? (
@@ -1138,130 +1195,7 @@ const ChatScreen = ({ navigation, route }) => {
                     cancelButtonIndex={3}
                     onPress={handleActionPress}
                 />
-                <View style={{}}>
-                    <Modal
-                        visible={modalVisible}
-                        transparent={true}
-                        onRequestClose={handleCloseModal}
 
-                    >
-                        <View style={styles.modalContainer}>
-                            {/* // content of modal */}
-                            <View style={[styles.modalContent, styles.biggerModalContent]}>
-                                <View style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    gap: 5,
-                                }}>
-                                    <TextInput
-                                        placeholder="Search"
-                                        style={{
-                                            padding: 10,
-                                            borderWidth: 1,
-                                            borderColor: '#f558a4',
-                                        }}
-                                        value={searchFriend}
-                                        onChangeText={(text) => setSearchFriend(text)}
-
-                                    />
-                                    <Pressable style={{}}>
-                                        <MaterialCommunityIcons name='magnify' color='black' size={30} />
-                                    </Pressable>
-
-                                </View>
-
-                                <ScrollView style={{
-                                    flex: 1,
-                                    width: '100%',
-                                }}>
-                                    {Object.keys(friends).map((letter) => (
-                                        <View style={{
-                                            width: '100%'
-                                        }}>
-                                            <View key={letter} >
-                                                <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
-
-                                                {friends[letter].map((friend) => (
-
-                                                    <View key={friend.userId}
-                                                        style={{
-                                                            flexDirection: 'row',
-                                                            gap: 10,
-                                                            marginTop: 10,
-                                                            marginLeft: 10,
-
-
-                                                        }}>
-
-                                                        <View style={{
-                                                            flexDirection: 'row',
-                                                            gap: 20,
-                                                            flex: 1,
-
-                                                        }}>
-                                                            <View style={{
-                                                                flexDirection: 'row',
-                                                                gap: 20,
-                                                                flex: 1,
-                                                            }}>
-                                                                {/* // api to get avatar */}
-                                                                <Image source={{ uri: friend.avatar }} style={{
-                                                                    width: 50,
-                                                                    height: 50,
-                                                                    borderRadius: 50
-
-                                                                }} />
-
-                                                                <Text style={{
-                                                                    marginTop: 10,
-                                                                    fontSize: 20
-                                                                }}>{friend.name}</Text>
-                                                                <View style={{
-                                                                    flex: 1,
-                                                                    flexDirection: "column",
-                                                                    justifyContent: "center",
-                                                                    // alignContent: 'center',
-                                                                    alignItems: 'end',
-
-                                                                }}>
-                                                                    <Checkbox.Android
-                                                                        status={selectedFriends.includes(friend.userId) ? 'checked' : 'unchecked'}
-                                                                        onPress={() => handleCheckboxToggle(friend.userId)}
-                                                                    />
-
-
-                                                                </View>
-
-
-                                                            </View>
-                                                        </View>
-                                                    </View>
-
-
-                                                ))}
-                                            </View>
-                                        </View>
-                                    ))}
-                                </ScrollView>
-                                <View style={{
-                                    flexDirection: 'row', gap: 150, marginTop: 'auto'
-
-                                }}>
-                                    <Pressable style={{
-
-                                    }} onPress={() => handleForwardFile(message)}>
-                                        <Text style={styles.closeButton}>Send</Text>
-                                    </Pressable>
-                                    <Pressable onPress={handleCloseModal}>
-                                        <Text style={styles.closeButton}>Close</Text>
-                                    </Pressable>
-
-                                </View>
-
-                            </View>
-                        </View>
-                    </Modal>
-                </View>
             </View>
 
         );
@@ -1269,9 +1203,12 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     function groupFriendsByLetter() {
+        console.log(groupsInRedux);
+        const allContact = [...friendInRedux, ...groupsInRedux]
 
 
-        const friendGroupByName = friendInRedux.reduce((result, friend) => {
+
+        const friendGroupByName = allContact.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -1286,7 +1223,6 @@ const ChatScreen = ({ navigation, route }) => {
             sortedFriendGroups[letter] = friendGroupByName[letter];
             setFriends(sortedFriendGroups);
         });
-
         return sortedFriendGroups;
     };
 
@@ -1546,8 +1482,8 @@ const ChatScreen = ({ navigation, route }) => {
                         paddingHorizontal: 5,
                         paddingVertical: 5,
                         flexDirection: 'column',
-                        gap: 5,
-                        width: message.content.length > 15 ? '60%' : '20%',
+                        gap: 15,
+                        width: message.content.length < 10 ? '40%' : '60%',
                         ...(message.parent !== null && { width: '50%' }),
                     }}
                 >
@@ -1558,6 +1494,18 @@ const ChatScreen = ({ navigation, route }) => {
                         onPress={handlePressIcon}
                     >
                         {renderReplyMessage()}
+                        {!message.isMine && currentConversation.type === "group" && (
+                            <Text
+                                style={{
+                                    fontSize: 12,
+                                    color: 'black',
+                                    fontWeight: '600'
+                                }}
+                                onTextLayout={onTextLayout}
+                            >
+                                {message.name}
+                            </Text>
+                        )}
 
                         <Text
                             style={{
@@ -1866,7 +1814,7 @@ const ChatScreen = ({ navigation, route }) => {
                                                             flex: 1,
                                                         }}>
                                                             {/* // api to get avatar */}
-                                                            <Image source={{ uri: friend.avatar }} style={{
+                                                            <Image source={{ uri: friend.avatar || friend.image }} style={{
                                                                 width: 50,
                                                                 height: 50,
                                                                 borderRadius: 50
@@ -1886,8 +1834,8 @@ const ChatScreen = ({ navigation, route }) => {
 
                                                             }}>
                                                                 <Checkbox.Android
-                                                                    status={selectedFriends.includes(friend.userId) ? 'checked' : 'unchecked'}
-                                                                    onPress={() => handleCheckboxToggle(friend.userId)}
+                                                                    status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
+                                                                    onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
                                                                 />
 
 
@@ -1909,11 +1857,131 @@ const ChatScreen = ({ navigation, route }) => {
 
                             }}>
                                 <Pressable style={{
-
                                 }} onPress={() => handleForward()}>
                                     <Text style={styles.closeButton}>Send</Text>
                                 </Pressable>
                                 <Pressable onPress={handleCloseModal}>
+                                    <Text style={styles.closeButton}>Close</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+            <View style={{}}>
+                <Modal
+                    visible={modalFileVisible}
+                    transparent={true}
+                    onRequestClose={handleCloseModalFile}
+
+                >
+                    <View style={styles.modalContainer}>
+                        {/* // content of modal */}
+                        <View style={[styles.modalContent, styles.biggerModalContent]}>
+                            <View style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                gap: 5,
+                            }}>
+                                <TextInput
+                                    placeholder="Search"
+                                    style={{
+                                        padding: 10,
+                                        borderWidth: 1,
+                                        borderColor: '#f558a4',
+                                    }}
+                                    value={searchFriend}
+                                    onChangeText={(text) => setSearchFriend(text)}
+
+                                />
+                                <Pressable style={{}}>
+                                    <MaterialCommunityIcons name='magnify' color='black' size={30} />
+                                </Pressable>
+
+                            </View>
+
+                            <ScrollView style={{
+                                flex: 1,
+                                width: '100%',
+                            }}>
+                                {Object.keys(friends).map((letter) => (
+                                    <View style={{
+                                        width: '100%'
+                                    }}>
+                                        <View key={letter} >
+                                            <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
+
+                                            {friends[letter].map((friend) => (
+
+                                                <View key={friend.userId}
+                                                    style={{
+                                                        flexDirection: 'row',
+                                                        gap: 10,
+                                                        marginTop: 10,
+                                                        marginLeft: 10,
+
+
+                                                    }}>
+
+                                                    <View style={{
+                                                        flexDirection: 'row',
+                                                        gap: 20,
+                                                        flex: 1,
+
+                                                    }}>
+                                                        <View style={{
+                                                            flexDirection: 'row',
+                                                            gap: 20,
+                                                            flex: 1,
+                                                        }}>
+                                                            {/* // api to get avatar */}
+                                                            <Image source={{ uri: friend.avatar }} style={{
+                                                                width: 50,
+                                                                height: 50,
+                                                                borderRadius: 50
+
+                                                            }} />
+
+                                                            <Text style={{
+                                                                marginTop: 10,
+                                                                fontSize: 20
+                                                            }}>{friend.name}</Text>
+                                                            <View style={{
+                                                                flex: 1,
+                                                                flexDirection: "column",
+                                                                justifyContent: "center",
+                                                                // alignContent: 'center',
+                                                                alignItems: 'end',
+
+                                                            }}>
+                                                                <Checkbox.Android
+                                                                    status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
+                                                                    onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
+                                                                />
+
+
+                                                            </View>
+
+
+                                                        </View>
+                                                    </View>
+                                                </View>
+
+
+                                            ))}
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
+                            <View style={{
+                                flexDirection: 'row', gap: 150, marginTop: 'auto'
+
+                            }}>
+                                <Pressable style={{
+                                }} onPress={() => handleForwardFile()}>
+                                    <Text style={styles.closeButton}>Send</Text>
+                                </Pressable>
+                                <Pressable onPress={handleCloseModalFile}>
                                     <Text style={styles.closeButton}>Close</Text>
                                 </Pressable>
 
