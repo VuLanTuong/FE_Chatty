@@ -100,27 +100,29 @@ const MessageScreen = ({ navigation }) => {
   //   handleConversationUpdate(data);
   // });
   const handleConversationUpdate = (data) => {
-    const members = data.conversation.members;
-    let updatedConversationArray = allConversationAtRedux;
-    const newConversation = checkIsMember(data, members);
-    if (newConversation !== null) {
-      updatedConversationArray = [...allConversation, newConversation];
-    }
-
-    const updatedConversation = updatedConversationArray.map((item) => {
-      if (item._id.toString() === data.conversation._id.toString()) {
-        return {
-          ...item,
-          lastMessage: data,
-          updatedAt: new Date(Date.now()).toISOString(),
-          isReadMessage: false,
-        };
+    if (data.conversation.members.some(member => member._id === user._id)) {
+      const members = data.conversation.members;
+      let updatedConversationArray = allConversationAtRedux;
+      const newConversation = checkIsMember(data, members);
+      if (newConversation !== null) {
+        updatedConversationArray = [...allConversation, newConversation];
       }
-      return item;
-    });
+
+      const updatedConversation = updatedConversationArray.map((item) => {
+        if (item._id.toString() === data.conversation._id.toString()) {
+          return {
+            ...item,
+            lastMessage: data,
+            updatedAt: new Date(Date.now()).toISOString(),
+            isReadMessage: false,
+          };
+        }
+        return item;
+      });
 
 
-    dispatch(setAllConversation(updatedConversation));
+      dispatch(setAllConversation(updatedConversation));
+    }
 
   };
 

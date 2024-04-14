@@ -278,8 +278,6 @@ const ChatScreen = ({ navigation, route }) => {
 
     const handleForwardFile = async (message) => {
         console.log("press forward");
-        // console.log("send text");
-        // console.log(contentForward);
         console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
             console.log("friend forward", friendId);
@@ -912,17 +910,22 @@ const ChatScreen = ({ navigation, route }) => {
         }
         const renderAttachments = (message) => {
             return message.attachments.map((attachment, index) => {
-                // if (message.content === "This message has been deleted") {
-                //     return (
-                //         <View>
-                //             <Text>This message has been deleted</Text>
-                //         </View>
-                //     )
-                // }
                 if (attachment.type === "application") {
                     return (
                         // <View key={index} style={styles.fileContainer}>
                         <View key={index} style={styles.fileDetailsContainer}>
+                            {!message.isMine && currentConversation.type === "group" && (
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: 'black',
+                                        fontWeight: '600'
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.name}
+                                </Text>
+                            )}
                             <MaterialCommunityIcons name="file" size={24} color="#a0a0a0" />
 
                             <Text style={styles.fileName}>{checkFileName(attachment.url)}</Text>
@@ -949,6 +952,18 @@ const ChatScreen = ({ navigation, route }) => {
                             flexDirection: "column",
                             marginTop: 5
                         }}>
+                            {!message.isMine && currentConversation.type === "group" && (
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: 'black',
+                                        fontWeight: '600'
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.name}
+                                </Text>
+                            )}
 
                             <Image
                                 key={index}
@@ -1248,7 +1263,6 @@ const ChatScreen = ({ navigation, route }) => {
 
                                 }}>
                                     <Pressable style={{
-
                                     }} onPress={() => handleForwardFile(message)}>
                                         <Text style={styles.closeButton}>Send</Text>
                                     </Pressable>
@@ -1478,6 +1492,7 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     const MessageComponent = ({ message }) => {
+        console.log(message);
         const actionSheetRef = useRef(null);
         const handlePressIcon = () => {
             actionSheetRef.current.show();
@@ -1546,8 +1561,8 @@ const ChatScreen = ({ navigation, route }) => {
                         paddingHorizontal: 5,
                         paddingVertical: 5,
                         flexDirection: 'column',
-                        gap: 5,
-                        width: message.content.length > 15 ? '60%' : '20%',
+                        gap: 15,
+                        width: message.content.length < 10 ? '40%' : '60%',
                         ...(message.parent !== null && { width: '50%' }),
                     }}
                 >
@@ -1558,6 +1573,18 @@ const ChatScreen = ({ navigation, route }) => {
                         onPress={handlePressIcon}
                     >
                         {renderReplyMessage()}
+                        {!message.isMine && currentConversation.type === "group" && (
+                            <Text
+                                style={{
+                                    fontSize: 12,
+                                    color: 'black',
+                                    fontWeight: '600'
+                                }}
+                                onTextLayout={onTextLayout}
+                            >
+                                {message.name}
+                            </Text>
+                        )}
 
                         <Text
                             style={{

@@ -173,6 +173,7 @@ export function ContactScreen({ navigation }) {
         setSelectedOption(option);
     };
     const groupedFriends = groupFriendsByLetter(friends);
+    const groupGroupsByLetter = groupFriendsByLetter(groups)
     const handleToChatScreen = (group) => {
         dispatch(setCurrentConversation(group))
         navigation.navigate('Chat', { data: group })
@@ -379,43 +380,58 @@ export function ContactScreen({ navigation }) {
                                 fontSize: 17,
                                 fontWeight: 'bold'
                             }}>Join group ({groups.length.toString()}) </Text>
-                            {groups.map((group) => (
-                                <View key={group.id}
-                                    style={{
-                                        flexDirection: 'row',
-                                        gap: 10,
-                                        marginTop: 10,
-                                        marginLeft: 10
-                                    }}>
+                            {Object.keys(groupGroupsByLetter).map((letter) => (
+                                <View key={letter}>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
+                                    {
+                                        groupGroupsByLetter[letter].map((group) => (
 
-                                    <View style={{
-                                        flexDirection: 'row',
-                                        gap: 20
-                                    }}>
-                                        {/* onPress to go to message screen with group */}
-                                        <Pressable style={{
-                                            flexDirection: 'row',
-                                            gap: 20
-                                        }} onPress={() => handleToChatScreen(group)}>
-                                            {/* // api to get avatar */}
-                                            <Image source={{ uri: group.image }} style={{
-                                                width: 50,
-                                                height: 50,
-                                                borderRadius: 50
+                                            <View key={group.id}
+                                                style={{
+                                                    flexDirection: 'row',
+                                                    gap: 10,
+                                                    marginTop: 10,
+                                                    marginLeft: 10
+                                                }}>
 
-                                            }} />
-                                            <Text style={{
-                                                marginTop: 10,
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    gap: 20
+                                                }}>
+                                                    {/* onPress to go to message screen with group */}
+                                                    <Pressable style={{
+                                                        flexDirection: 'row',
+                                                        gap: 20
+                                                    }} onPress={() => handleToChatScreen(group)}>
+                                                        {/* // api to get avatar */}
+                                                        <Image source={{ uri: group.image }} style={{
+                                                            width: 50,
+                                                            height: 50,
+                                                            borderRadius: 50
 
-                                                fontSize: 20
-                                            }}>{group.name}</Text>
-                                        </Pressable>
-                                    </View>
+                                                        }} />
+                                                        <Text style={{
+                                                            marginTop: 10,
+
+                                                            fontSize: 20
+                                                        }}>{group.name}</Text>
+                                                    </Pressable>
+                                                </View>
+
+
+                                            </View>
+                                        ))
+                                    }
+
+
 
 
                                 </View>
                             ))}
+
+
                         </View>
+
                     )}
 
                 </View>
