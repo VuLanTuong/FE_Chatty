@@ -49,6 +49,8 @@ const MessageScreen = ({ navigation }) => {
   // selector run after use effect
   const allConversationAtRedux = useSelector((state) => state.user.conversation);
   console.log(allConversationAtRedux);
+  const [allConversationAtRedux1, setAllConversationAtRedux] = useState(useSelector((state) => state.user.conversation));
+  console.log(allConversationAtRedux);
 
 
   const checkIsMember = (data, members) => {
@@ -101,6 +103,7 @@ const MessageScreen = ({ navigation }) => {
   //   handleConversationUpdate(data);
   // });
   const handleConversationUpdate = (data) => {
+    console.log("set lai");
     if (data.conversation.members.some(member => member._id === user._id)) {
       const members = data.conversation.members;
       let updatedConversationArray = allConversationAtRedux;
@@ -116,12 +119,15 @@ const MessageScreen = ({ navigation }) => {
             lastMessage: data,
             updatedAt: new Date(Date.now()).toISOString(),
             isReadMessage: false,
+            name: data.conversation.name,
+            image: data.conversation.image,
           };
         }
         return item;
       });
 
 
+      setAllConversationAtRedux(updatedConversation);
       dispatch(setAllConversation(updatedConversation));
     }
 
@@ -165,12 +171,16 @@ const MessageScreen = ({ navigation }) => {
       socket.on("message:notification", (data) => {
         console.log(data);
         if (data.conversation.members.some(member => member._id === user._id)) {
+
+          console.log("notification");
           handleConversationUpdate(data);
           return;
 
         }
         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+
         dispatch(setAllConversation(updatedConversation));
+
         return;
 
       })
