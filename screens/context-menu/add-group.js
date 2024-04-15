@@ -95,8 +95,6 @@ const AddGroup = ({ navigation }) => {
                         name: nameGroup,
                         members: members,
                         image: avatar
-
-
                     })
                 }).then((response) => response.json())
                     .then((data) => {

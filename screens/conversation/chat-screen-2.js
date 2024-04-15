@@ -451,6 +451,21 @@ const ChatScreen = ({ navigation, route }) => {
 
     useFocusEffect(
         React.useCallback(() => {
+            socket.on('conversation:removeMembers', (data) => {
+                console.log(data);
+                console.log(user);
+
+
+                data.members.map((member) => {
+                    if (member === user._id) {
+                        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+                        dispatch(setAllConversation(updatedConversation));
+                        if (currentConversation._id.toString() === data.conservationId.toString()) {
+                            navigation.navigate('MessageScreen');
+                        }
+                    }
+                })
+            });
             socket.on('message:receive', (data) => {
                 if (data.conversation._id.toString() === currentConversation._id.toString()) {
                     if (data.sender._id !== user._id) {
@@ -1206,9 +1221,7 @@ const ChatScreen = ({ navigation, route }) => {
         console.log(groupsInRedux);
         const allContact = [...friendInRedux, ...groupsInRedux]
 
-
-
-        const friendGroupByName = allContact.reduce((result, friend) => {
+        const friendGroupByName = allConversationAtRedux.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];

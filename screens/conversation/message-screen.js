@@ -103,7 +103,6 @@ const MessageScreen = ({ navigation }) => {
   //   handleConversationUpdate(data);
   // });
   const handleConversationUpdate = (data) => {
-    console.log("set lai");
     if (data.conversation.members.some(member => member._id === user._id)) {
       const members = data.conversation.members;
       let updatedConversationArray = allConversationAtRedux;
@@ -135,6 +134,17 @@ const MessageScreen = ({ navigation }) => {
 
   useEffect(() => {
     // dispatch(getConservations());
+    socket.on('conversation:removeMembers', (data) => {
+      console.log(data);
+      console.log(user);
+
+      data.members.map((member) => {
+        if (member === user._id) {
+          const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+          dispatch(setAllConversation(updatedConversation));
+        }
+      })
+    });
     socket.on('message:receive', (data) => {
       handleConversationUpdate(data);
     });

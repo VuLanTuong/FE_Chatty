@@ -227,7 +227,21 @@ export default function OptionGroup({ navigation, route }) {
             }
         })
         setNewName(currentConversation.name);
-    }, [onChange])
+        socket.on('conversation:removeMembers', (data) => {
+            console.log(data);
+            console.log(user);
+
+            data.members.map((member) => {
+                if (member === user._id) {
+                    const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+                    dispatch(setAllConversation(updatedConversation));
+                    if (currentConversation._id.toString() === data.conservationId.toString()) {
+                        navigation.navigate('MessageScreen');
+                    }
+                }
+            })
+        });
+    }, [onChange, allConversationAtRedux])
 
 
 

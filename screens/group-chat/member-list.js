@@ -283,6 +283,21 @@ export default function MemberList({ navigation, route }) {
 
 
     }
+    const checkIsMember = (data, members) => {
+        const existingConversation = allConversationAtRedux.find((conversation) => {
+            return conversation._id.toString() === data.conversation._id.toString();
+        });
+
+        if (!existingConversation && members.some(member => member._id === user._id)) {
+            return {
+                ...data.conversation,
+                lastMessage: data.conversation,
+                isReadMessage: false,
+            };
+        }
+
+        return null;
+    };
     const handleConversationUpdate = (data) => {
         const members = data.conversation.members;
         let updatedConversationArray = allConversationAtRedux;
@@ -344,10 +359,24 @@ export default function MemberList({ navigation, route }) {
                     }
                 }
                 )
-            })
+            }),
+            socket.on('conversation:removeMembers', (data) => {
+                console.log(data);
+                console.log(user);
+
+                data.members.map((member) => {
+                    if (member === user._id) {
+                        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+                        dispatch(setAllConversation(updatedConversation));
+                        if (currentConversation._id.toString() === data.conservationId.toString()) {
+                            navigation.navigate('MessageScreen');
+                        }
+                    }
+                })
+            });
 
         groupFriendsByLetter();
-    }, [currentConversation.members])
+    }, [currentConversation.members, allConversationAtRedux])
 
     const checkLeader = (id) => {
         if (currentConversation.leaders[0]._id === id) {
