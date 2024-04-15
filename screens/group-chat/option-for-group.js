@@ -1,6 +1,6 @@
 import React, { useLayoutEffect, useState, useEffect } from "react";
 import { View, Text, StyleSheet, Pressable, Modal, TextInput, Image, Platform } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { Avatar, Button, Divider } from "react-native-paper";
 import { Checkbox } from 'react-native-paper';
 
@@ -19,6 +19,8 @@ import Toast from "react-native-toast-message";
 import { setCurrentConversation, setAllConversation, getConservations } from "../../rtk/user-slice";
 import { useSocket } from "../socket.io/socket-context";
 import { Alert } from "react-native";
+import * as ImagePicker from 'expo-image-picker';
+
 export default function OptionGroup({ navigation, route }) {
     const currentConversation = useSelector((state) => state.user.currentConversation);
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
@@ -100,7 +102,8 @@ export default function OptionGroup({ navigation, route }) {
 
     }
     const handleLeaveGroup = async () => {
-        if (user._id !== conservationParam.leaders[0]._id) {
+        console.log("confirm leave group");
+        if (user._id !== currentConversation.leaders[0]._id) {
             const accessToken = await getAccessToken();
             fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/leaveGroup`, {
                 method: 'post',
@@ -116,7 +119,7 @@ export default function OptionGroup({ navigation, route }) {
                 .then((data) => {
                     console.log(data);
                     if (data.status === 'fail') {
-
+                        console.log("leave group fail");
                         Toast.show({
                             type: 'error',
                             text1: data.message,
@@ -133,6 +136,7 @@ export default function OptionGroup({ navigation, route }) {
                         visibilityTime: 2000,
                         position: 'top'
                     })
+                    setOnChange(!onChange);
 
                     const updateConversation = allConversationAtRedux.filter(conversation =>
                         conversation._id.toString() !== conservationParam._id.toString());
@@ -205,6 +209,7 @@ export default function OptionGroup({ navigation, route }) {
     }
 
 
+
     useEffect(() => {
         console.log("effect member list");
         socket.on("message:notification", (data) => {
@@ -223,7 +228,9 @@ export default function OptionGroup({ navigation, route }) {
         })
         setNewName(currentConversation.name);
     }, [onChange])
-    console.log(currentConversation);
+
+
+
     const checkLeader = (id) => {
         if (currentConversation.leaders[0]._id === id) {
             return true;
@@ -281,6 +288,7 @@ export default function OptionGroup({ navigation, route }) {
     // };
 
     const handleDisbandGroup = async () => {
+        console.log("confirm");
         const accessToken = await getAccessToken();
         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/disband`, {
             method: 'post',
@@ -296,6 +304,7 @@ export default function OptionGroup({ navigation, route }) {
             .then((data) => {
                 console.log(data);
                 if (data.status === 'fail') {
+                    console.log("leave group fail");
                     Toast.show({
                         type: 'error',
                         text1: data.message,
@@ -318,6 +327,55 @@ export default function OptionGroup({ navigation, route }) {
             })
     }
 
+    const handleChoosePhoto = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+
+        console.log(result);
+
+        if (!result.canceled) {
+            handleUploadPhoto(result.assets[0].uri);
+        }
+    };
+    const handleUploadPhoto = async (imageUri) => {
+        const accessToken = await getAccessToken();
+        fetch(
+            `http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/changeImage`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + accessToken,
+
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ image: imageUri }),
+            }
+        )
+            .then((response) => {
+                console.log("response", response);
+                return response.json();
+            })
+            .then((data) => {
+                Toast.show({
+                    type: "success",
+                    text1: "Change avatar successful",
+                    position: "top",
+                    visibilityTime: 2000,
+                });
+
+                console.log(data);
+            })
+            .catch((error) => {
+                console.log("error", error);
+            });
+
+
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.profileContainer}>
@@ -328,13 +386,17 @@ export default function OptionGroup({ navigation, route }) {
                         justifyContent: "center",
                     }}
                 >
-                    <Image
-                        source={{
-                            uri: currentConversation.image,
-                        }}
+                    <Pressable onPress={() => handleChoosePhoto()}>
+                        <Image
+                            source={{
+                                uri: currentConversation.image,
+                            }}
 
-                        style={{ width: 100, height: 100, borderRadius: 50 }}
-                    />
+                            style={{ width: 100, height: 100, borderRadius: 50 }}
+                        />
+
+
+                    </Pressable>
 
                     <View style={{
                         flexDirection: 'row',

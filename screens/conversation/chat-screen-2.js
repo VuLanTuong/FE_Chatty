@@ -858,7 +858,7 @@ const ChatScreen = ({ navigation, route }) => {
                 </View>
 
         })
-    }, [nameGroup])
+    }, [nameGroup, currentConversation.image])
 
     function FileMessageComponent({ message }) {
         const actionSheetRef = useRef(null);
@@ -1935,7 +1935,7 @@ const ChatScreen = ({ navigation, route }) => {
                                                             flex: 1,
                                                         }}>
                                                             {/* // api to get avatar */}
-                                                            <Image source={{ uri: friend.avatar }} style={{
+                                                            <Image source={{ uri: friend.avatar || friend.image }} style={{
                                                                 width: 50,
                                                                 height: 50,
                                                                 borderRadius: 50
