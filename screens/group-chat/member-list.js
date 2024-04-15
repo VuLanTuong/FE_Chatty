@@ -359,7 +359,7 @@ export default function MemberList({ navigation, route }) {
     const handleTransferLeader = async (friend) => {
         console.log(friend);
         //conservations/661a5ce649564aa5a3dec8a0/transfer/65bedb350b324b838f18a699
-        if (user._id !== conservationParam.leaders[0]._id) {
+        if (user._id !== currentConversation.leaders[0]._id) {
             Toast.show({
                 type: 'error',
                 text1: "You are not leader of this group",

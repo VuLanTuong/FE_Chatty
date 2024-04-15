@@ -177,9 +177,9 @@ const MessageScreen = ({ navigation }) => {
           return;
 
         }
-        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-
-        dispatch(setAllConversation(updatedConversation));
+        // const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+        // console.log(updatedConversation);
+        // dispatch(setAllConversation(updatedConversation));
 
         return;
 

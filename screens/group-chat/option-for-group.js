@@ -120,8 +120,6 @@ export default function OptionGroup({ navigation, route }) {
                     console.log(data);
                     if (data.status === 'fail') {
                         console.log("leave group fail");
-
-
                         Toast.show({
                             type: 'error',
                             text1: data.message,
@@ -138,6 +136,7 @@ export default function OptionGroup({ navigation, route }) {
                         visibilityTime: 2000,
                         position: 'top'
                     })
+                    setOnChange(!onChange);
 
                     const updateConversation = allConversationAtRedux.filter(conversation =>
                         conversation._id.toString() !== conservationParam._id.toString());
