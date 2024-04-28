@@ -10,6 +10,7 @@ import { useSelector } from 'react-redux';
 export function FriendRequest({ navigation }) {
     const [requests, setRequests] = useState([]);
     const [isAcpRequest, setIsAcptrRequest] = useState(false);
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
 
     // .then((response) => response.json())
@@ -57,7 +58,7 @@ export function FriendRequest({ navigation }) {
     async function fetchFriendRequest() {
         try {
             const accessToken = await getAccessToken();
-            const response = await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/requests', {
+            const response = await fetch(`${BASE_URL}/friends/requests`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -97,7 +98,7 @@ export function FriendRequest({ navigation }) {
     const addFriend = async (id) => {
         const accessToken = await getAccessToken();
 
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/accept/${id}`, {
+        fetch(`${BASE_URL}/friends/accept/${id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -146,7 +147,7 @@ export function FriendRequest({ navigation }) {
     const cancelAddFriend = async (id) => {
         const accessToken = await getAccessToken();
         console.log("cancel");
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${id}`, {
+        fetch(`${BASE_URL}/friends/cancel/${id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

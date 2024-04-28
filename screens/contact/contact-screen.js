@@ -11,6 +11,8 @@ import { findFriendById } from '../../service/friend.util';
 import ActionSheet from 'react-native-actionsheet';
 
 export function ContactScreen({ navigation }) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
 
     const dispatch = useDispatch();
 
@@ -45,7 +47,7 @@ export function ContactScreen({ navigation }) {
         // use redux to get current user
         const accessToken = await getAccessToken();
 
-        await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends", {
+        await fetch(`${BASE_URL}/friends`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -68,7 +70,7 @@ export function ContactScreen({ navigation }) {
         // use redux to get current user
         const accessToken = await getAccessToken();
 
-        await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations?type=group", {
+        await fetch(`${BASE_URL}/conservations?type=group`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -324,8 +326,6 @@ export function ContactScreen({ navigation }) {
                             </View>
 
                         </View>
-
-
                     )
                     }
 

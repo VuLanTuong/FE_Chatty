@@ -26,7 +26,8 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fetchAllGroup } from "../../service/conversation.util";
 
 const Login = ({ navigation }) => {
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
   const [loginError, setLoginError] = useState(false);
@@ -40,50 +41,12 @@ const Login = ({ navigation }) => {
     setChecked(!checked);
   };
 
-  const getMe = async (token) => {
-    fetch(
-      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe",
-      {
-        method: "GET",
-        headers: {
-          // "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
-        },
-      }
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "fail") {
-          console.log("fail");
-          return;
-        }
-        console.log("response", data);
-        Toast.show({
-          type: "success",
-          text1: "Login successful",
-          position: "top",
-          visibilityTime: 2000,
-        });
-        return data.data;
-      })
-      .catch((error) => {
-        console.log("Error:", error);
-        Toast.show({
-          type: "error",
-          text1: "Email and password correct",
-          position: "top",
-          visibilityTime: 2000,
-        });
-        setLoginError(true);
-      });
-  };
-
   useEffect(() => {
     const token = getAccessToken().then((token) => {
       if (token) {
         console.log(token);
         const user = fetch(
-          "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe",
+          `${BASE_URL}/users/getMe`,
           {
             method: "GET",
             headers: {
@@ -129,17 +92,17 @@ const Login = ({ navigation }) => {
     });
   }, []);
 
-  const handlePhoneNumber = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, "");
-    setPhoneNumber(numericValue);
-  };
+  // const handleemail = (text) => {
+  //   const numericValue = text.replace(/[^0-9]/g, "");
+  //   setEmail(numericValue);
+  // };
 
   async function fetchAllFriend() {
     console.log("fetch all friend");
     // use redux to get current user
     const accessToken = await getAccessToken();
     await fetch(
-      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends",
+      `${BASE_URL}/friends`,
       {
         method: "GET",
         headers: {
@@ -159,56 +122,75 @@ const Login = ({ navigation }) => {
       });
   }
 
+  const validateEmail = (email) => {
+    let re = /^[a-zA-Z0-9](?!.*[&=_'\-+<>])[\w.]{4,28}(?<![.])@[a-zA-Z0-9]+(\.[a-zA-Z]{2,})+$/;
+    return re.test(email);
+  }
+
   const onLogin = () => {
-    if (phoneNumber && password) {
-      fetch(
-        "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            phone: phoneNumber,
-            password: password,
-          }),
-        }
-      )
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          if (data.status === "success") {
-            console.log(data.data.token.access_token);
-            storeToken(data.data.token.access_token);
-            Toast.show({
-              type: "success",
-              text1: "Login successful",
-              position: "top",
-              visibilityTime: 4000,
-            });
-            dispatch(
-              login({
-                user: data.data.user,
-              })
-            );
-            setPassword("");
-            setLoginError(false);
-            navigation.navigate("Home");
-          } else {
-            Toast.show({
-              type: "error",
-              text1: "Phone number and password incorrect",
-              position: "top",
-              visibilityTime: 4000,
-            });
-            setLoginError(true);
+    if (email && password) {
+
+      if (validateEmail(email)) {
+        fetch(
+          `${BASE_URL}/auth/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: email,
+              password: password,
+            }),
           }
+        )
+          .then((response) => {
+            return response.json();
+          })
+          .then((data) => {
+            if (data.status === "success") {
+              console.log(data.data.token.access_token);
+              storeToken(data.data.token.access_token);
+              Toast.show({
+                type: "success",
+                text1: "Login successful",
+                position: "top",
+                visibilityTime: 4000,
+              });
+              dispatch(
+                login({
+                  user: data.data.user,
+                })
+              );
+              setPassword("");
+              setLoginError(false);
+              navigation.navigate("Home");
+            } else {
+              Toast.show({
+                type: "error",
+                text1: "Email or password incorrect",
+                position: "top",
+                visibilityTime: 4000,
+              });
+              setLoginError(true);
+            }
+          });
+
+      }
+      else {
+        Toast.show({
+          type: "error",
+          text1: "Please enter your valid email",
+          position: "top",
+          visibilityTime: 4000,
         });
-    } else {
+
+      }
+    }
+    else {
       Toast.show({
         type: "error",
-        text1: "Please enter your phone number and password",
+        text1: "Please enter your email and password",
         position: "top",
         visibilityTime: 4000,
       });
@@ -234,12 +216,11 @@ const Login = ({ navigation }) => {
       <View style={styles.inputContainer}>
         <TextInput
           style={[styles.input, loginError && styles.errorInput]}
-          label="Phone"
+          label="Email"
           underlineColorAndroid="transparent"
-          keyboardType="numeric"
-          value={phoneNumber}
-          maxLength={10}
-          onChangeText={handlePhoneNumber}
+          value={email}
+          maxLength={40}
+          onChangeText={(text) => setEmail(text.trim())}
         />
       </View>
       <View
@@ -254,7 +235,7 @@ const Login = ({ navigation }) => {
           underlineColorAndroid="transparent"
           secureTextEntry={!showNewPassword}
           value={password}
-          onChangeText={(text) => setPassword(text)}
+          onChangeText={(text) => setPassword(text.trim())}
         />
         <Pressable
           onPress={toggleNewPasswordVisibility}

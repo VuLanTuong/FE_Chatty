@@ -12,9 +12,7 @@ import { getAllConversation } from '../../service/conversation.util';
 export default function FriendProfile({ route, navigation }) {
     const user = route.params.friend;
     console.log(user);
-
-
-
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const dispatch = useDispatch();
     const [isFriend, setIsFriend] = useState(false);
@@ -96,32 +94,11 @@ export default function FriendProfile({ route, navigation }) {
     console.log(isSendRequest);
 
 
-    // const logAllFriend = async () => {
-    //     findFriendById().then((friendList) => {
-    //         console.log(friendList);
-    //     })
-    //     logAllFriend();
-    // }
-
-    // function checkStatusRelationship() {
-    //     console.log(friend);
-    //     console.log(typeof (friend));
-    //     console.log(friend.requester);
-
-    //     if (friend.requester === myInfor.user._id)
-    //         console.log(friend.requester);
-    //     console.log(myInfor.user._id);
-    //     console.log(isSendRequest);
-    //     return;
-
-    // }
-
-
 
     const sendRequest = async () => {
         const accessToken = await getAccessToken();
         console.log(user._id);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/request/${user._id}`, {
+        fetch(`${BASE_URL}/friends/request/${user._id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -152,7 +129,7 @@ export default function FriendProfile({ route, navigation }) {
         const accessToken = await getAccessToken();
         console.log(user);
         console.log(friend);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${friend._id}`, {
+        fetch(`${BASE_URL}/friends/cancel/${friend._id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -176,7 +153,7 @@ export default function FriendProfile({ route, navigation }) {
     const handleUnfriend = async () => {
         console.log(currentFriend);
         const accessToken = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/remove/${friend._id}`, {
+        fetch(`${BASE_URL}/friends/remove/${friend._id}`, {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -205,7 +182,7 @@ export default function FriendProfile({ route, navigation }) {
     const handleAcceptRequest = async () => {
         const accessToken = await getAccessToken();
         console.log(user._id);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/accept/${friend._id}`, {
+        fetch(`${BASE_URL}/friends/accept/${friend._id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -244,7 +221,7 @@ export default function FriendProfile({ route, navigation }) {
         console.log(token);
         console.log(user);
         console.log("user id", user._id);
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${user._id}`,
+        fetch(`${BASE_URL}/conservations/open/${user._id}`,
             {
                 method: "POST",
                 headers: {

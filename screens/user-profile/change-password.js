@@ -15,6 +15,8 @@ import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ChangePassword({ navigation }) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -52,7 +54,7 @@ export default function ChangePassword({ navigation }) {
         const accessToken = await getData();
         console.log("Bearer" + accessToken);
         if (confirmNewPassword === newPassword && newPassword.length >= 6) {
-            const response = await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/changePassword", {
+            const response = await fetch(`${BASE_URL}/auth/changePassword`, {
                 method: "POST",
                 headers: {
                     "Authorization": "Bearer " + accessToken,

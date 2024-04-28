@@ -17,11 +17,13 @@ import { ScrollView } from "react-native";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import Toast from "react-native-toast-message";
 import { useSocket } from "../socket.io/socket-context";
-import { setAllConversation, setCurrentConversation, updateConversation } from "../../rtk/user-slice";
+import { getConservations, setAllConversation, setCurrentConversation, updateConversation } from "../../rtk/user-slice";
 import ActionSheet from 'react-native-actionsheet';
 import { Platform } from "react-native";
 
 export default function MemberList({ navigation, route }) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     const conservationParam = route.params.data;
     const user = useSelector((state) => state.user.user);
     const friendsInRedux = useSelector((state) => state.user.friends);
@@ -136,7 +138,7 @@ export default function MemberList({ navigation, route }) {
 
     const handleAddMember = async () => {
         const accessToken = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/addMembers`, {
+        fetch(`${BASE_URL}/conservations/${conservationParam._id}/addMembers`, {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -213,10 +215,10 @@ export default function MemberList({ navigation, route }) {
     }
 
     const handleRemoveMember = async () => {
-        if (user._id === conservationParam.leaders[0]._id) {
+        if (user._id === currentConversation.leaders[0]._id) {
             if (selectedFriends.length !== 0) {
                 const accessToken = await getAccessToken();
-                fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/removeMembers`, {
+                fetch(`${BASE_URL}/conservations/${conservationParam._id}/removeMembers`, {
                     method: 'post',
                     headers: {
                         "Content-Type": "application/json",
@@ -252,10 +254,9 @@ export default function MemberList({ navigation, route }) {
                         })
                         setSelectedFriends([]);
                         setIsRemove(false);
-
-
                         // dispatch(setAllConversation(updateConservation))
                         // dispatch(setCurrentConversation({...currentConversation}))
+                        // dispatch(getConservations())
                     }).catch((err) => {
                         console.log(err);
                     })
@@ -283,30 +284,96 @@ export default function MemberList({ navigation, route }) {
 
 
     }
-    const handleConversationUpdate = (data) => {
-        const members = data.conversation.members;
-        let updatedConversationArray = allConversationAtRedux;
-        const newConversation = checkIsMember(data, members);
-        if (newConversation !== null) {
-            updatedConversationArray = [...allConversationAtRedux, newConversation];
-        }
-
-        const updatedConversation = updatedConversationArray.map((item) => {
-            if (item._id.toString() === data.conversation._id.toString()) {
-                return {
-                    ...item,
-                    lastMessage: data,
-                    updatedAt: new Date(Date.now()).toISOString(),
-                    isReadMessage: false,
-                };
-            }
-            return item;
+    const checkIsMember = (data, members) => {
+        const existingConversation = allConversationAtRedux.find((conversation) => {
+            return conversation._id.toString() === data.conversation._id.toString();
         });
 
+        if (!existingConversation && members.some(member => member._id === user._id)) {
+            return {
+                ...data.conversation,
+                lastMessage: data.conversation,
+                isReadMessage: false,
+            };
+        }
 
-        dispatch(setAllConversation(updatedConversation));
-
+        return null;
     };
+
+    // const handleConversationUpdate = (data) => {
+    //     console.log(data.conversation);
+    //     const members = data.conversation.members;
+    //     console.log("MEMBERSS:::::::", members);
+    //     if (data.conversation.type === "group") {
+    //       let isUserInGroup = false;
+    //       members.forEach(member => {
+    //         if (member._id.toString() === user._id.toString()) isUserInGroup = true;
+    //       })
+
+    //       // if (data.conversation.members.any(member => member._id === user._id)) {
+    //       if (isUserInGroup) {
+
+    //         console.log("running gooooo");
+    //         let updatedConversationArray = allConversationAtRedux;
+    //         const newConversation = checkIsMember(data, members);
+    //         if (newConversation !== null) {
+    //           updatedConversationArray = [...allConversation, newConversation];
+    //         }
+
+    //         const updatedConversation = updatedConversationArray.map((item) => {
+    //           if (item._id.toString() === data.conversation._id.toString()) {
+    //             return {
+    //               ...item,
+    //               lastMessage: data,
+    //               updatedAt: new Date(Date.now()).toISOString(),
+    //               isReadMessage: false,
+    //               name: data.conversation.name,
+    //               image: data.conversation.image,
+    //             };
+    //           }
+    //           return item;
+    //         });
+
+
+    //         setAllConversationAtRedux(updatedConversation);
+    //         dispatch(setAllConversation(updatedConversation));
+    //         return;
+
+    //       }
+
+    //     }
+    //     else {
+    //       let updatedConversationArray = allConversationAtRedux;
+    //       const newConversation = checkIsMember(data, members);
+    //       if (newConversation !== null) {
+    //         updatedConversationArray = [...allConversation, newConversation];
+    //       }
+
+    //       const updatedConversation = updatedConversationArray.map((item) => {
+    //         if (item._id.toString() === data.conversation._id.toString()) {
+    //           return {
+    //             ...item,
+    //             lastMessage: data,
+    //             updatedAt: new Date(Date.now()).toISOString(),
+    //             isReadMessage: false,
+    //             name: data.conversation.name,
+    //             image: data.conversation.image,
+    //           };
+    //         }
+    //         return item;
+    //       });
+
+
+    //       setAllConversationAtRedux(updatedConversation);
+    //       dispatch(setAllConversation(updatedConversation));
+    //       return;
+
+
+
+    //     }
+
+    //   };
+
     useEffect(() => {
         console.log("effect member list");
         socket.on("message:notification", (data) => {
@@ -327,27 +394,45 @@ export default function MemberList({ navigation, route }) {
                         }
                         return conversation;
                     })
-                    dispatch(setAllConversation(updateConservation))
+                    dispatch(setAllConversation(updateConservation, { position: 'member-list-noti' }))
                 }
+            }
+        }),
+            // socket.on("conversation:new", (data) => {
+            //     console.log(data);
+            //     data.conversation.members.map((member) => {
+            //         if (member._id.toString() === user._id.toString()) {
+            //             console.log("notification");
+            //             handleConversationUpdate(data);
+            //         }
+            //     }
+            //     )
+            // }),
+            socket.on('conversation:removeMembers', (data) => {
+                console.log(data);
+                console.log(user);
+
+                data.members.map((member) => {
+                    if (member === user._id) {
+                        const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+                        dispatch(setAllConversation(updatedConversation, { position: 'member-list-remove' }));
+                        if (currentConversation._id.toString() === data.conservationId.toString()) {
+                            navigation.navigate('MessageScreen');
+                        }
+                    }
+                })
+            });
+        socket.on("conversation:disband", (data) => {
+            console.log(data);
+            const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+            dispatch(setAllConversation(updatedConversation, { position: 'member-list-disband' }));
+            if (currentConversation._id.toString() === data.conservationId.toString()) {
+                navigation.navigate('MessageScreen');
 
             }
-
-
-
-        }),
-            socket.on("conversation:new", (data) => {
-                console.log(data);
-                data.conversation.members.map((member) => {
-                    if (member._id.toString() === user._id.toString()) {
-                        console.log("notification");
-                        handleConversationUpdate(data);
-                    }
-                }
-                )
-            })
-
+        })
         groupFriendsByLetter();
-    }, [currentConversation.members])
+    }, [currentConversation.members, allConversationAtRedux])
 
     const checkLeader = (id) => {
         if (currentConversation.leaders[0]._id === id) {
@@ -369,7 +454,7 @@ export default function MemberList({ navigation, route }) {
             return;
         }
         const accessToken = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/transfer/${friend._id}`, {
+        fetch(`${BASE_URL}/conservations/${currentConversation._id}/transfer/${friend._id}`, {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -389,7 +474,6 @@ export default function MemberList({ navigation, route }) {
                 return;
             }
             setOnChange(!onChange)
-
             Toast.show({
                 type: 'success',
                 text1: data.message,
