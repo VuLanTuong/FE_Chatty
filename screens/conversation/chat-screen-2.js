@@ -40,6 +40,9 @@ import { getConservations, setAllConversation, setCurrentConversation } from "..
 import FileMessageComponent from "./file-message-component";
 import { fetchAllGroup } from "../../service/conversation.util";
 const ChatScreen = ({ navigation, route }) => {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
+
     const [modalVisible, setModalVisible] = useState(false);
     const [modalFileVisible, setModalFileVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -156,7 +159,7 @@ const ChatScreen = ({ navigation, route }) => {
         // console.log(id);
         const token = await getAccessToken();
         if (mess.isMine === true) {
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/messages/${mess._id}`,
+            fetch(`${BASE_URL}/messages/${mess._id}`,
                 {
                     method: "DELETE",
                     headers: {
@@ -242,7 +245,7 @@ const ChatScreen = ({ navigation, route }) => {
         // console.log(contentForward);
         console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
-            await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${friendId}`, {
+            await fetch(`${BASE_URL}/conservations/${friendId}`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
@@ -252,7 +255,7 @@ const ChatScreen = ({ navigation, route }) => {
                 .then((data) => {
                     console.log(data);
                     if (data.status === "fail") {
-                        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
+                        fetch(`${BASE_URL}/conservations/open/${friendId}`,
                             {
                                 method: "POST",
                                 headers: {
@@ -267,7 +270,7 @@ const ChatScreen = ({ navigation, route }) => {
                                     return;
                                 }
                                 else {
-                                    let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
+                                    let response = await fetch(`${BASE_URL}/conservations/${data.data._id}`, {
                                         method: "GET",
                                         headers: {
                                             "Content-Type": "application/json",
@@ -313,7 +316,7 @@ const ChatScreen = ({ navigation, route }) => {
     const handleForwardFile = async () => {
         const token = await getAccessToken();
         selectedFriends.map(async (friendId) => {
-            await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${friendId}`, {
+            await fetch(`${BASE_URL}/conservations/${friendId}`, {
                 method: 'GET',
                 headers: {
                     "Content-Type": "application/json",
@@ -322,7 +325,7 @@ const ChatScreen = ({ navigation, route }) => {
             }).then((response) => response.json())
                 .then((data) => {
                     if (data.status === "fail") {
-                        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/open/${friendId}`,
+                        fetch(`${BASE_URL}/conservations/open/${friendId}`,
                             {
                                 method: "POST",
                                 headers: {
@@ -337,7 +340,7 @@ const ChatScreen = ({ navigation, route }) => {
                                     return;
                                 }
                                 else {
-                                    let response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${data.data._id}`, {
+                                    let response = await fetch(`${BASE_URL}/conservations/${data.data._id}`, {
                                         method: "GET",
                                         headers: {
                                             "Content-Type": "application/json",
@@ -380,7 +383,7 @@ const ChatScreen = ({ navigation, route }) => {
         console.log(replyMessage);
         const token = await getAccessToken();
         if (replyMessage && replyMessage.content !== "This message has been deleted" && replyText !== '') {
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages/replyText/${replyMessage._id}`,
+            fetch(`${BASE_URL}/conservations/${conversationParams._id}/messages/replyText/${replyMessage._id}`,
                 {
                     method: "POST",
                     headers: {
@@ -459,7 +462,7 @@ const ChatScreen = ({ navigation, route }) => {
                 data.members.map((member) => {
                     if (member === user._id) {
                         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-                        dispatch(setAllConversation(updatedConversation));
+                        dispatch(setAllConversation(updatedConversation, { position: 'chat-remove-member' }));
                         if (currentConversation._id.toString() === data.conservationId.toString()) {
                             navigation.navigate('MessageScreen');
                         }
@@ -497,7 +500,7 @@ const ChatScreen = ({ navigation, route }) => {
 
                             return conversation;
                         })
-                        dispatch(setAllConversation(updateConservation))
+                        dispatch(setAllConversation(updateConservation, { position: 'chat-deleted' }))
                     }
                 }),
                 socket.on("message:notification", (data) => {
@@ -514,18 +517,21 @@ const ChatScreen = ({ navigation, route }) => {
                             if (conversation._id.toString() === data.conversation._id.toString()) {
                                 console.log("update conversation");
                                 return { ...data.conversation, lastMessage: null }
+
+
                             }
                             return conversation;
                         })
                         dispatch(setCurrentConversation({ ...data.conversation, lastMessage: null }))
-                        dispatch(setAllConversation(updateConservation))
+                        dispatch(setAllConversation(updateConservation, { position: 'chat-notification' }))
+                        console.log("chat screen");
                     }
 
                 }),
                 socket.on("conversation:disband", (data) => {
                     console.log(data);
                     const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-                    dispatch(setAllConversation(updatedConversation));
+                    dispatch(setAllConversation(updatedConversation, { position: 'chat-disband' }));
                     navigation.navigate('MessageScreen');
 
                 })
@@ -541,7 +547,7 @@ const ChatScreen = ({ navigation, route }) => {
 
     const getAllMessage = async () => {
         const token = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/messages?page=1&limit=50`,
+        fetch(`${BASE_URL}/conservations/${conversationParams._id}/messages?page=1&limit=50`,
             {
                 method: "GET",
                 headers: {
@@ -569,74 +575,13 @@ const ChatScreen = ({ navigation, route }) => {
         setMessages(data.reverse())
 
     }
-    // const handleSendTextMessage = async (id, text, conversation) => {
-    //     // console.log("send text");
-    //     // console.log(text);
-    //     console.log(conversation);
-    //     const token = await getAccessToken();
-    //     if (text !== '') {
-    //         fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
-    //             {
-    //                 method: "POST",
-    //                 headers: {
-    //                     "Content-Type": "application/json",
-    //                     Authorization: "Bearer " + token
-    //                 },
-    //                 body: JSON.stringify({
-    //                     content: text
-    //                 }
-    //                 )
-    //             }).then((response) => response.json())
-    //             .then((data) => {
-    //                 console.log(data)
-    //                 if (data.status === "fail") {
-    //                     console.log("fail");
-    //                     return;
-    //                 }
 
-    //                 socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
-    //                 //kiem tra dieu kien de set
-    //                 if (conversation._id === conversationParams._id) {
-    //                     console.log("set roi");
-    //                     setMessages([...messages, data.data])
-    //                 }
-    //                 // const updatedConversation = allConversationAtRedux.map((item) => {
-    //                 //     // console.log(item._id.toString(), data.data._id.toString());
-    //                 //     if (item._id.toString() === conversationParams._id.toString()) {
-    //                 //         console.log();
-    //                 //         return {
-    //                 //             ...item,
-    //                 //             lastMessage: data.data,
-    //                 //             updatedAt: new Date(Date.now()).toISOString(),
-    //                 //             isReadMessage: true,
-    //                 //         };
-    //                 //     }
-    //                 //     return item;
-    //                 // });
-    //                 // console.log(updatedConversation);
-    //                 // dispatch(setAllConversation(updatedConversation));
-    //                 dispatch(getConservations());
-
-
-    //                 // setMessages([...messages, data.data])
-    //                 setText('');
-
-    //                 // dispatch(getConservations())
-    //             }).then(() => setText(''))
-    //             .catch((error) => console.log("fetch error", error))
-    //     }
-    //     else {
-    //         console.log("empty text");
-    //         return;
-    //     }
-
-    // }
     const handleSendTextMessage = async (id, text, conversation) => {
         console.log(conversation);
         console.log(currentConversation);
         const token = await getAccessToken();
         if (text !== '') {
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/messages/sendText`,
+            fetch(`${BASE_URL}/conservations/${id}/messages/sendText`,
                 {
                     method: "POST",
                     headers: {
@@ -696,7 +641,7 @@ const ChatScreen = ({ navigation, route }) => {
         console.log(currentConversation);
         const token = await getAccessToken();
 
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}/forwardFiles`,
+        fetch(`${BASE_URL}/conservations/${id}/forwardFiles`,
             {
                 method: "POST",
                 headers: {
@@ -946,28 +891,20 @@ const ChatScreen = ({ navigation, route }) => {
         }
         const isImage = (message) => {
             message.attachments.map((attachment, index) => {
-                if (attachment.type === "image") {
+                if (attachment?.type === "image") {
                     return true;
                 }
-                if (attachment.type === "application") {
-                    return true;
-                }
-                return false;
-
-            })
-        }
-        const isFile = (message) => {
-            message.attachments.map((attachment, index) => {
-                if (attachment.type === "application") {
+                if (attachment?.type === "application") {
                     return true;
                 }
                 return false;
 
             })
         }
+
         const renderAttachments = (message) => {
             return message.attachments.map((attachment, index) => {
-                if (attachment.type === "application") {
+                if (attachment?.type === "application") {
                     return (
                         // <View key={index} style={styles.fileContainer}>
                         <View key={index} style={styles.fileDetailsContainer}>
@@ -1003,7 +940,7 @@ const ChatScreen = ({ navigation, route }) => {
 
                     );
                 }
-                if (attachment.type === "image") {
+                if (attachment?.type === "image") {
                     return (
                         <View style={{
                             flexDirection: "column",
@@ -1045,7 +982,7 @@ const ChatScreen = ({ navigation, route }) => {
 
         return (
             <View
-                key={message._id}
+                key={message?._id}
                 style={{
                     flex: 1,
                     flexDirection: "row",
@@ -1250,6 +1187,8 @@ const ChatScreen = ({ navigation, route }) => {
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             quality: 1,
             allowsMultipleSelection: true,
+            aspect: [4, 3],
+
 
         });
 
@@ -1345,44 +1284,59 @@ const ChatScreen = ({ navigation, route }) => {
 
         // })
 
+        let formData = new FormData();
         files.map(async (file) => {
-            // console.log(file);
-            await fetch(
-                `http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/messages/sendFilesV2`,
-                {
-                    method: "POST",
-                    headers: {
-                        Authorization: "Bearer " + accessToken,
-                        "Content-Type": 'application/json'
-                    },
-                    body:
-                        JSON.stringify({ files: [{ data: file.uri, mimetype: file.mimetype }] })
-                    ,
-                }
-            )
-                .then((response) => {
-                    // console.log("response", response)
 
-                    console.log("upload", response.status);
-                    return response.json();
+            formData.append('files', {
+                uri: file.uri,
+                type: file.mimetype,
+                name: file.name
 
-                })
-                .then((data) => {
-                    setMessages([...messages, data.data])
-                    socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
-                    console.log(data.data);
-                    console.log(file);
-                    dispatch(getConservations())
-                })
-                .catch((error) => {
-                    Toast.show({
-                        type: 'error',
-                        text1: 'File is too large',
-                    })
-                    console.log("error", error);
-                });
+            });
 
         })
+        // console.log(file);
+        await fetch(
+            `${BASE_URL}/conservations/${currentConversation._id}/messages/sendFiles`,
+            {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + accessToken,
+                    "Content-Type": 'multipart/form-data'
+                },
+                body:
+                    // JSON.stringify({ files: [{ data: file.uri, mimetype: file.mimetype }] })
+                    formData
+                ,
+            }
+        )
+            .then((response) => {
+                console.log("upload", response.status);
+                return response.json();
+
+            })
+            .then((data) => {
+                console.log(data);
+                if (data.status === "fail") {
+                    console.log(data);
+
+                    return;
+                }
+                setMessages([...messages, data.data])
+                socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
+                console.log(data.data);
+                console.log(file);
+                dispatch(getConservations())
+            })
+            .catch((error) => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'File is too large',
+                })
+                console.log("error", error);
+            });
+
+
 
 
     };
@@ -1396,7 +1350,7 @@ const ChatScreen = ({ navigation, route }) => {
     }
     const handleRemove = async (message) => {
         const token = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/messages/${message._id}`,
+        fetch(`${BASE_URL}/messages/${message._id}`,
             {
                 method: "DELETE",
                 headers: {
@@ -1464,7 +1418,7 @@ const ChatScreen = ({ navigation, route }) => {
 
         return (
             <View
-                key={message._id}
+                key={message?._id}
                 style={{
                     flexDirection: 'row',
                     alignItems: 'flex-end',
@@ -1562,7 +1516,7 @@ const ChatScreen = ({ navigation, route }) => {
         // getAllMessage()
 
         getAccessToken().then((token) => {
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conversationParams._id}/readMessages`, {
+            fetch(`${BASE_URL}/conservations/${conversationParams._id}/readMessages`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1588,7 +1542,8 @@ const ChatScreen = ({ navigation, route }) => {
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
                 {messages.map((message) => (
-                    message.type === 'notification' ? (
+
+                    message?.type === 'notification' ? (
                         <View style={{
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1613,10 +1568,10 @@ const ChatScreen = ({ navigation, route }) => {
                             <Text>{message.content}</Text>
                         </View>
                     ) : (
-                        message.type === 'file' && message.content !== 'This message has been deleted' ? (
-                            <FileMessageComponent key={message._id} message={message} />
+                        message?.type === 'file' && message.content !== 'This message has been deleted' ? (
+                            <FileMessageComponent key={message?._id} message={message} />
                         ) : (
-                            <MessageComponent key={message._id} message={message} />
+                            <MessageComponent key={message?._id} message={message} />
                         )
                     )
                 ))}
@@ -1751,7 +1706,7 @@ const ChatScreen = ({ navigation, route }) => {
                             <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleChooseFile()}>
                                 <Octicons name="file" size={24} color="black" />
                             </Pressable>
-                            <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, conversationParams)}>
+                            <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, currentConversation)}>
                                 <Feather name="send" size={24} color="black" />
                             </Pressable>
                         </View>

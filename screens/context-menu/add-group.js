@@ -18,6 +18,8 @@ import { getConservations } from '../../rtk/user-slice';
 
 const AddGroup = ({ navigation }) => {
     const dispatch = useDispatch()
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     const [nameGroup, setNameGroup] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
     const friendInRedux = useSelector((state) => state.user.friends);
@@ -84,7 +86,7 @@ const AddGroup = ({ navigation }) => {
         })
         if (nameGroup !== "") {
             if (members.length >= 2) {
-                await fetch('http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/createGroup', {
+                await fetch(`${BASE_URL}/conservations/createGroup`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

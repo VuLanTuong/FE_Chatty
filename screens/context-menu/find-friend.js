@@ -7,11 +7,16 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { ErrorToast, SuccessToast } from 'react-native-toast-message';
 import Toast from 'react-native-toast-message';
 const FindFriend = ({ navigation }) => {
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [email, setEmail] = useState('');
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
+    
 
     const findFriend = async () => {
         const token = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/findByPhone/${phoneNumber}`, {
+        
+        
+        fetch(`${BASE_URL}/users/findByEmail/${email}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -20,7 +25,7 @@ const FindFriend = ({ navigation }) => {
         })
             .then((response) => response.json())
             .then((data) => {
-                if (data.status === 'fail') {
+                if (data.status === 'fail' || data.status === 'error' || !data.data) {
                     console.log("fail");
                     Toast.show({
                         type: 'error',
@@ -48,8 +53,8 @@ const FindFriend = ({ navigation }) => {
                     mode='outlined'
                     placeholder='Enter phone number'
                     style={styles.input}
-                    value={phoneNumber}
-                    onChangeText={(text) => setPhoneNumber(text)}
+                    value={email}
+                    onChangeText={(text) => setEmail(text)}
                 />
             </View>
             <Pressable onPress={() => findFriend()} style={styles.searchButton}>

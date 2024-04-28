@@ -8,6 +8,8 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 
 
 export default function ForgotPassword({ navigation }) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     const [email, setEmail] = useState();
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
@@ -34,7 +36,7 @@ export default function ForgotPassword({ navigation }) {
     };
 
     const handleVerifyOtp = async () => {
-        await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/verifyForgetPasswordOTP", {
+        await fetch(`${BASE_URL}/users/verifyForgetPasswordOTP`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -78,7 +80,7 @@ export default function ForgotPassword({ navigation }) {
         console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
             if (newPassword.length >= 6) {
-                await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/resetPassword", {
+                await fetch(`${BASE_URL}/users/resetPassword`, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
@@ -123,7 +125,7 @@ export default function ForgotPassword({ navigation }) {
     const handleSendOTP = async (resend) => {
         console.log(email);
         if (email) {
-            await fetch("http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/forgetPassword", {
+            await fetch(`${BASE_URL}/users/forgetPassword`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

@@ -22,6 +22,8 @@ import { Alert } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 
 export default function OptionGroup({ navigation, route }) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     const currentConversation = useSelector((state) => state.user.currentConversation);
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
     const [modalVisible, setModalVisible] = useState(false);
@@ -103,59 +105,60 @@ export default function OptionGroup({ navigation, route }) {
     }
     const handleLeaveGroup = async () => {
         console.log("confirm leave group");
-        if (user._id !== currentConversation.leaders[0]._id) {
-            const accessToken = await getAccessToken();
-            fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/leaveGroup`, {
-                method: 'post',
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: "Bearer " + accessToken
 
-                }
+        const accessToken = await getAccessToken();
+        fetch(`${BASE_URL}/conservations/${conservationParam._id}/leaveGroup`, {
+            method: 'post',
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + accessToken
 
-            }).then((response) => {
-                return response.json()
-            })
-                .then((data) => {
-                    console.log(data);
-                    if (data.status === 'fail') {
-                        console.log("leave group fail");
-                        Toast.show({
-                            type: 'error',
-                            text1: data.message,
-                            visibilityTime: 2000,
-                            position: 'top'
+            }
 
-                        })
-                        return;
-                    }
-
+        }).then((response) => {
+            return response.json()
+        })
+            .then((data) => {
+                console.log(data);
+                if (data.status === 'fail') {
+                    console.log("leave group fail");
                     Toast.show({
-                        type: 'success',
-                        text1: "Leave group successfully",
+                        type: 'error',
+                        text1: data.message,
                         visibilityTime: 2000,
                         position: 'top'
-                    })
-                    setOnChange(!onChange);
 
-                    const updateConversation = allConversationAtRedux.filter(conversation =>
-                        conversation._id.toString() !== conservationParam._id.toString());
-                    dispatch(setAllConversation(updateConversation));
-                    dispatch(getConservations())
-                    navigation.navigate('MessageScreen');
-                }).catch((err) => {
-                    console.log(err);
+                    })
+                    return;
+                }
+
+                Toast.show({
+                    type: 'success',
+                    text1: "Leave group successfully",
+                    visibilityTime: 2000,
+                    position: 'top'
                 })
-        }
-        else {
-            Toast.show({
-                type: 'error',
-                text1: "You can't leave this group",
-                visibilityTime: 2000,
-                position: 'top'
+                setOnChange(!onChange);
+                // const updateConversation = allConversationAtRedux.filter(conversation =>
+                // conversation._id.toString() !== conservationParam._id.toString());
+                // dispatch(setAllConversation(updateConversation));
+                dispatch(getConservations())
+                navigation.navigate('MessageScreen');
+            }).catch((err) => {
+                console.log(err);
             })
-            return;
-        }
+        // }
+        // else {
+        //     Toast.show({
+        //         type: 'error',
+        //         text1: "You can't leave this group",
+        //         text2: 'You must transfer leadership to another member before leaving this group',
+        //         visibilityTime: 4000,
+        //         position: 'top'
+        //     })
+        //     navigation.navigate('MemberList', { data: currentConversation });
+
+        // }
     }
 
     const isEditNameGroup = () => {
@@ -166,7 +169,7 @@ export default function OptionGroup({ navigation, route }) {
     const handleChangeNameGroup = async () => {
 
         const accessToken = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/changeName`, {
+        fetch(`${BASE_URL}/conservations/${conservationParam._id}/changeName`, {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -223,24 +226,36 @@ export default function OptionGroup({ navigation, route }) {
                     }
                     return conversation;
                 })
-                dispatch(setAllConversation(updateConservation))
+                dispatch(setAllConversation(updateConservation, { position: 'option-for-group-notification' }))
+                console.log("option for group notification");
             }
         })
         setNewName(currentConversation.name);
         socket.on('conversation:removeMembers', (data) => {
             console.log(data);
             console.log(user);
-
             data.members.map((member) => {
                 if (member === user._id) {
                     const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-                    dispatch(setAllConversation(updatedConversation));
+                    dispatch(setAllConversation(updatedConversation, { position: 'option-for-group-remove' }));
+                    console.log("option for group screen remove");
                     if (currentConversation._id.toString() === data.conservationId.toString()) {
                         navigation.navigate('MessageScreen');
                     }
                 }
             })
         });
+        socket.on("conversation:disband", (data) => {
+            console.log(data);
+            const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
+            dispatch(setAllConversation(updatedConversation, { position: 'option-for-group-disband' }));
+            if (currentConversation._id.toString() === data.conservationId.toString()) {
+                navigation.navigate('MessageScreen');
+
+            }
+
+        })
+
     }, [onChange, allConversationAtRedux])
 
 
@@ -279,6 +294,17 @@ export default function OptionGroup({ navigation, route }) {
     }
 
     const modalConfirmLeaveGroup = () => {
+        if (user._id === currentConversation.leaders[0]._id) {
+            Toast.show({
+                type: 'error',
+                text1: "You must transfer leadership to another member",
+                text2: `Can't leave this group`,
+                visibilityTime: 4000,
+                position: 'top'
+            })
+            navigation.navigate('MemberList', { data: currentConversation });
+            return;
+        }
 
 
         if (Platform.OS === 'ios' || Platform.OS === 'android') {
@@ -304,7 +330,7 @@ export default function OptionGroup({ navigation, route }) {
     const handleDisbandGroup = async () => {
         console.log("confirm");
         const accessToken = await getAccessToken();
-        fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${conservationParam._id}/disband`, {
+        fetch(`${BASE_URL}/conservations/${conservationParam._id}/disband`, {
             method: 'post',
             headers: {
                 "Content-Type": "application/json",
@@ -352,28 +378,53 @@ export default function OptionGroup({ navigation, route }) {
         console.log(result);
 
         if (!result.canceled) {
-            handleUploadPhoto(result.assets[0].uri);
+
+            const photo = {
+                uri: result.assets[0].uri,
+                name: "image.jpg",
+                mimetype: "image/jpeg"
+            }
+            handleUploadPhoto(photo);
         }
     };
-    const handleUploadPhoto = async (imageUri) => {
+    const handleUploadPhoto = async (photo) => {
+        console.log(photo);
+        let formData = new FormData();
+
+        formData.append('image', {
+            uri: photo.uri,
+            type: photo.mimetype,
+            name: photo.name
+
+        });
         const accessToken = await getAccessToken();
         fetch(
-            `http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${currentConversation._id}/changeImage`,
+            `${BASE_URL}/conservations/${currentConversation._id}/changeImageV2`,
             {
                 method: "POST",
                 headers: {
                     Authorization: "Bearer " + accessToken,
 
-                    "Content-Type": "application/json",
+                    "Content-Type": "multipart/form-data",
                 },
-                body: JSON.stringify({ image: imageUri }),
+                body: formData,
             }
         )
             .then((response) => {
-                console.log("response", response);
+                // console.log("response", response);
                 return response.json();
             })
             .then((data) => {
+                console.log("data", data);
+                if (data.status === 'fail') {
+                    Toast.show({
+                        type: "error",
+                        text1: "Change avatar fail",
+                        position: "top",
+                        visibilityTime: 2000,
+                    });
+                    return;
+                }
                 Toast.show({
                     type: "success",
                     text1: "Change avatar successful",
@@ -381,7 +432,8 @@ export default function OptionGroup({ navigation, route }) {
                     visibilityTime: 2000,
                 });
 
-                console.log(data);
+
+
             })
             .catch((error) => {
                 console.log("error", error);
@@ -555,7 +607,7 @@ export default function OptionGroup({ navigation, route }) {
                         <Text style={{ color: "red", marginLeft: 20 }}>Delete chat history</Text>
                     </Button>
 
-                    {checkLeader(user._id) ? (
+                    {checkLeader(user._id) && (
                         <Button onPress={() => modalConfirm()}>
                             <MaterialCommunityIcons
                                 name="cancel"
@@ -564,14 +616,15 @@ export default function OptionGroup({ navigation, route }) {
                             />
                             <Text style={{ color: "red", marginLeft: 20 }}>Disband group</Text>
                         </Button>
-                    ) : <Button onPress={() => modalConfirmLeaveGroup()}>
+                    )}
+                    <Button onPress={() => modalConfirmLeaveGroup()}>
                         <MaterialCommunityIcons
                             name="exit-to-app"
                             size={24}
                             color="red"
                         />
                         <Text style={{ color: "red", marginLeft: 20 }}>Leave group</Text>
-                    </Button>}
+                    </Button>
 
                 </View>
 

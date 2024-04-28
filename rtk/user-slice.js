@@ -6,7 +6,6 @@ const initialState = {
         _id: "", // The user's ID.
         name: "", // The user's name.
         email: "", // The user's email.
-        phone: "", // The user's phone number.
         dateOfBirth: "", // The user's date of birth.
         bio: "", // The user's bio.
         gender: "", // The user's gender.
@@ -62,14 +61,35 @@ export const userSlice = createSlice({
             state.user.avatar = action.payload.avatar
         },
         setAllConversation: (state, action) => {
-            console.log(action.payload);
-            console.log("ok");
+            let temp = [];
+            action.payload.forEach((element) => {
+                const members = element.members;
+                console.log("MEMBERSS:::::::", members);
+                if (element.type === "group") {
+                    let isUserInGroup = false;
+                    members.forEach(member => {
+                        if (member._id.toString() === state.user._id.toString()) isUserInGroup = true;
+                    })
+                    if (isUserInGroup) {
+                        temp.push(element);
+                    }
+                }
+                else {
+                    temp.push(element);
+                }
+            });
 
-            const sortedObjects = action.payload.sort((a, b) => {
+            const sortedObjects = temp.sort((a, b) => {
                 return new Date(b.updatedAt) - new Date(a.updatedAt);
             });
-            state.conversation = sortedObjects;
+
+            // Return a new state object with updated conversation array
+            return {
+                ...state,
+                conversation: sortedObjects
+            };
         },
+
         updateFriend: (state, action) => {
             console.log(action.payload);
             state.friends = [...state.friends, action.payload]

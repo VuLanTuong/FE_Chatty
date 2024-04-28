@@ -14,6 +14,8 @@ import { Badge } from '@rneui/themed';
 import { useSocket } from "../socket.io/socket-context";
 import { fetchAllGroup } from "../../service/conversation.util";
 const MessageScreen = ({ navigation }) => {
+  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
 
 
 
@@ -54,6 +56,8 @@ const MessageScreen = ({ navigation }) => {
 
 
   const checkIsMember = (data, members) => {
+
+    // if (data.conversation.type !== "group") {
     const existingConversation = allConversationAtRedux.find((conversation) => {
       return conversation._id.toString() === data.conversation._id.toString();
     });
@@ -64,47 +68,55 @@ const MessageScreen = ({ navigation }) => {
         lastMessage: data.conversation,
         isReadMessage: false,
       };
+      // }
     }
 
     return null;
   };
 
-
-  // const handleConversationUpdate = (data) => {
-  //   const members = data.conversation.members;
-
-  //   let updatedConversationArray = allConversationAtRedux;
-  //   const newConversation = checkIsMember(data, members);
-
-  //   if (newConversation !== null) {
-  //     updatedConversationArray = [...allConversationAtRedux, newConversation];
-  //   }
-  //   console.log(updatedConversationArray);
-  //   const updatedConversation = updatedConversationArray.map((item) => {
-  //     console.log(item);
-  //     if (item._id.toString() === data.conversation._id.toString()) {
-  //       return {
-  //         ...item,
-  //         lastMessage: data,
-  //         updateAt: Date.now(),
-  //         isReadMessage: false,
-  //       };
-  //     }
-  //     return item;
-  //   });
-
-  //   console.log(updatedConversation);
-  //   dispatch(setAllConversation(updatedConversation));
-  //   setConversations(updatedConversation);
-  //   console.log(data);
-  // };
-
-  // socket.on('message:receive', (data) => {
-  //   handleConversationUpdate(data);
-  // });
   const handleConversationUpdate = (data) => {
-    if (data.conversation.members.some(member => member._id === user._id)) {
-      const members = data.conversation.members;
+    console.log(data.conversation);
+    const members = data.conversation.members;
+    console.log("MEMBERSS:::::::", members);
+    if (data.conversation.type === "group") {
+      let isUserInGroup = false;
+      members.forEach(member => {
+        if (member._id.toString() === user._id.toString()) isUserInGroup = true;
+      })
+
+      // if (data.conversation.members.any(member => member._id === user._id)) {
+      if (isUserInGroup) {
+
+        console.log("running gooooo");
+        let updatedConversationArray = allConversationAtRedux;
+        const newConversation = checkIsMember(data, members);
+        if (newConversation !== null) {
+          updatedConversationArray = [...allConversation, newConversation];
+        }
+
+        const updatedConversation = updatedConversationArray.map((item) => {
+          if (item._id.toString() === data.conversation._id.toString()) {
+            return {
+              ...item,
+              lastMessage: data,
+              updatedAt: new Date(Date.now()).toISOString(),
+              isReadMessage: false,
+              name: data.conversation.name,
+              image: data.conversation.image,
+            };
+          }
+          return item;
+        });
+
+
+        setAllConversationAtRedux(updatedConversation);
+        dispatch(setAllConversation(updatedConversation, { position: 'message-updateConvo' }));
+        return;
+
+      }
+
+    }
+    else {
       let updatedConversationArray = allConversationAtRedux;
       const newConversation = checkIsMember(data, members);
       if (newConversation !== null) {
@@ -128,6 +140,10 @@ const MessageScreen = ({ navigation }) => {
 
       setAllConversationAtRedux(updatedConversation);
       dispatch(setAllConversation(updatedConversation));
+      return;
+
+
+
     }
 
   };
@@ -140,13 +156,28 @@ const MessageScreen = ({ navigation }) => {
 
       data.members.map((member) => {
         if (member === user._id) {
+          console.log("oke");
           const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-          dispatch(setAllConversation(updatedConversation));
+          dispatch(setAllConversation(updatedConversation, { position: 'message-removeMember' }));
         }
       })
     });
     socket.on('message:receive', (data) => {
+      // allConversationAtRedux.map((conversation) => {
+      //   if (data.conversation.type === "group") {
+      //     if (conversation._id.toString() === data.conversation._id.toString()) {
+      //       console.log("all in");
+      //       handleConversationUpdate(data);
+      //       return;
+      //     }
+      //   }
+
+
+
+
+      // })
       handleConversationUpdate(data);
+
     });
     socket.on('message:deleted', (data) => {
       console.log(data);
@@ -160,7 +191,7 @@ const MessageScreen = ({ navigation }) => {
       })
       console.log(updateConservation);
 
-      dispatch(setAllConversation(updateConservation))
+      dispatch(setAllConversation(updateConservation, { position: 'message-delete' }))
     }),
       socket.on("conversation:new", (data) => {
         console.log(data);
@@ -175,18 +206,25 @@ const MessageScreen = ({ navigation }) => {
       socket.on("conversation:disband", (data) => {
         console.log(data);
         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
-        dispatch(setAllConversation(updatedConversation));
+        dispatch(setAllConversation(updatedConversation, { position: 'message-disband' }));
 
       }),
       socket.on("message:notification", (data) => {
         console.log(data);
-        if (data.conversation.members.some(member => member._id === user._id)) {
+        // if (data.conversation.members.some(member => member._id === user._id)) {
 
-          console.log("notification");
-          handleConversationUpdate(data);
-          return;
+        data.conversation.members.map((member) => {
+          if (member._id === user._id) {
+            handleConversationUpdate(data);
+            return;
 
-        }
+          }
+        })
+        // console.log("notification");
+        // handleConversationUpdate(data);
+        // return;
+
+        // }
         // const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
         // console.log(updatedConversation);
         // dispatch(setAllConversation(updatedConversation));
@@ -270,12 +308,11 @@ const MessageScreen = ({ navigation }) => {
 
 
   const removeConservationNotContent = () => {
-
     console.log(conversations);
     const updatedConversations = conversations.filter(cv => cv.lastMessage !== null);
     console.log(updatedConversations);
     setConversations(updatedConversations);
-    dispatch(setAllConversation(updatedConversations))
+    dispatch(setAllConversation(updatedConversations, { position: 'message-remove-conversation-not-content' }))
 
   };
 
@@ -283,7 +320,7 @@ const MessageScreen = ({ navigation }) => {
     // const filteredItems = members.filter(member => member._id !== user._id);
     const token = await getAccessToken();
 
-    fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/conservations/${id}`,
+    fetch(`${BASE_URL}/conservations/${id}`,
       {
         method: "GET",
         headers: {
@@ -309,7 +346,7 @@ const MessageScreen = ({ navigation }) => {
             return conversation;
           })
           console.log(updatedConversation);
-          dispatch(setAllConversation(updatedConversation));
+          dispatch(setAllConversation(updatedConversation, { position: 'message-open-conversation' }));
           navigation.navigate('Chat', { data: data.data, friends: friends })
         }
       })

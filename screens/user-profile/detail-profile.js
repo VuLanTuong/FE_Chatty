@@ -29,6 +29,8 @@ import dayjs from "dayjs";
 import Modal from "react-native-modal";
 
 export default function DetailProfile({ navigation }) {
+  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
   const [isEditing, setIsEditing] = useState(false);
@@ -68,7 +70,7 @@ export default function DetailProfile({ navigation }) {
     const accessToken = await getAccessToken();
     console.log("access token", accessToken);
     fetch(
-      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateMe",
+      `${BASE_URL}/users/updateMe`,
       {
         method: "PUT",
         headers: {
@@ -125,7 +127,7 @@ export default function DetailProfile({ navigation }) {
     console.log("photo", imageUri);
 
     fetch(
-      "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/updateAvatarV2",
+      `${BASE_URL}/users/updateAvatarV2`,
       {
         method: "PUT",
         headers: {
@@ -275,10 +277,10 @@ export default function DetailProfile({ navigation }) {
           </View>
           <Divider style={styles.divider} />
 
-          <View style={styles.infoRow}>
+           {/* <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Phone Number</Text>
             <Text style={{ color: "grey" }}>{user.phone}</Text>
-          </View>
+          </View> */}
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Email</Text>
 

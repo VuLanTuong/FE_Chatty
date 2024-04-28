@@ -1,9 +1,11 @@
 import { getAccessToken } from "../screens/user-profile/getAccessToken";
 import { useDispatch } from "react-redux"
 export async function findFriendById(id) {
+    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
     try {
         const token = await getAccessToken();
-        const response = await fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/${id}`, {
+        const response = await fetch(`${BASE_URL}/users/${id}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",

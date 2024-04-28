@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 const register = ({ navigation }) => {
+  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -31,8 +32,31 @@ const register = ({ navigation }) => {
 
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(false);
+
+  const [isChangePassword, setIsChangePassword] = useState(false)
+  const [otp, setOtp] = useState('');
+
+  const [message, setMessage] = useState('')
+
+  const [errPassword, setErrPassword] = useState('')
+  const [errOtp, setErrOtp] = useState('')
+
+
   const toggleModal = () => {
     setShowModal(!showModal);
+  };
+
+
+  const toggleModalSendOtp = () => {
+    Toast.show({
+      type: 'success',
+      text1: `OTP has been sent to ${email}`,
+      position: 'top',
+      visibilityTime: 4000,
+    })
+    setModalVisible(!isModalVisible);
+    handleSendOTP(false);
   };
 
   const toggleNewPasswordVisibility = () => {
@@ -44,44 +68,6 @@ const register = ({ navigation }) => {
   };
   const dispatch = useDispatch();
 
-  const handlePhoneNumber = (text) => {
-    const numericValue = text.replace(/[^0-9]/g, "");
-    setPhone(numericValue);
-  };
-
-  const validate = () => {
-    const phoneRegex = /^(03|05|07|08|09|01[2689])([0-9]{8})\b/;
-
-    if (!phone.match(phoneRegex)) {
-      console.log("phone invalid");
-      return false;
-    }
-    if (password !== confirmPassword) {
-      setIsSignUpError(true);
-      return false;
-    }
-
-    return true;
-  };
-
-  // CHECK PHONE NUMBER EXIST
-
-  // const checkPhoneNumber = async (phone) => {
-  //   try {
-  //     const response = await fetch(
-  //       `http://localhost:3000/users?phoneNumber=${phoneNumber}`
-  //     );
-  //     const result = await response.json();
-  //     if (response.ok) {
-  //       return result.length;
-  //     } else {
-  //       throw new Error(result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //     return false;
-  //   }
-  // };
   const storeData = async (value) => {
     try {
       await AsyncStorage.setItem("access-token", value);
@@ -91,6 +77,7 @@ const register = ({ navigation }) => {
       console.error(e);
     }
   };
+
   const handleSignUp = async () => {
     // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
     // if (isPhoneNumberExists || !validate()) {
@@ -98,75 +85,150 @@ const register = ({ navigation }) => {
     //   return;
     // }
 
-    if (phone.match(/^(03|05|07|08|09|01[2689])([0-9]{8})\b/)) {
-      if (confirmPassword === password) {
-        const response = await fetch(
-          "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/auth/register",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              name,
-              email,
-              phone,
-              password,
-              dateOfBirth: date.format("YYYY-MM-DD"),
-              gender,
-            }),
-          }
-        )
-          .then((response) => {
-            console.log(response);
-            return response.json();
-          })
-          .then((data) => {
-            if (data.status === "fail") {
-              return Toast.show({
-                type: "error",
-                text1: data.message,
-                position: "top",
-                visibilityTime: 2000,
-              });
-            }
-            console.log(data);
 
-            storeData(data.data.token.access_token);
-            dispatch(
-              login({
-                user: data.data.user,
-              })
-            );
-            Toast.show({
-              type: "success",
-              text1: "Register successfull",
+    if (confirmPassword === password) {
+      const response = await fetch(
+        `${BASE_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            password,
+            dateOfBirth: date.format("YYYY-MM-DD"),
+            gender,
+          }),
+        }
+      )
+        .then((response) => {
+          console.log(response);
+          return response.json();
+        })
+        .then((data) => {
+          if (data.status === "fail") {
+            return Toast.show({
+              type: "error",
+              text1: data.message,
               position: "top",
               visibilityTime: 2000,
             });
+          }
+          console.log(data);
 
-            navigation.navigate("Home");
-          })
-          .catch((error) => {
-            console.log(error.message);
+          storeData(data.data.token.access_token);
+          dispatch(
+            login({
+              user: data.data.user,
+            })
+          );
+          Toast.show({
+            type: "success",
+            text1: "Register successfull",
+            position: "top",
+            visibilityTime: 2000,
           });
-      } else {
-        Toast.show({
-          type: "error",
-          text1: "Password and confirm password not match",
-          position: "top",
-          visibilityTime: 4000,
+
+          navigation.navigate("Home");
+        })
+        .catch((error) => {
+          console.log(error.message);
         });
-      }
     } else {
       Toast.show({
         type: "error",
-        text1: "Phone must be valid in Viet Nam",
+        text1: "Password and confirm password not match",
         position: "top",
         visibilityTime: 4000,
       });
     }
+
   };
+  const handleOtpChange = (text) => {
+    const numericValue = text.replace(/[^0-9]/g, '');
+    setOtp(numericValue)
+  };
+
+  const handleVerifyOtp = async () => {
+    await fetch(`${BASE_URL}/users/verifyForgetPasswordOTP`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: email,
+        otp: otp
+      }),
+    })
+      .then((response) => { return response.json() })
+      .then((data) => {
+        console.log(data)
+        Toast.show({
+          type: 'success',
+          text1: data.message,
+          position: 'top',
+          visibilityTime: 4000,
+        });
+        if (data.status === 'success') {
+          toggleModal();
+          setIsChangePassword(!isChangePassword)
+
+        }
+      })
+  };
+
+  const handleSendOTP = async (resend) => {
+    console.log(email);
+    if (email) {
+      await fetch(`${BASE_URL}/auth/sendVerifyEmailOtp`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email
+        }),
+      })
+        .then((response) => { return response.json() })
+        .then((data) => {
+          console.log(data)
+          console.log(resend);
+          if (data.status === 'fail') {
+            Toast.show({
+              type: 'error',
+              text1: "Email used by another account",
+              position: 'top',
+              visibilityTime: 4000,
+
+            });
+            setModalVisible(false);
+            return;
+          }
+          if (!resend) {
+            setModalVisible(!isModalVisible);
+            setMessage(data.message)
+          }
+          else {
+            setMessage("Resend OTP success \n" + data.message)
+          }
+
+        })
+    }
+    else {
+      Toast.show({
+        type: 'error',
+        text1: "Please enter your email",
+        position: 'top',
+        visibilityTime: 4000,
+
+      });
+
+    }
+  }
+
+
 
   return (
     <ScrollView
@@ -238,7 +300,7 @@ const register = ({ navigation }) => {
           <Modal isVisible={showModal} onBackdropPress={toggleModal}>
             <View style={styles.modalContent}>
               <DateTimePicker
-              selectedItemColor="#f558a4"
+                selectedItemColor="#f558a4"
                 mode="single"
                 date={date}
                 onChange={(params) => setDate(params.date)}
@@ -259,20 +321,10 @@ const register = ({ navigation }) => {
             underlineColorAndroid="transparent"
             keyboardType="email-address"
             value={email}
-            onChangeText={(text) => setEmail(text)}
+            onChangeText={(text) => setEmail(text.trim())}
           />
         </View>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={[styles.input, isSignUpError && styles.errorInput]}
-            label="Phone"
-            underlineColorAndroid="transparent"
-            keyboardType="numeric"
-            value={phone}
-            maxLength={10}
-            onChangeText={handlePhoneNumber}
-          />
-        </View>
+
         <View
           style={{
             marginBottom: 5,
@@ -285,7 +337,7 @@ const register = ({ navigation }) => {
             underlineColorAndroid="transparent"
             secureTextEntry={!showNewPassword}
             value={password}
-            onChangeText={(text) => setPassword(text)}
+            onChangeText={(text) => setPassword(text.trim())}
           />
           <Pressable
             onPress={toggleNewPasswordVisibility}
@@ -310,7 +362,7 @@ const register = ({ navigation }) => {
             underlineColorAndroid="transparent"
             secureTextEntry={!showConfirmNewPassword}
             value={confirmPassword}
-            onChangeText={(text) => setConfirmPassword(text)}
+            onChangeText={(text) => setConfirmPassword(text.trim())}
           />
           <Pressable
             onPress={toggleConfirmNewPasswordVisibility}
@@ -325,11 +377,86 @@ const register = ({ navigation }) => {
         </View>
 
         <View style={styles.btnContainer}>
-          <Button mode="contained" style={styles.btn} onPress={handleSignUp}>
+          <Button mode="contained" style={styles.btn} onPress={toggleModalSendOtp}>
             Register
           </Button>
         </View>
       </View>
+      <Modal visible={isModalVisible} onRequestClose={toggleModalSendOtp}>
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalText}>Enter OTP:</Text>
+          <TextInput
+            style={styles.otpInput}
+            value={otp}
+            onChangeText={handleOtpChange}
+            maxLength={6}
+            keyboardType="numeric"
+          />
+          <Text style={{
+            color: 'red',
+            fontStyle: 'italic',
+            fontWeight: '500',
+            marginTop: 5,
+            marginBottom: 5
+
+
+          }}>*{message}</Text>
+          <Text style={{
+            color: 'red',
+            fontStyle: 'italic',
+            fontWeight: '500',
+            marginTop: 5,
+            marginBottom: 5
+
+
+          }}>*OTP is a 6-digit number </Text>
+          <View style={{
+            flexDirection: 'row',
+            gap: 50,
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Pressable style={{
+              backgroundColor: '#f558a4', color: 'white', width: "40%",
+              height: 50,
+              borderRadius: 25,
+            }} onPress={() => handleVerifyOtp()}>
+              <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Verify OTP</Text>
+            </Pressable>
+
+            <Pressable style={{
+              backgroundColor: '#f558a4', color: 'white', width: "40%",
+              height: 50,
+              borderRadius: 25,
+            }} onPress={() => handleSendOtp(true)}>
+              <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Resend otp</Text>
+            </Pressable>
+          </View>
+          <View style={{
+            flexDirection: 'row',
+            gap: 50,
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Pressable style={{
+              width: '100%',
+              height: 40,
+              backgroundColor: '#c9c9c9',
+              borderRadius: 5,
+              marginTop: 20,
+              flexDirection: 'row',
+              gap: 10,
+              justifyContent: 'center',
+              marginLeft: 10,
+            }} onPress={toggleModalSendOtp}>
+              <Text style={{
+                color: 'black', textAlign: 'center', marginTop: 15
+              }}>Close</Text>
+            </Pressable>
+          </View>
+
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -409,6 +536,60 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 0,
     top: "40%",
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    gap: 5,
+    marginTop: 150
+  },
+  modalText: {
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  otpInput: {
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: 500
+  },
+  inputContainerChangePassword: {
+    marginBottom: 15,
+    flexDirection: 'row',
+  },
+  input: {
+    backgroundColor: '#f5f5f5',
+    flex: 1,
+
+  },
+  iconContainer: {
+    marginRight: 20,
+    position: 'absolute',
+    right: 0,
+
+  },
+  eyeIcon: {
+    color: '#888',
+    marginTop: 20,
+    marginLeft: 10
+  },
+  saveButton: {
+    width: '100%',
+    height: 40,
+    backgroundColor: '#f5a4c6',
+    borderRadius: 5,
+    marginTop: 20,
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+
+  },
+  saveIcon: {
+    marginTop: 10,
   },
 });
 
