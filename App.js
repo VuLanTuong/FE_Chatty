@@ -29,13 +29,14 @@ import { useEffect } from 'react';
 import getAccessToken from './screens/user-profile/getAccessToken';
 import { useDispatch } from "react-redux";
 import { login } from "./rtk/user-slice";
-import ForgotPassword from "./screens/auth/forgot-password";
-// import ForgotPassword from './screens/auth/forgot-password-for-phone';
+// import ForgotPassword from "./screens/auth/forgot-password";
+import ForgotPassword from './screens/auth/forgot-password-for-phone';
 import { SafeAreaView } from 'react-native';
 import { SocketProvider } from './screens/socket.io/socket-context';
 import OptionScreen from "./screens/conversation/option";
 import OptionGroup from './screens/group-chat/option-for-group';
 import MemberList from './screens/group-chat/member-list';
+import VerifyEmail from './screens/auth/verify-email';
 
 
 const Tab = createBottomTabNavigator();
@@ -90,6 +91,20 @@ function AppNavigator() {
       <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Register" component={RegisterScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="VerifyEmail" component={VerifyEmail} options={{
+          headerTitle: 'Register',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
+        }} />
         <Stack.Screen name="ForgotPassword" component={ForgotPassword} options={{
           headerTitle: 'Forgot password',
           headerTintColor: 'white',
@@ -280,30 +295,6 @@ const ProfileStack = () => {
 //   )
 // }
 
-const getMe = async (token) => {
-  fetch(
-    "http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/users/getMe",
-    {
-      method: "GET",
-      headers: {
-        // "Content-Type": "application/json",
-        Authorization: "Bearer " + token,
-      },
-    }
-  )
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.status === "fail") {
-        console.log("fail");
-        return;
-      }
-      console.log("response", data);
-      return data.data;
-    })
-    .catch((error) => {
-      console.log("Error:", error);
-    });
-};
 
 export default function App() {
   const toastRef = useRef();

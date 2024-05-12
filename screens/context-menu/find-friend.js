@@ -10,12 +10,13 @@ const FindFriend = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
-    
 
     const findFriend = async () => {
         const token = await getAccessToken();
-        
-        
+
+
+
+
         fetch(`${BASE_URL}/users/findByEmail/${email}`, {
             method: "GET",
             headers: {
@@ -45,19 +46,19 @@ const FindFriend = ({ navigation }) => {
     };
     return (
         <View style={styles.container}>
+
             <View style={styles.inputContainer}>
-                <View style={styles.prefixContainer}>
-                    <Text style={styles.prefixText}>VN</Text>
-                </View>
                 <TextInput
-                    mode='outlined'
-                    placeholder='Enter phone number'
-                    style={styles.input}
+                    style={[styles.input]}
+                    label="Enter email address"
+                    underlineColorAndroid="transparent"
+                    keyboardType="default"
                     value={email}
-                    onChangeText={(text) => setEmail(text)}
+                    onChangeText={(text) => setEmail(text.trim())}
                 />
             </View>
             <Pressable onPress={() => findFriend()} style={styles.searchButton}>
+                <Text>Search</Text>
                 <MaterialCommunityIcons name='magnify' color='black' size={25} />
             </Pressable>
         </View>
@@ -66,16 +67,18 @@ const FindFriend = ({ navigation }) => {
 
 const styles = StyleSheet.create({
     container: {
-        flexDirection: 'row',
-        marginLeft: 20
+        flexDirection: 'column',
+        width: '100%',
+        alignItems: 'center'
+        // marginLeft: 20
     },
     inputContainer: {
         flexDirection: 'row',
-        borderColor: 'grey',
-        borderWidth: 1,
-        borderRadius: 10,
-        height: 40,
-        width: '70%',
+        // borderColor: 'grey',
+        // borderWidth: 1,
+        // borderRadius: 10,
+        height: 50,
+        width: '80%',
         marginLeft: 10,
         marginTop: 40,
     },
@@ -97,15 +100,17 @@ const styles = StyleSheet.create({
     },
     searchButton: {
         height: 40,
-        width: 40,
+        width: '80%',
         borderWidth: 1,
         borderColor: '#c2c0bc',
-        borderRadius: 20,
+        borderRadius: 10,
         backgroundColor: '#f5a4c6',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 40,
         marginLeft: 10,
+        flexDirection: 'row',
+        gap: 10
     },
 });
 

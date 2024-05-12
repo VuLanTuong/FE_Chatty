@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useLayoutEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Pressable, Image } from 'react-native';
 import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -9,10 +9,12 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
 import ActionSheet from 'react-native-actionsheet';
+import { TextInput } from "react-native-paper";
 
 export function ContactScreen({ navigation }) {
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
+    const [search, setSearch] = useState("");
 
     const dispatch = useDispatch();
 
@@ -29,7 +31,7 @@ export function ContactScreen({ navigation }) {
 
     }
 
-    const options = ['Add Friend', 'Add Group', 'Cancel'];
+    const options = ['Add Friend', 'Create Group', 'Cancel'];
     const actionSheetRef = useRef();
     const handleAddFriend = () => {
         navigation.navigate('FindFriend')
@@ -135,8 +137,16 @@ export function ContactScreen({ navigation }) {
                         <MaterialCommunityIcons name="magnify" color="white" size={20} />
                         <TextInput
                             placeholder="Search"
-                            placeholderTextColor="white"
-                            style={{ height: 20, fontSize: 17, color: 'white' }}
+                            placeholderTextColor={'#fff'}
+                            textColor="white"
+                            style={{
+                                height: 40,
+                                color: 'white',
+                                marginLeft: 10,
+                                backgroundColor: '#f558a4',
+                                width: '100%',
+                            }}
+                            onChangeText={(text) => setSearch(text)}
                         />
                     </View>
                 </View>
@@ -175,7 +185,22 @@ export function ContactScreen({ navigation }) {
     const handleOptionSelect = (option) => {
         setSelectedOption(option);
     };
-    const groupedFriends = groupFriendsByLetter(friends);
+
+    let groupedFriends;
+    let groupedGroups;
+    if (search) {
+        const filteredFriends = friends.filter((friend) => friend.name.toLowerCase().includes(search.toLowerCase()));
+        groupedFriends = groupFriendsByLetter(filteredFriends);
+        const filteredGroups = groups.filter((group) => group.name.toLowerCase().includes(search.toLowerCase()));
+        console.log(filteredGroups);
+        groupedGroups = groupFriendsByLetter(filteredGroups);
+
+    }
+    else {
+        groupedFriends = groupFriendsByLetter(friends);
+        groupedGroups = groupFriendsByLetter(groups);
+    }
+
     const groupGroupsByLetter = groupFriendsByLetter(groups)
     const handleToChatScreen = (group) => {
         dispatch(setCurrentConversation(group))
@@ -204,8 +229,6 @@ export function ContactScreen({ navigation }) {
                 }}>
 
                     <View style={[styles.dividerForMenu]} />
-
-
                     {selectedOption === 'friends' && (
                         <View>
                             <Divider style={{
@@ -381,7 +404,7 @@ export function ContactScreen({ navigation }) {
                                 fontSize: 17,
                                 fontWeight: 'bold'
                             }}>Join group ({groups.length.toString()}) </Text>
-                            {Object.keys(groupGroupsByLetter).map((letter) => (
+                            {Object.keys(groupedGroups).map((letter) => (
                                 <View key={letter}>
                                     <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
                                     {

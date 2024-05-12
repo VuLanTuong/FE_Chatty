@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Image, TextInput, Platform, SafeAreaView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Image, TextInput, Platform, SafeAreaView, Modal } from 'react-native';
 import { Divider, Checkbox, RadioButton } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useSelector } from "react-redux";
@@ -9,6 +9,8 @@ import { useDispatch } from "react-redux"
 import { setCurrentConversation, setFriend, updateFriend } from "../../rtk/user-slice";
 import { findFriendById } from '../../service/friend.util';
 import { getAllConversation } from '../../service/conversation.util';
+import Toast from 'react-native-toast-message';
+import { useFocusEffect } from '@react-navigation/native';
 export default function FriendProfile({ route, navigation }) {
     const user = route.params.friend;
     console.log(user);
@@ -21,6 +23,10 @@ export default function FriendProfile({ route, navigation }) {
     const [friend, setFriend] = useState([]);
     const [friendList, setFriendList] = useState();
     const [currentFriend, setCurrentFriend] = useState();
+    const [modalVisible, setModalVisible] = useState(false);
+    const handleCloseModal = () => {
+        setModalVisible(!modalVisible);
+    };
 
 
 
@@ -54,6 +60,7 @@ export default function FriendProfile({ route, navigation }) {
     const getFriendOfUser = async () => {
         console.log(user);
         findFriendById(user._id).then((friend) => {
+            console.log(friend);
             if (friend) {
                 setCurrentFriend(friend)
                 console.log(friend);
@@ -73,17 +80,17 @@ export default function FriendProfile({ route, navigation }) {
         })
     }
 
-    useEffect(() => {
-        getFriendOfUser().then(() => {
-            console.log("get friend");
-        })
-        fetchFriends().then(() => {
-            checkIsFriend().then(() => {
-                console.log("running");
+    useFocusEffect(
+        React.useCallback(() => {
+            console.log("Effect");
+            getFriendOfUser();
+            fetchFriends().then(() => {
+                checkIsFriend().then(() => {
+                    console.log("running");
+                })
             })
-        })
-
-    }, []);
+        }, [])
+    );
 
 
 
@@ -115,6 +122,12 @@ export default function FriendProfile({ route, navigation }) {
             console.log('success');
             setIsSendRequest(true);
             getFriendOfUser();
+            Toast.show({
+                type: 'success',
+                text1: 'Request sent successfully',
+                position: 'top',
+                visibilityTime: 2000,
+            })
             return;
 
 
@@ -143,8 +156,16 @@ export default function FriendProfile({ route, navigation }) {
                     return;
                 }
                 console.log('cancel success');
+
                 // getFriendOfUser();
                 setIsSendRequest(false);
+                setIsRecipient(false);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Cancel request successfully',
+                    position: 'top',
+                    visibilityTime: 2000,
+                })
             }
             )
 
@@ -173,6 +194,12 @@ export default function FriendProfile({ route, navigation }) {
                 setIsSendRequest(false)
                 setIsRecipient(false)
                 getFriendOfUser();
+                Toast.show({
+                    type: 'success',
+                    text1: 'Unfriend successfully',
+                    position: 'top',
+                    visibilityTime: 2000,
+                })
                 return;
             })
 
@@ -209,6 +236,12 @@ export default function FriendProfile({ route, navigation }) {
             }
             else {
                 dispatch(updateFriend(currentFriend))
+                Toast.show({
+                    type: 'success',
+                    text1: 'Add friend successfully',
+                    position: 'top',
+                    visibilityTime: 2000,
+                })
             }
 
         })
@@ -248,6 +281,24 @@ export default function FriendProfile({ route, navigation }) {
             .catch(() => console.log("fetch error"))
 
 
+    }
+
+    const handleUserInformation = () => {
+        setModalVisible(true);
+
+    }
+
+    const formatDate = (date) => {
+
+        const d = new Date(date);
+        const day = d.getDate();
+        let temp = day;
+        if (temp < 10) {
+            temp = '0' + day;
+        }
+        const month = d.getMonth() + 1;
+        const year = d.getFullYear();
+        return `${temp}/${month}/${year}`;
     }
 
 
@@ -297,6 +348,7 @@ export default function FriendProfile({ route, navigation }) {
                         fontSize: 20,
                         fontWeight: 'bold'
                     }}>{user.name}</Text>
+
                     <Text>
                         {user.bio}
                     </Text>
@@ -316,9 +368,9 @@ export default function FriendProfile({ route, navigation }) {
                                     <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
                                         <Text style={styles.textStyle}>Cancel Request</Text>
                                     </Pressable>
-                                    <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                    {/* <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                         <Text style={styles.textStyle}>Send Message</Text>
-                                    </Pressable>
+                                    </Pressable> */}
                                 </View>
                             ) : (
                                 <View>
@@ -337,9 +389,9 @@ export default function FriendProfile({ route, navigation }) {
                                             <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
                                                 <Text style={styles.textStyle}>Reject Request</Text>
                                             </Pressable>
-                                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                            {/* <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                                 <Text style={styles.textStyle}>Send Message</Text>
-                                            </Pressable>
+                                            </Pressable> */}
                                         </View>
 
                                     )
@@ -354,9 +406,9 @@ export default function FriendProfile({ route, navigation }) {
                                             <Pressable style={styles.button} onPress={() => sendRequest()}>
                                                 <Text style={styles.textStyle}>Add Friend</Text>
                                             </Pressable>
-                                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                            {/* <Pressable style={styles.button} onPress={() => handleSendMessage()}>
                                                 <Text style={styles.textStyle}>Send Message</Text>
-                                            </Pressable>
+                                            </Pressable> */}
 
                                         </View>
                                     }
@@ -366,20 +418,47 @@ export default function FriendProfile({ route, navigation }) {
                             )}
                         </View>
                         :
-                        <View style={{
-                            flexDirection: 'row',
-                            marginTop: 20,
-                            flexDirection: 'row',
-                            gap: 35,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                        }}>
-                            <Pressable style={styles.button} onPress={() => handleSendMessage()}>
-                                <Text style={styles.textStyle}>Send Message</Text>
-                            </Pressable>
-                            <Pressable style={styles.button} onPress={() => handleUnfriend()}>
-                                <Text style={styles.textStyle}>Unfriend</Text>
-                            </Pressable>
+                        <View>
+
+                            <View style={{
+                                flexDirection: 'row',
+                                marginTop: 20,
+                                flexDirection: 'row',
+                                gap: 35,
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                            }}>
+                                <Pressable style={styles.button} onPress={() => handleSendMessage()}>
+                                    <Text style={styles.textStyle}>Send Message</Text>
+                                </Pressable>
+                                <Pressable style={styles.button} onPress={() => handleUnfriend()}>
+                                    <Text style={styles.textStyle}>Unfriend</Text>
+                                </Pressable>
+
+
+                            </View>
+                            <View style={{
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                marginTop: 30
+                            }}>
+                                <Pressable style={{
+                                    height: 40,
+                                    width: '70%',
+                                    backgroundColor: '#f558a4',
+                                    borderRadius: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }} onPress={() => handleUserInformation()}>
+                                    <Text style={{
+                                        color: 'white',
+                                    }}>
+                                        View user information
+                                    </Text>
+                                </Pressable>
+                            </View>
+
                         </View>
 
 
@@ -387,6 +466,64 @@ export default function FriendProfile({ route, navigation }) {
                     }
                 </View>
 
+            </View>
+            <View style={{}}>
+                <Modal
+                    visible={modalVisible}
+                    transparent={true}
+                    onRequestClose={handleCloseModal}
+
+                >
+                    <View style={styles.modalContainer}>
+                        {/* // content of modal */}
+                        <View style={[styles.modalContent, styles.biggerModalContent]}>
+                            <View style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 5,
+                            }}>
+                                <Divider style={styles.divider} />
+
+                                <View style={styles.infoRow}>
+                                    <Text style={styles.infoLabel}>Date of Birth</Text>
+                                    <Text>{formatDate(user.dateOfBirth)}</Text>
+                                </View>
+                                <Divider style={styles.divider} />
+                                <View style={styles.infoRow}>
+                                    <Text style={styles.infoLabel}>Name</Text>
+                                    <Text>{user.name}</Text>
+                                </View>
+                                <Divider style={styles.divider} />
+                                <View style={styles.infoRow}>
+                                    <Text style={styles.infoLabel}>Gender</Text>
+                                    <Text>{user.gender}</Text>
+                                </View>
+                                <Divider style={styles.divider} />
+                                <View style={styles.infoRow}>
+                                    <Text style={styles.infoLabel}>Email</Text>
+                                    <Text>{user.email}</Text>
+                                </View>
+                                <Divider style={styles.divider} />
+
+
+
+
+
+
+                            </View>
+
+
+                            <View style={{
+                                flexDirection: 'row', gap: 150, marginTop: 'auto'
+
+                            }}>
+                                <Pressable onPress={handleCloseModal}>
+                                    <Text style={styles.closeButton}>Close</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
             </View>
         </SafeAreaView>
     )
@@ -408,5 +545,64 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         justifyContent: 'center',
         alignItems: 'center'
-    }
+    },
+    openButton: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: 'blue',
+        marginBottom: 16,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 8,
+        alignItems: 'center',
+    },
+    modalText: {
+        fontSize: 18,
+        marginBottom: 16,
+    },
+    closeButton: {
+        marginTop: 10,
+        fontSize: 16,
+        backgroundColor: '#f558a4',
+        padding: 10,
+        color: '#fff',
+        borderRadius: 20
+    },
+    biggerModalContent: {
+        width: '80%',
+        height: '50%',
+    },
+    divider: {
+        marginTop: 5,
+        width: '100%',
+        margin: 'auto'
+    },
+    infoContainer: {
+        flexDirection: "column",
+        marginTop: 10,
+        gap: 10,
+    },
+    infoRow: {
+        flexDirection: "row",
+        gap: 5,
+        height: 30,
+        alignItems: "center",
+    },
+    infoLabel: {
+        color: "grey",
+        width: 100,
+        // marginLeft: 20,
+    },
+    infoValue: {
+        fontWeight: "450",
+        // marginLeft: 10,
+    },
 })

@@ -45,7 +45,7 @@ export default function ContextMenu({ }) {
                             }}>
                                 <Text style={{
                                     marginTop: 5
-                                }}>Add group</Text>
+                                }}>Create group</Text>
                             </Pressable>
                         </MenuOption>
                         <MenuOption onSelect={() => handleMenuItemSelect('Option 3')}>

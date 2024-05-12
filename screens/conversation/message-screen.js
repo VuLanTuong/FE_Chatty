@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Image, ScrollView, FlatList, Pressable } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, FlatList, Pressable } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import { getAccessToken } from "../user-profile/getAccessToken";
 import { SafeAreaView } from "react-native";
@@ -9,17 +9,17 @@ import { findFriendById } from "../../service/friend.util";
 import ContextMenu from "../context-menu/context-menu";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import ActionSheet from 'react-native-actionsheet';
+import { TextInput } from "react-native-paper";
 
 import { Badge } from '@rneui/themed';
 import { useSocket } from "../socket.io/socket-context";
 import { fetchAllGroup } from "../../service/conversation.util";
 const MessageScreen = ({ navigation }) => {
   const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const allConversationAtRedux = useSelector((state) => state.user.conversation);
 
-
-
-
-  const options = ['Add Friend', 'Add Group', 'Cancel'];
+  const [search, setSearch] = useState("");
+  const options = ['Add Friend', 'Create Group', 'Cancel'];
   const actionSheetRef = useRef();
   const handleAddFriend = () => {
     navigation.navigate('FindFriend')
@@ -34,7 +34,6 @@ const MessageScreen = ({ navigation }) => {
 
 
   const showStoriCircle = () => { };
-  const [conversations, setConversations] = useState([]);
 
 
 
@@ -49,11 +48,11 @@ const MessageScreen = ({ navigation }) => {
 
   const scrollViewRef = useRef(null);
   // selector run after use effect
-  const allConversationAtRedux = useSelector((state) => state.user.conversation);
   console.log(allConversationAtRedux);
   const [allConversationAtRedux1, setAllConversationAtRedux] = useState(useSelector((state) => state.user.conversation));
   console.log(allConversationAtRedux);
 
+  const [conversations, setConversations] = useState(allConversationAtRedux);
 
   const checkIsMember = (data, members) => {
 
@@ -73,6 +72,8 @@ const MessageScreen = ({ navigation }) => {
 
     return null;
   };
+
+
 
   const handleConversationUpdate = (data) => {
     console.log(data.conversation);
@@ -149,6 +150,7 @@ const MessageScreen = ({ navigation }) => {
   };
 
   useEffect(() => {
+    setConversations(allConversationAtRedux);
     // dispatch(getConservations());
     socket.on('conversation:removeMembers', (data) => {
       console.log(data);
@@ -289,8 +291,10 @@ const MessageScreen = ({ navigation }) => {
   // }
 
   // useEffect(() => {
-  //   removeConservationNotContent()
-  // }, [conversations])
+  //   console.log("run");
+  //   setConversations(dispatch(getConservations()))
+  // }, [])
+
   const handleChangeState = (data) => {
     setConversations(data, () => {
       removeConservationNotContent()
@@ -438,15 +442,32 @@ const MessageScreen = ({ navigation }) => {
       headerStyle: {
         backgroundColor: '#f558a4',
         height: 60,
+
       },
       headerLeft: () => (
-        <View style={{ height: 50, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
+        <View style={{
+          height: 50,
+          marginTop: -5,
+          paddingHorizontal: 10,
+          flexDirection: 'row',
+          width: '100%',
+          alignItems: 'center',
+          flex: 1
+        }}>
           {/* <View style={{ flexDirection: 'row', gap: 10 }}> */}
           <MaterialCommunityIcons name="magnify" color="white" size={20} />
           <TextInput
             placeholder="Search"
-            placeholderTextColor="white"
-            style={{ height: 20, fontSize: 17, color: 'white' }}
+            placeholderTextColor={'#fff'}
+            textColor="white"
+            style={{
+              height: 40,
+              color: 'white',
+              marginLeft: 10,
+              backgroundColor: '#f558a4',
+              width: '100%',
+            }}
+            onChangeText={(text) => setSearch(text)}
           />
           {/* </View> */}
         </View>
@@ -481,7 +502,21 @@ const MessageScreen = ({ navigation }) => {
     })
   }, [])
 
-  console.log(conversations);
+  const findConversation = (text) => {
+
+    const updatedConversations = allConversationAtRedux.filter(conversation => conversation.name.toLowerCase().includes(text.toLowerCase()));
+
+
+    // allConversationAtRedux.map((conversation) => { 
+    //   if (conversation.members.length === 2 && conversation.name === user.name) {
+    //     return conversation;
+    //   }
+    //   return conversation;
+    // })
+    setConversations(updatedConversations);
+    return updatedConversations;
+
+  }
 
   const getName = (conversation) => {
     if (conversation.members.length === 2 && conversation.name === user.name) {
@@ -497,7 +532,9 @@ const MessageScreen = ({ navigation }) => {
   };
 
 
-
+  useEffect(() => {
+    findConversation(search);
+  }, [search]);
 
 
   return (
@@ -505,7 +542,7 @@ const MessageScreen = ({ navigation }) => {
       <FlatList
         numColumns={1}
         horizontal={false}
-        data={allConversationAtRedux}
+        data={conversations}
         renderItem={({ item }) => (
           <View style={styles.container} key={item._id}>
             <TouchableOpacity style={styles.conversation}
