@@ -17,12 +17,13 @@ import dayjs from "dayjs";
 // import "react-datepicker/dist/react-datepicker.css";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const register = ({ navigation }) => {
+const register = ({ navigation, route }) => {
+  let emailParams = route.params.email;
   const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(emailParams);
   const [date, setDate] = useState(dayjs());
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isSignUpError, setIsSignUpError] = useState(false);
@@ -42,10 +43,14 @@ const register = ({ navigation }) => {
   const [errPassword, setErrPassword] = useState('')
   const [errOtp, setErrOtp] = useState('')
 
+  console.log("register");
 
   const toggleModal = () => {
+    console.log("toggleModal");
     setShowModal(!showModal);
   };
+
+
 
 
   const toggleModalSendOtp = () => {
@@ -79,13 +84,6 @@ const register = ({ navigation }) => {
   };
 
   const handleSignUp = async () => {
-    // const isPhoneNumberExists = await checkPhoneNumber(phoneNumber);
-    // if (isPhoneNumberExists || !validate()) {
-    //   setIsSignUpError(true);
-    //   return;
-    // }
-
-
     if (confirmPassword === password) {
       const response = await fetch(
         `${BASE_URL}/auth/register`,
@@ -152,7 +150,7 @@ const register = ({ navigation }) => {
   };
 
   const handleVerifyOtp = async () => {
-    await fetch(`${BASE_URL}/users/verifyForgetPasswordOTP`, {
+    await fetch(`${BASE_URL}/auth/verifyEmailOtp`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -172,9 +170,8 @@ const register = ({ navigation }) => {
           visibilityTime: 4000,
         });
         if (data.status === 'success') {
-          toggleModal();
-          setIsChangePassword(!isChangePassword)
-
+          toggleModalSendOtp();
+          handleSignUp();
         }
       })
   };
@@ -227,7 +224,6 @@ const register = ({ navigation }) => {
 
     }
   }
-
 
 
   return (
@@ -290,13 +286,34 @@ const register = ({ navigation }) => {
           />
           <Text style={styles.checkboxLabel}>Female</Text>
         </View>
+
+
+
         <View style={styles.inputContainer}>
-          <Pressable onPress={toggleModal} style={styles.modalButton}>
+          <View style={{
+            flexDirection: 'row',
+            flex: 1
+
+
+          }}>
+
             <TextInput
               label={"Date of birth"}
               value={date.format("YYYY-MM-DD")}
+              style={{
+                width: "100%",
+              }}
             />
-          </Pressable>
+            <Pressable onPress={toggleModal} style={{
+              position: 'absolute',
+              right: 10,
+              top: 15,
+            }}>
+              <MaterialCommunityIcons name="calendar" size={24} color="#f558a4" />
+            </Pressable>
+
+          </View>
+
           <Modal isVisible={showModal} onBackdropPress={toggleModal}>
             <View style={styles.modalContent}>
               <DateTimePicker
@@ -321,6 +338,7 @@ const register = ({ navigation }) => {
             underlineColorAndroid="transparent"
             keyboardType="email-address"
             value={email}
+            disabled={true}
             onChangeText={(text) => setEmail(text.trim())}
           />
         </View>
@@ -377,86 +395,12 @@ const register = ({ navigation }) => {
         </View>
 
         <View style={styles.btnContainer}>
-          <Button mode="contained" style={styles.btn} onPress={toggleModalSendOtp}>
+          <Button mode="contained" style={styles.btn} onPress={handleSignUp}>
             Register
           </Button>
         </View>
       </View>
-      <Modal visible={isModalVisible} onRequestClose={toggleModalSendOtp}>
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalText}>Enter OTP:</Text>
-          <TextInput
-            style={styles.otpInput}
-            value={otp}
-            onChangeText={handleOtpChange}
-            maxLength={6}
-            keyboardType="numeric"
-          />
-          <Text style={{
-            color: 'red',
-            fontStyle: 'italic',
-            fontWeight: '500',
-            marginTop: 5,
-            marginBottom: 5
 
-
-          }}>*{message}</Text>
-          <Text style={{
-            color: 'red',
-            fontStyle: 'italic',
-            fontWeight: '500',
-            marginTop: 5,
-            marginBottom: 5
-
-
-          }}>*OTP is a 6-digit number </Text>
-          <View style={{
-            flexDirection: 'row',
-            gap: 50,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Pressable style={{
-              backgroundColor: '#f558a4', color: 'white', width: "40%",
-              height: 50,
-              borderRadius: 25,
-            }} onPress={() => handleVerifyOtp()}>
-              <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Verify OTP</Text>
-            </Pressable>
-
-            <Pressable style={{
-              backgroundColor: '#f558a4', color: 'white', width: "40%",
-              height: 50,
-              borderRadius: 25,
-            }} onPress={() => handleSendOtp(true)}>
-              <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Resend otp</Text>
-            </Pressable>
-          </View>
-          <View style={{
-            flexDirection: 'row',
-            gap: 50,
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}>
-            <Pressable style={{
-              width: '100%',
-              height: 40,
-              backgroundColor: '#c9c9c9',
-              borderRadius: 5,
-              marginTop: 20,
-              flexDirection: 'row',
-              gap: 10,
-              justifyContent: 'center',
-              marginLeft: 10,
-            }} onPress={toggleModalSendOtp}>
-              <Text style={{
-                color: 'black', textAlign: 'center', marginTop: 15
-              }}>Close</Text>
-            </Pressable>
-          </View>
-
-        </View>
-      </Modal>
     </ScrollView>
   );
 };

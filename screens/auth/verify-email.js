@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Button } from 'react-native';
 import Modal from 'react-native-modal';
 import { TextInput } from "react-native-paper";
@@ -7,11 +7,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { TouchableOpacity, Platform } from 'react-native';
 
-export default function ForgotPassword({ navigation, route }) {
+export default function VerifyEmail({ navigation }) {
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
-    const emailParams = route.params.email;
-    const [email, setEmail] = useState(emailParams);
+    const [email, setEmail] = useState();
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [showNewPassword, setShowNewPassword] = useState(false);
@@ -30,6 +29,7 @@ export default function ForgotPassword({ navigation, route }) {
     const [errOtp, setErrOtp] = useState('')
 
     const toggleModal = () => {
+
         setModalVisible(!isModalVisible);
     };
 
@@ -51,7 +51,9 @@ export default function ForgotPassword({ navigation, route }) {
     };
 
     const handleVerifyOtp = async () => {
-        await fetch(`${BASE_URL}/users/verifyForgetPasswordOTP`, {
+
+        setModalVisible(!isModalVisible)
+        await fetch(`${BASE_URL}/auth/verifyEmailOtp`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -64,6 +66,7 @@ export default function ForgotPassword({ navigation, route }) {
             .then((response) => { return response.json() })
             .then((data) => {
                 console.log(data)
+
                 Toast.show({
                     type: 'success',
                     text1: data.message,
@@ -72,7 +75,9 @@ export default function ForgotPassword({ navigation, route }) {
                 });
                 if (data.status === 'success') {
                     toggleModal();
-                    setIsChangePassword(!isChangePassword)
+                    // setIsChangePassword(!isChangePassword)
+                    navigation.navigate('Register', { email: email })
+
 
                 }
             })
@@ -85,37 +90,12 @@ export default function ForgotPassword({ navigation, route }) {
     const toggleConfirmNewPasswordVisibility = () => {
         setShowConfirmNewPassword((prevState) => !prevState);
     };
-    useEffect(() => {
-        let timer;
-        if (!showButton) {
-            timer = setInterval(() => {
-                setCountdown((prevCountdown) => prevCountdown - 1);
-            }, 1000);
-        }
-
-        return () => {
-            clearInterval(timer);
-        };
-    }, [showButton]);
-
-    useEffect(() => {
-        if (countdown <= 0) {
-            setShowButton(true);
-        }
-    }, [countdown]);
-
-    const formatTime = (time) => {
-        const minutes = Math.floor(time / 60);
-        const seconds = time % 60;
-
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    };
 
 
     const changePassword = async () => {
-        console.log(email);
-        console.log(typeof (newPassword));
-        console.log(confirmNewPassword);
+        // console.log(email);
+        // console.log(typeof (newPassword));
+        // console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
             if (newPassword.length >= 6) {
                 await fetch(`${BASE_URL}/users/resetPassword`, {
@@ -162,10 +142,11 @@ export default function ForgotPassword({ navigation, route }) {
 
     const handleSendOTP = async (resend) => {
         console.log(email);
+        // setModalVisible(!isModalVisible)
+        // console.log(isModalVisible);
         if (email) {
             setShowButton(false);
-
-            await fetch(`${BASE_URL}/users/forgetPassword`, {
+            await fetch(`${BASE_URL}/auth/sendVerifyEmailOtp`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -176,15 +157,31 @@ export default function ForgotPassword({ navigation, route }) {
             })
                 .then((response) => { return response.json() })
                 .then((data) => {
-                    console.log(data)
-                    console.log(resend);
-                    if (!resend) {
-                        setModalVisible(!isModalVisible);
+                    if (data.status === 'fail' || data.status === 'error') {
+                        console.log(isModalVisible);
                         setMessage(data.message)
+                        // toggleModal()
+                        Toast.show({
+                            type: 'error',
+                            text1: data.message,
+                            position: 'top',
+                            visibilityTime: 4000,
+                        });
                     }
                     else {
-                        setMessage("Resend OTP success \n" + data.message)
+                        console.log(data)
+                        console.log(resend);
+                        if (!resend) {
+                            setModalVisible(!isModalVisible);
+                            setMessage(data.message)
+                        }
+                        else {
+                            setMessage("Resend OTP success \n" + data.message)
+                        }
+
+
                     }
+
 
                 })
         }
@@ -200,11 +197,36 @@ export default function ForgotPassword({ navigation, route }) {
         }
     }
 
+    useEffect(() => {
+        let timer;
 
+        if (!showButton) {
+            timer = setInterval(() => {
+                setCountdown((prevCountdown) => prevCountdown - 1);
+            }, 1000);
+        }
+
+        return () => {
+            clearInterval(timer);
+        };
+    }, [showButton]);
+
+    useEffect(() => {
+        if (countdown <= 0) {
+            setShowButton(true);
+        }
+    }, [countdown]);
+
+    const formatTime = (time) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    };
+    // console.log(isModalVisible);
     return (
         <View style={styles.container}>
             <View style={styles.inputContainer}>
-
                 <View style={{
                     flexDirection: 'column',
                     gap: 25,
@@ -476,7 +498,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         gap: 5,
         marginTop: 0,
-        backgroundColor: '#f5f5f5'
+        backgroundColor: '#f5f5f5',
     },
     modalText: {
         fontSize: 18,

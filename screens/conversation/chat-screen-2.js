@@ -128,8 +128,23 @@ const ChatScreen = ({ navigation, route }) => {
         getAllMessage();
         console.log("effect");
         scrollToBottom(),
-            groupFriendsByLetter();
+            groupFriendsByLetter(allConversationAtRedux);
     }, []);
+
+    useEffect(() => {
+        console.log("effect");
+        if (searchFriend) {
+            const filteredFriends = allConversationAtRedux.filter((friend) => {
+                return friend.name.toLowerCase().includes(searchFriend.toLowerCase());
+            })
+            console.log(filteredFriends);
+            groupFriendsByLetter(filteredFriends);
+            return;
+
+        }
+
+        groupFriendsByLetter(allConversationAtRedux);
+    }, [searchFriend]);
 
 
 
@@ -1154,11 +1169,11 @@ const ChatScreen = ({ navigation, route }) => {
 
     }
 
-    function groupFriendsByLetter() {
-        console.log(groupsInRedux);
+    function groupFriendsByLetter(friendsParams) {
+        console.log(friendsParams);
         const allContact = [...friendInRedux, ...groupsInRedux]
 
-        const friendGroupByName = allConversationAtRedux.reduce((result, friend) => {
+        const friendGroupByName = friendsParams.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -1851,6 +1866,8 @@ const ChatScreen = ({ navigation, route }) => {
                                 flexDirection: 'row',
                                 gap: 5,
                             }}>
+                                <MaterialCommunityIcons name='magnify' color='black' size={30} />
+
                                 <TextInput
                                     placeholder="Search"
                                     style={{
@@ -1862,9 +1879,7 @@ const ChatScreen = ({ navigation, route }) => {
                                     onChangeText={(text) => setSearchFriend(text)}
 
                                 />
-                                <Pressable style={{}}>
-                                    <MaterialCommunityIcons name='magnify' color='black' size={30} />
-                                </Pressable>
+
 
                             </View>
 

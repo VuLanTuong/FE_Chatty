@@ -37,8 +37,10 @@ const AddGroup = ({ navigation }) => {
     };
 
 
-    function groupFriendsByLetter() {
-        const friendGroupByName = friendInRedux.reduce((result, friend) => {
+    function groupFriendsByLetter(friendsParams) {
+
+        console.log(friendsParams);
+        const friendGroupByName = friendsParams.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -60,8 +62,17 @@ const AddGroup = ({ navigation }) => {
 
 
     useEffect(() => {
-        groupFriendsByLetter();
-    }, [])
+        if (searchFriend) {
+            const filteredFriends = friendInRedux.filter((friend) =>
+                friend.name.toLowerCase().includes(searchFriend.toLowerCase())
+            );
+            groupFriendsByLetter(filteredFriends);
+
+        }
+        else {
+            groupFriendsByLetter(friendInRedux);
+        }
+    }, [searchFriend, friendInRedux])
 
 
     const handleChooseAvatar = async () => {

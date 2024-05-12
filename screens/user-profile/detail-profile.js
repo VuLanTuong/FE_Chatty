@@ -29,7 +29,10 @@ import dayjs from "dayjs";
 import Modal from "react-native-modal";
 
 export default function DetailProfile({ navigation }) {
+
   const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+
+
 
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
@@ -117,41 +120,60 @@ export default function DetailProfile({ navigation }) {
 
     if (!result.canceled) {
       setPhoto(result.assets[0].uri);
-      handleUploadPhoto(result.assets[0].uri);
+      const photo = {
+        uri: result.assets[0].uri,
+        name: "image.jpg",
+        mimetype: "image/jpeg"
+      }
+      handleUploadPhoto(photo);
+      // handleUploadPhoto(result.assets[0].uri);
     }
   };
-
-
-  const handleUploadPhoto = async (imageUri) => {
+  const handleUploadPhoto = async (file) => {
     const accessToken = await getAccessToken();
-    console.log("photo", imageUri);
-
+    const imageUri = file.uri;
+    let formData = new FormData();
+    formData.append("avatar",
+      {
+        uri: file.uri,
+        type: file.mimetype,
+        name: file.name
+      }
+    )
     fetch(
-      `${BASE_URL}/users/updateAvatarV2`,
+      `${BASE_URL}/users/updateAvatar`,
       {
         method: "PUT",
         headers: {
           Authorization: "Bearer " + accessToken,
-
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW",
         },
-        body: JSON.stringify({ avatar: imageUri }),
+        body: formData,
       }
     )
       .then((response) => {
-        console.log("response", response);
         return response.json();
       })
       .then((data) => {
-        dispatch(changeAvatar({ avatar: imageUri }));
-        Toast.show({
-          type: "success",
-          text1: "Change avatar successful",
-          position: "top",
-          visibilityTime: 2000,
-        });
+        if (data.status === "success") {
+          dispatch(changeAvatar({ avatar: imageUri }));
+          Toast.show({
+            type: "success",
+            text1: "Change avatar successful",
+            position: "top",
+            visibilityTime: 2000,
+          });
+        }
+        else {
+          console.log(data.message);
+          Toast.show({
+            type: "error",
+            text1: `${data.message}`,
+            position: "top",
+            visibilityTime: 4000,
+          });
+        }
 
-        console.log(data);
       })
       .catch((error) => {
         console.log("error", error);
@@ -277,7 +299,7 @@ export default function DetailProfile({ navigation }) {
           </View>
           <Divider style={styles.divider} />
 
-           {/* <View style={styles.infoRow}>
+          {/* <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Phone Number</Text>
             <Text style={{ color: "grey" }}>{user.phone}</Text>
           </View> */}

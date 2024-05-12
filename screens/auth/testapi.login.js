@@ -26,6 +26,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fetchAllGroup } from "../../service/conversation.util";
 
 const Login = ({ navigation }) => {
+
   const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -113,6 +114,7 @@ const Login = ({ navigation }) => {
     )
       .then((response) => response.json())
       .then((data) => {
+        console.log(data);
         dispatch(
           setFriend({
             friends: data.data,
@@ -207,7 +209,7 @@ const Login = ({ navigation }) => {
           Do not have an account yet?{" "}
           <Text
             style={styles.signupLink}
-            onPress={() => navigation.navigate("Register")}
+            onPress={() => navigation.navigate("VerifyEmail")}
           >
             Sign up
           </Text>
@@ -257,8 +259,15 @@ const Login = ({ navigation }) => {
       <View style={styles.forgetContainer}>
         <Pressable
           onPress={() => {
-            navigation.navigate("ForgotPassword");
-          }}
+            if (email) {
+              navigation.navigate("ForgotPassword", { email: email });
+            }
+            else {
+              navigation.navigate("ForgotPassword", { email: '' });
+
+            }
+          }
+          }
         >
           <Text style={styles.forgetText}>Forgot password?</Text>
         </Pressable>

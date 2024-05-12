@@ -55,9 +55,23 @@ export default function MemberList({ navigation, route }) {
     const { socket } = useSocket();
     useEffect(() => {
         groupMembersByLetter(currentConversation.members)
-        groupFriendsByLetter();
+        groupFriendsByLetter(friendsInRedux);
     }, [])
 
+    useEffect(() => {
+        if (searchFriend) {
+            let members = currentConversation.members.filter((member) => member.name.toLowerCase().includes(searchFriend.toLowerCase()));
+            groupMembersByLetter(members)
+            let friends = friendsInRedux.filter((friend) => friend.name.toLowerCase().includes(searchFriend.toLowerCase()));
+            groupFriendsByLetter(friends);
+        }
+        else {
+            groupMembersByLetter(currentConversation.members)
+            groupFriendsByLetter(friendsInRedux);
+
+        }
+
+    }, [searchFriend])
 
     function groupMembersByLetter(members) {
         const friendGroupByName = members.reduce((result, friend) => {
@@ -81,8 +95,9 @@ export default function MemberList({ navigation, route }) {
     };
 
 
-    function groupFriendsByLetter() {
-        const friendGroupByName = friendsInRedux.reduce((result, friend) => {
+    function groupFriendsByLetter(friendsParams) {
+        console.log(friendsParams);
+        const friendGroupByName = friendsParams.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
                 result[letter] = [];
@@ -133,6 +148,7 @@ export default function MemberList({ navigation, route }) {
     }
     const handleCloseModal = () => {
         setModalVisible(false);
+        setSearchFriend('');
         setSelectedFriends([]);
     };
 
@@ -431,7 +447,7 @@ export default function MemberList({ navigation, route }) {
 
             }
         })
-        groupFriendsByLetter();
+        groupFriendsByLetter(friendsInRedux);
     }, [currentConversation.members, allConversationAtRedux])
 
     const checkLeader = (id) => {
@@ -625,6 +641,7 @@ export default function MemberList({ navigation, route }) {
                         borderRadius: 10,
                         fontSize: 18,
                         backgroundColor: '#f0f0f0',
+                        padding: 10,
 
                     }}
                     value={searchFriend}
@@ -799,6 +816,7 @@ const styles = StyleSheet.create({
         height: 2,
         backgroundColor: 'grey',
         marginBottom: 10,
+        marginTop: 10
     },
     openButton: {
         fontSize: 18,
