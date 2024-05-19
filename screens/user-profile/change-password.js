@@ -231,14 +231,16 @@ const styles = StyleSheet.create({
         gap: 10,
         justifyContent: 'center',
         marginLeft: 10,
+        alignItems: 'center',
+        alignSelf: 'center',
     },
     saveIcon: {
-        marginTop: 10,
+        marginTop: 0,
     },
     saveButtonText: {
         color: 'black',
         textAlign: 'center',
-        marginTop: 10,
+        marginTop: 0,
         fontWeight: '500',
     },
 });

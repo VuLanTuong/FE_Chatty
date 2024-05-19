@@ -466,7 +466,7 @@ export default function OptionGroup({ navigation, route }) {
 
                     <View style={{
                         flexDirection: 'row',
-                        gap: 15
+                        gap: 15,
                     }}>
                         {!isEditName ? (
                             <View style={{
@@ -474,25 +474,20 @@ export default function OptionGroup({ navigation, route }) {
                                 gap: 15,
                                 width: 300,
                                 justifyContent: 'center'
-
                             }}>
                                 <Text style={styles.userName}>{currentConversation.name}</Text>
                                 <Pressable onPress={() => isEditNameGroup()}>
                                     <MaterialCommunityIcons style={styles.userName} name="pencil" size={24} color="black" />
                                 </Pressable>
-
-
                             </View>
-                        ) :
-                            (
-                                <View style={{
-                                    flexDirection: 'row',
-                                    gap: 15,
-                                    width: Platform.OS === 'web' ? 300 : 400,
-
-
-                                }}>
-                                    <TextInput style={{
+                        ) : (
+                            <View style={{
+                                flexDirection: 'row',
+                                gap: 20,
+                                width: Platform.OS === 'web' ? 300 : 400,
+                            }}>
+                                <TextInput
+                                    style={{
                                         flex: 1,
                                         fontSize: 17,
                                         textAlign: "center",
@@ -501,35 +496,18 @@ export default function OptionGroup({ navigation, route }) {
                                         borderWidth: 1,
                                         borderColor: '#f558a4',
                                         borderRadius: 10,
-
-
                                     }}
-                                        value={newName}
-                                        onChangeText={(text) => setNewName(text)}
-                                    >
-
-                                    </TextInput>
-                                    <Pressable style={styles.userName} onPress={() => handleChangeNameGroup()}>
-                                        <MaterialCommunityIcons style={{
-                                            flex: 1,
-                                            textAlign: "center",
-                                            height: 40,
-                                        }} name="check" size={30} color="black" />
-
-                                    </Pressable>
-                                    <Pressable style={styles.userName} onPress={() => isEditNameGroup()}>
-                                        <MaterialCommunityIcons style={{
-                                            flex: 1,
-                                            textAlign: "center",
-                                            height: 40,
-                                        }} name="close" size={30} color="red" />
-
-                                    </Pressable>
-
-
-                                </View>
-
-                            )}
+                                    value={newName}
+                                    onChangeText={(text) => setNewName(text)}
+                                />
+                                <Pressable style={styles.userName} onPress={() => handleChangeNameGroup()}>
+                                    <MaterialCommunityIcons style={{ flex: 1, textAlign: "center", height: 40 }} name="check" size={30} color="black" />
+                                </Pressable>
+                                <Pressable style={styles.userName} onPress={() => isEditNameGroup()}>
+                                    <MaterialCommunityIcons style={{ flex: 1, textAlign: "center", height: 40 }} name="close" size={30} color="red" />
+                                </Pressable>
+                            </View>
+                        )}
                     </View>
 
                     <View
@@ -579,7 +557,7 @@ export default function OptionGroup({ navigation, route }) {
                 </View>
                 <Divider style={styles.divider} />
                 <View style={styles.function}>
-                    <Button>
+                    <Button onPress={() => setIsEditName(true)}>
                         <MaterialCommunityIcons
                             name="account-edit-outline"
                             size={24}
@@ -710,7 +688,7 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     userName: {
-        flex: 1,
+        // flex: 1,
         fontSize: 17,
         fontWeight: "600",
         textAlign: "center",

@@ -16,7 +16,9 @@ import ChatScreen from './screens/conversation/chat-screen-2';
 import ProfileScreen from './screens/user-profile/profile-screen';
 import { NavigationContainer } from '@react-navigation/native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { FriendRequest } from './screens/contact/friend-request';
+// import FriendRequest from './screens/contact/friend-request';
+import FriendRequest from './screens/contact/request-socket';
+
 import DetailProfile from './screens/user-profile/detail-profile';
 import ContextMenu from './screens/context-menu/context-menu';
 import AddFriend from './screens/context-menu/add-friend';
@@ -32,7 +34,7 @@ import { login } from "./rtk/user-slice";
 // import ForgotPassword from "./screens/auth/forgot-password";
 import ForgotPassword from './screens/auth/forgot-password-for-phone';
 import { SafeAreaView } from 'react-native';
-import { SocketProvider } from './screens/socket.io/socket-context';
+import { SocketProvider, useSocket } from './screens/socket.io/socket-context';
 import OptionScreen from "./screens/conversation/option";
 import OptionGroup from './screens/group-chat/option-for-group';
 import MemberList from './screens/group-chat/member-list';
@@ -43,6 +45,7 @@ const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function MyTab() {
+
   const isIOSPlatform = () => {
     if (Platform.OS === 'ios') {
       return true
@@ -86,6 +89,15 @@ function MyTab() {
 }
 
 function AppNavigator() {
+  const { socket } = useSocket();
+  console.log("socket", socket);
+
+  useEffect(() => {
+    socket.on('friend:request', (data) => {
+      console.log(data);
+      return;
+    })
+  })
   return (
     <NavigationContainer>
       <Stack.Navigator>
@@ -250,7 +262,18 @@ const ContactStack = () => {
         name="FriendRequest"
         component={FriendRequest}
         options={{
-          headerShown: false,
+          headerTitle: 'Friend Request',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
         }}
       />
     </Stack.Navigator>
@@ -298,6 +321,7 @@ const ProfileStack = () => {
 
 export default function App() {
   const toastRef = useRef();
+
   // // const dispatch = useDispatch();
   // useEffect(() => {
   //   getAccessToken().then((token) => {

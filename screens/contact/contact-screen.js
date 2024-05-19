@@ -10,6 +10,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
 import ActionSheet from 'react-native-actionsheet';
 import { TextInput } from "react-native-paper";
+import { Badge } from '@rneui/themed';
+import { useSocket } from '../socket.io/socket-context';
+
 
 export function ContactScreen({ navigation }) {
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
@@ -23,6 +26,47 @@ export function ContactScreen({ navigation }) {
 
     const [groups, setGroups] = useState([]);
 
+    const [request, setRequest] = useState(0);
+    const { socket } = useSocket();
+    const myInfor = useSelector(state => state.user)
+
+    useEffect(() => {
+        socket.on('friend:request', (data) => {
+            console.log(data);
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status != "accecpt") {
+                setRequest(request + 1);
+
+            }
+            return;
+        })
+        socket.on('friend:accept', (data) => {
+            console.log(data);
+
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
+                console.log("recipient socket");
+                setRequest(request - 1);
+            }
+            return;
+        })
+        socket.on('friend:reject', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.userId) {
+                setRequest(request - 1);
+
+            }
+
+            return;
+        })
+        socket.on('friend:cancel', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.userId) {
+                setRequest(request - 1);
+
+            }
+
+            return;
+        })
+    }, [])
     const userProfile = async (id) => {
         console.log(id);
         const friendTemp = await findFriendById(id);
@@ -58,6 +102,10 @@ export function ContactScreen({ navigation }) {
         })
             .then((response) => response.json())
             .then((data) => {
+                if (data.status === 'fail') {
+                    console.log("fail");
+                    throw new Error(`fail to fetch friend list`);
+                }
                 dispatch(setFriend({
                     friends:
                         data.data
@@ -132,9 +180,11 @@ export function ContactScreen({ navigation }) {
                 height: 60,
             },
             headerLeft: () => (
-                <View style={{ height: 50, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
+                <View style={{ height: 60, marginTop: -5, paddingHorizontal: 10, flexDirection: 'row', width: '100%', alignItems: 'center' }}>
                     <View style={{ flexDirection: 'row', gap: 10 }}>
-                        <MaterialCommunityIcons name="magnify" color="white" size={20} />
+                        <MaterialCommunityIcons style={{
+                            marginTop: 10
+                        }} name="magnify" color="white" size={20} />
                         <TextInput
                             placeholder="Search"
                             placeholderTextColor={'#fff'}
@@ -144,7 +194,7 @@ export function ContactScreen({ navigation }) {
                                 color: 'white',
                                 marginLeft: 10,
                                 backgroundColor: '#f558a4',
-                                width: '100%',
+                                width: '80%',
                             }}
                             onChangeText={(text) => setSearch(text)}
                         />
@@ -242,19 +292,32 @@ export function ContactScreen({ navigation }) {
 
 
                             <View style={{
-                                flexDirection: 'column',
-                                gap: 7,
+                                flexDirection: 'row',
+                                gap: 20,
                             }}>
-                                <Pressable onPress={() => {
+                                <Pressable style={{
+
+                                }} onPress={() => {
                                     navigation.navigate('FriendRequest')
                                 }}>
                                     <Text style={{
                                         marginLeft: 20,
-                                        fontSize: 16
+                                        fontSize: 18,
+                                        marginTop: 10
                                     }}>Friend Request</Text>
-                                </Pressable>
 
-                                <Pressable>
+
+                                </Pressable>
+                                <Badge
+
+                                    value={request > 0 ? request : 0}
+                                    status="error"
+
+                                    containerStyle={styles.badgeContainer}
+                                />
+
+
+                                {/* <Pressable>
                                     <Text style={{
                                         marginLeft: 20,
                                         fontSize: 16
@@ -266,7 +329,7 @@ export function ContactScreen({ navigation }) {
                                         marginLeft: 20,
                                         fontSize: 16
                                     }}>Birthday schedule</Text>
-                                </Pressable>
+                                </Pressable> */}
 
                             </View>
                             <View style={styles.divider} />
@@ -485,6 +548,23 @@ const styles = StyleSheet.create({
     },
     selectedDivider: {
         backgroundColor: '#f558a4',
+    },
+    badgeContainer: {
+        // marginRight: 8,
+        marginTop: 15,
+
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    badgeText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginTop: 15,
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+
+
     },
 
 });

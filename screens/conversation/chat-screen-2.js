@@ -39,10 +39,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import { getConservations, setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
 import FileMessageComponent from "./file-message-component";
 import { fetchAllGroup } from "../../service/conversation.util";
+import VideoScreen from "./video-screen";
+import { Video, ResizeMode } from "expo-av";
+
 const ChatScreen = ({ navigation, route }) => {
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
-
-
+    const isFriendList = route.params.isFriend;
+    console.log("isFriendList", isFriendList);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalFileVisible, setModalFileVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -65,6 +68,8 @@ const ChatScreen = ({ navigation, route }) => {
     const { socket } = useSocket();
     const [newMember, setNewMember] = useState();
     const [messageToForward, setMessageToForward] = useState();
+    const [lastMessage, setLastMessage] = useState();
+
 
     const groupsInRedux = useSelector((state) => state.user.group);
 
@@ -472,8 +477,6 @@ const ChatScreen = ({ navigation, route }) => {
             socket.on('conversation:removeMembers', (data) => {
                 console.log(data);
                 console.log(user);
-
-
                 data.members.map((member) => {
                     if (member === user._id) {
                         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
@@ -610,28 +613,31 @@ const ChatScreen = ({ navigation, route }) => {
                 }).then((response) => response.json())
                 .then((data) => {
                     console.log(data)
-                    if (data.status === "fail") {
+                    if (data.status === "success") {
+                        socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
+                        //kiem tra dieu kien de set
+                        if (conversation._id === currentConversation._id) {
+                            console.log("set roi");
+                            console.log(currentConversation.lastMessage);
+                            if (currentConversation.lastMessage == null) {
+                                getAllMessage().then(() => {
+                                    console.log("get all message");
+                                })
+                            }
+                            setMessages([...messages, data.data])
+
+
+                        }
+                        // setMessages([...messages, data.data])
+                        setText('');
+                        dispatch(getConservations())
+                    }
+                    else {
                         console.log("fail");
                         return;
                     }
 
-                    socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
-                    //kiem tra dieu kien de set
-                    if (conversation._id === currentConversation._id) {
-                        console.log("set roi");
-                        console.log(currentConversation.lastMessage);
-                        if (currentConversation.lastMessage == null) {
-                            getAllMessage().then(() => {
-                                console.log("get all message");
-                            })
-                        }
-                        setMessages([...messages, data.data])
 
-
-                    }
-                    // setMessages([...messages, data.data])
-                    setText('');
-                    dispatch(getConservations())
                 }).then(() => setText(''))
                 .catch(() => console.log("fetch error"))
         }
@@ -797,10 +803,15 @@ const ChatScreen = ({ navigation, route }) => {
                                     fontSize: 18,
                                     fontWeight: "bold",
                                     color: "white",
+                                    maxWidth: 150,
+                                    // overflow: 'hidden',
                                 }}
+                                numberOfLines={2}
+                                ellipsizeMode="tail"
                             >
-                                {nameGroup}
+                                {nameGroup.length > 25 ? nameGroup.slice(0, 15) + "..." : nameGroup}
                             </Text>
+
 
                             {/* {isFriend ?
                                 <Text style={{ color: "white" }}>Friend</Text>
@@ -837,6 +848,7 @@ const ChatScreen = ({ navigation, route }) => {
 
     function FileMessageComponent({ message }) {
         const actionSheetRef = useRef(null);
+        const ref = useRef(null);
         const handlePressIcon = () => {
             actionSheetRef.current.show();
         };
@@ -979,6 +991,62 @@ const ChatScreen = ({ navigation, route }) => {
                                 source={{ uri: attachment.url }}
                                 style={styles.image}
                             />
+
+
+                            <Text
+                                style={{
+                                    fontSize: 10,
+                                }}
+                            >
+                                {getTime(message.updatedAt)}
+                            </Text>
+
+                        </View>
+
+                    );
+                }
+                // else {
+                //     return (
+                //         <View>
+                //             <Video
+                //                 ref={ref}
+                //                 source={{ uri: attachment.url }}
+                //                 useNativeControls
+                //                 resizeMode={ResizeMode.CONTAIN}
+                //                 isLooping
+                //             />
+                //         </View>
+                //     )
+                // }
+                if (attachment?.type === "video") {
+                    return (
+                        <View style={{
+                            flexDirection: "column",
+                            marginTop: 5
+                        }}>
+                            {!message.isMine && currentConversation.type === "group" && (
+                                <Text
+                                    style={{
+                                        fontSize: 12,
+                                        color: 'black',
+                                        fontWeight: '600'
+                                    }}
+                                    onTextLayout={onTextLayout}
+                                >
+                                    {message.name}
+                                </Text>
+                            )}
+
+                            <Video
+                                ref={ref}
+                                source={{ uri: attachment.url }}
+                                useNativeControls
+                                resizeMode={ResizeMode.CONTAIN}
+                                isLooping
+                                style={styles.image}
+
+                            />
+
 
                             <Text
                                 style={{
@@ -1217,9 +1285,10 @@ const ChatScreen = ({ navigation, route }) => {
             //     uri: asset.uri,
             // }));
             const photos = result.assets.map((asset) => ({
+
                 uri: asset.uri,
-                name: "image.jpg",
-                mimetype: "image/jpeg"
+                name: "image",
+                mimetype: asset.type
             }))
             handleUploadPhoto(photos);
         }
@@ -1310,7 +1379,7 @@ const ChatScreen = ({ navigation, route }) => {
             });
 
         })
-        // console.log(file);
+        console.log(file);
         await fetch(
             `${BASE_URL}/conservations/${currentConversation._id}/messages/sendFiles`,
             {
@@ -1332,16 +1401,22 @@ const ChatScreen = ({ navigation, route }) => {
             })
             .then((data) => {
                 console.log(data);
-                if (data.status === "fail") {
+                if (data.status === "success") {
+                    setMessages([...messages, data.data])
+                    socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
+                    console.log(data.data);
+                    console.log(file);
+                    dispatch(getConservations())
+                }
+                else {
                     console.log(data);
-
+                    Toast.show({
+                        type: 'error',
+                        text1: 'File is too large',
+                    })
                     return;
                 }
-                setMessages([...messages, data.data])
-                socket.emit('message:send', { ...data.data, conversation: currentConversation, sender: user._id })
-                console.log(data.data);
-                console.log(file);
-                dispatch(getConservations())
+
             })
             .catch((error) => {
                 Toast.show({
@@ -1394,7 +1469,34 @@ const ChatScreen = ({ navigation, route }) => {
             .catch(() => console.log("fetch error"))
     }
 
+    const checkTimeMessage = (message) => {
+        if (Date.now() - message.updatedAt < 5 * 3600000) {
+            return true;
+        }
+        else {
+            return false;
+        }
 
+    }
+
+    const formatTimeMessage = (message) => {
+        const updatedAtDate = new Date(message.updatedAt);
+        const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+        const dayOfWeekIndex = updatedAtDate.getDay();
+        const dayOfWeek = daysOfWeek[dayOfWeekIndex];
+
+
+        const month = updatedAtDate.getMonth() + 1;
+        const date = updatedAtDate.getDate();
+        const year = updatedAtDate.getFullYear();
+
+
+        const formattedDate = `${dayOfWeek}, ${month}/${date}/${year}`;
+
+        return formattedDate;
+
+    }
     const MessageComponent = ({ message }) => {
         const actionSheetRef = useRef(null);
         const handlePressIcon = () => {
@@ -1443,6 +1545,8 @@ const ChatScreen = ({ navigation, route }) => {
 
                 }}
             >
+                {/* {message.updatedAt} */}
+
                 {!message.isMine && (
                     <Pressable onPress={() => handleProfileScreen(message.sender._id)}>
                         <Image
@@ -1526,7 +1630,16 @@ const ChatScreen = ({ navigation, route }) => {
         return text.content;
     }
 
+    const showTimestampIfNeeded = (message) => {
+        const eightHoursInMillis = 8 * 3600000; // 8 hours in milliseconds
+        const timeDifference = Date.now() - message.timestamp;
 
+        if (timeDifference >= eightHoursInMillis) {
+            return message.timestamp; // Return timestamp to display
+        } else {
+            return null; // No need to display timestamp
+        }
+    }
     useEffect(() => {
         // getAllMessage()
 
@@ -1556,40 +1669,48 @@ const ChatScreen = ({ navigation, route }) => {
                 inverted
                 onContentSizeChange={() => scrollViewRef.current.scrollToEnd({ animated: true })}
             >
-                {messages.map((message) => (
+                {messages.map((message, index) => {
+                    // const showTimestamp = index === 0 || ((message.updatedAt - messages[index - 1].updatedAt)) >= 10;
+                    const showTimestamp =
+                        index === 0 ||
+                        (new Date(message.updatedAt) - new Date(messages[index - 1].updatedAt)) >= 8 * 60 * 60 * 1000;
+                    console.log("show timnestamp" + showTimestamp);
+                    console.log("message", message);
+                    console.log("Message -1", messages[index - 1]);
+                    return (
+                        <React.Fragment key={message._id}>
+                            {showTimestamp && <Text style={{ alignSelf: 'center', marginVertical: 10 }}>{formatTimeMessage(message)}</Text>}
+                            {message.type === 'notification' ? (
+                                <View style={{
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: 'lightgray',
+                                    borderRadius: 10,
+                                    flexDirection: 'row',
+                                    width: Platform.OS === 'ios' ? '90%' : '80%',
+                                    height: 30,
+                                    margin: 'auto',
+                                    gap: 15,
+                                    alignSelf: 'center'
+                                }} key={message._id}>
+                                    <Image
+                                        source={{ uri: message.avatar }}
+                                        style={styles.iconImage}
+                                    />
+                                    <Text>{message.content}</Text>
+                                </View>
+                            ) : (
+                                message.type === 'file' && message.content !== 'This message has been deleted' ? (
+                                    <FileMessageComponent key={message._id} message={message} />
+                                ) : (
+                                    <MessageComponent key={message._id} message={message} />
+                                )
+                            )}
+                        </React.Fragment>
+                    );
+                })}
 
-                    message?.type === 'notification' ? (
-                        <View style={{
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            backgroundColor: 'lightgray',
-                            borderRadius: 10,
-                            flexDirection: 'row',
-                            width: Platform.OS === 'ios' ? '90%' : '80%',
-                            height: 30,
-                            margin: 'auto',
-                            gap: 15,
-                            alignSelf: 'center'
 
-
-
-
-
-                        }} key={message._id}>
-                            <Image
-                                source={{ uri: message.avatar }}
-                                style={styles.iconImage}
-                            />
-                            <Text>{message.content}</Text>
-                        </View>
-                    ) : (
-                        message?.type === 'file' && message.content !== 'This message has been deleted' ? (
-                            <FileMessageComponent key={message?._id} message={message} />
-                        ) : (
-                            <MessageComponent key={message?._id} message={message} />
-                        )
-                    )
-                ))}
 
             </ScrollView>
             <View style={{
@@ -1663,30 +1784,49 @@ const ChatScreen = ({ navigation, route }) => {
                                 </View>
                             )}
 
-                            <View style={{ flexDirection: 'row' }}>
-                                <TextInput
-                                    placeholder="Message..."
-                                    style={[{
-                                        marginTop: 10,
-                                        flex: 1,
+                            {isFriendList == true ? (
+
+                                <View style={{ flexDirection: 'row' }}>
+                                    <TextInput
+                                        placeholder="Message..."
+                                        style={[{
+                                            marginTop: 10,
+                                            flex: 1,
+                                            fontSize: 20,
+                                            height: 70,
+                                            width: '80%',
+                                            borderRadius: 20,
+                                            paddingHorizontal: 10,
+                                        }, isFocused && styles.textInputFocused
+                                        ]}
+                                        value={replyText}
+                                        onChangeText={(text) => { setReplyText(text) }}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                    />
+
+                                    <Pressable style={{ marginHorizontal: 10, marginTop: 40 }} onPress={() => handleSendTextReply()}>
+                                        <Feather name="send" size={24} color="black" />
+                                    </Pressable>
+
+                                </View>
+                            ) : (
+                                <View style={{
+                                    flexDirection: "row",
+                                    flex: 1,
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 10
+
+                                }}>
+                                    <Text style={{
                                         fontSize: 20,
-                                        height: 70,
-                                        width: '80%',
-                                        borderRadius: 20,
-                                        paddingHorizontal: 10,
-                                    }, isFocused && styles.textInputFocused
-                                    ]}
-                                    value={replyText}
-                                    onChangeText={(text) => { setReplyText(text) }}
-                                    onFocus={handleFocus}
-                                    onBlur={handleBlur}
-                                />
+                                        color: 'red'
+                                    }}>Can't not send messages for stranger</Text>
+                                </View>
 
-                                <Pressable style={{ marginHorizontal: 10, marginTop: 40 }} onPress={() => handleSendTextReply()}>
-                                    <Feather name="send" size={24} color="black" />
-                                </Pressable>
+                            )}
 
-                            </View>
 
 
 
@@ -1700,30 +1840,57 @@ const ChatScreen = ({ navigation, route }) => {
                             gap: 10
 
                         }}>
-                            <TextInput
-                                placeholder="Message..."
-                                style={[{
-                                    fontSize: 20,
-                                    height: 50,
-                                    width: '60%',
-                                    borderRadius: 20,
-                                    paddingHorizontal: 10,
-                                }, isFocused && styles.textInputFocused
-                                ]}
-                                value={text}
-                                onChangeText={(text) => { setText(text) }}
-                                onFocus={handleFocus}
-                                onBlur={handleBlur}
-                            />
-                            <Pressable onPress={() => handleChoosePhoto()} >
-                                <Octicons name="image" size={24} color="black" />
-                            </Pressable>
-                            <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleChooseFile()}>
-                                <Octicons name="file" size={24} color="black" />
-                            </Pressable>
-                            <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, currentConversation)}>
-                                <Feather name="send" size={24} color="black" />
-                            </Pressable>
+                            {isFriendList == true ? (
+                                <View style={{
+                                    flexDirection: "row",
+                                    flex: 1,
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 10
+
+                                }}>
+                                    <TextInput
+                                        placeholder="Message..."
+                                        style={[{
+                                            fontSize: 20,
+                                            height: 50,
+                                            width: '60%',
+                                            borderRadius: 20,
+                                            paddingHorizontal: 10,
+                                        }, isFocused && styles.textInputFocused
+                                        ]}
+                                        value={text}
+                                        onChangeText={(text) => { setText(text) }}
+                                        onFocus={handleFocus}
+                                        onBlur={handleBlur}
+                                    />
+                                    <Pressable onPress={() => handleChoosePhoto()} >
+                                        <Octicons name="image" size={24} color="black" />
+                                    </Pressable>
+                                    <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleChooseFile()}>
+                                        <Octicons name="file" size={24} color="black" />
+                                    </Pressable>
+                                    <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, currentConversation)}>
+                                        <Feather name="send" size={24} color="black" />
+                                    </Pressable>
+                                </View>
+
+                            ) : (
+                                <View style={{
+                                    flexDirection: "row",
+                                    flex: 1,
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    gap: 10
+
+                                }}>
+                                    <Text style={{
+                                        fontSize: 20,
+                                        color: 'red'
+                                    }}>Can't not send messages for stranger</Text>
+                                </View>
+
+                            )}
                         </View>
                     )}
                 </View>
@@ -1753,6 +1920,7 @@ const ChatScreen = ({ navigation, route }) => {
                                         borderColor: '#f558a4',
                                     }}
                                     value={searchFriend}
+
                                     onChangeText={(text) => setSearchFriend(text)}
 
                                 />

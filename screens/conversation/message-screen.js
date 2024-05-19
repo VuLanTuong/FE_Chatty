@@ -20,6 +20,7 @@ const MessageScreen = ({ navigation }) => {
 
   const [search, setSearch] = useState("");
   const options = ['Add Friend', 'Create Group', 'Cancel'];
+  const [isFriend, setIsFriend] = useState(false);
   const actionSheetRef = useRef();
   const handleAddFriend = () => {
     navigation.navigate('FindFriend')
@@ -125,6 +126,10 @@ const MessageScreen = ({ navigation }) => {
       }
 
       const updatedConversation = updatedConversationArray.map((item) => {
+        // const friendConversation = chatData.members.find(member => member.id);
+
+        // // Get the avatar URL of the user
+        // const avatarUrl = friendConversation ? friendConversation.avatar : null;
         if (item._id.toString() === data.conversation._id.toString()) {
           return {
             ...item,
@@ -320,6 +325,16 @@ const MessageScreen = ({ navigation }) => {
 
   };
 
+  const checkIsFriend = (id) => {
+    let isFriendTemp = false;
+    const friend = friends.find(friend => friend.userId === id);
+    if (friend) {
+      isFriendTemp = true;
+      return isFriendTemp;
+    }
+    return isFriendTemp;
+  }
+
   const handleOpenConversation = async (members, id) => {
     // const filteredItems = members.filter(member => member._id !== user._id);
     const token = await getAccessToken();
@@ -351,7 +366,26 @@ const MessageScreen = ({ navigation }) => {
           })
           console.log(updatedConversation);
           dispatch(setAllConversation(updatedConversation, { position: 'message-open-conversation' }));
-          navigation.navigate('Chat', { data: data.data, friends: friends })
+          if (data.data.type === "private") {
+            console.log("private");
+            let idTemp = data.data.members.map((member) => {
+              if (member._id !== user._id) {
+                return member._id;
+              }
+            });
+            let isFriendTemp = checkIsFriend(idTemp[0]);
+            console.log("***8", isFriendTemp);
+            navigation.navigate('Chat', { data: data.data, friends: friends, isFriend: isFriendTemp })
+            return;
+          }
+          // let isFriendTemp = checkIsFriend(id);
+
+          // console.log("***8", isFriendTemp);
+
+          // // console.log("***8", isFriend);
+
+          // console.log("friends", friends);
+          navigation.navigate('Chat', { data: data.data, friends: friends, isFriend: true })
         }
       })
 
@@ -446,7 +480,7 @@ const MessageScreen = ({ navigation }) => {
       },
       headerLeft: () => (
         <View style={{
-          height: 50,
+          height: 60,
           marginTop: -5,
           paddingHorizontal: 10,
           flexDirection: 'row',
@@ -465,7 +499,7 @@ const MessageScreen = ({ navigation }) => {
               color: 'white',
               marginLeft: 10,
               backgroundColor: '#f558a4',
-              width: '100%',
+              width: '70%',
             }}
             onChangeText={(text) => setSearch(text)}
           />
@@ -504,7 +538,8 @@ const MessageScreen = ({ navigation }) => {
 
   const findConversation = (text) => {
 
-    const updatedConversations = allConversationAtRedux.filter(conversation => conversation.name.toLowerCase().includes(text.toLowerCase()));
+    const updatedConversations = allConversationAtRedux.
+      filter(conversation => conversation.name.toLowerCase().includes(text.toLowerCase()));
 
 
     // allConversationAtRedux.map((conversation) => { 
@@ -549,7 +584,7 @@ const MessageScreen = ({ navigation }) => {
               onPress={() => handleOpenConversation(item.members, item._id)}
             >
               <TouchableOpacity style={[styles.imageContainer, showStoriCircle()]}>
-                <Image style={styles.image} source={{ uri: item.image }} />
+                <Image style={styles.image} source={{ uri: getAvatar(item) }} />
               </TouchableOpacity>
               <View style={{
                 flex: 1,
