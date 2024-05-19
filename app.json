@@ -38,7 +38,8 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
-      ]
+      ],
+      "expo-video"
     ]
   }
 }

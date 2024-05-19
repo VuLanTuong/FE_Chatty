@@ -335,7 +335,7 @@ export default function ForgotPassword({ navigation, route }) {
                                 underlineColorAndroid="transparent"
                                 secureTextEntry={!showNewPassword}
                                 value={newPassword}
-                                onChangeText={(text) => setNewPassword(text)}
+                                onChangeText={(text) => setNewPassword(text.trim())}
                             />
                             <Pressable
                                 onPress={toggleNewPasswordVisibility}
@@ -359,7 +359,7 @@ export default function ForgotPassword({ navigation, route }) {
                                 underlineColorAndroid="transparent"
                                 secureTextEntry={!showConfirmNewPassword}
                                 value={confirmNewPassword}
-                                onChangeText={(text) => setConfirmNewPassword(text)}
+                                onChangeText={(text) => setConfirmNewPassword(text.trim())}
                             />
                             <Pressable
                                 onPress={toggleConfirmNewPasswordVisibility}
@@ -404,7 +404,7 @@ export default function ForgotPassword({ navigation, route }) {
                         justifyContent: 'center',
                         alignItems: 'center'
                     }}>
-                        <Pressable style={{
+                        {/* <Pressable style={{
                             width: '90%',
                             height: 40,
                             backgroundColor: '#c9c9c9',
@@ -417,7 +417,7 @@ export default function ForgotPassword({ navigation, route }) {
                             <Text style={{
                                 color: 'black', textAlign: 'center', marginTop: 15
                             }}>Close</Text>
-                        </Pressable>
+                        </Pressable> */}
                     </View>
 
                 </Modal>

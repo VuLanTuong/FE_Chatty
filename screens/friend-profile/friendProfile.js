@@ -11,6 +11,7 @@ import { findFriendById } from '../../service/friend.util';
 import { getAllConversation } from '../../service/conversation.util';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
+import { useSocket } from '../socket.io/socket-context';
 export default function FriendProfile({ route, navigation }) {
     const user = route.params.friend;
     console.log(user);
@@ -27,6 +28,8 @@ export default function FriendProfile({ route, navigation }) {
     const handleCloseModal = () => {
         setModalVisible(!modalVisible);
     };
+    const { socket } = useSocket();
+    const [newRequest, setNewRequest] = useState();
 
 
 
@@ -49,6 +52,9 @@ export default function FriendProfile({ route, navigation }) {
                 setIsFriend(true)
                 console.log("is friend");
                 return;
+            }
+            else {
+                setIsFriend(false)
             }
             return;
         })
@@ -74,7 +80,7 @@ export default function FriendProfile({ route, navigation }) {
 
                 }
                 setFriend(friend.friend)
-                return;
+                // console.log(friend.friend);
             }
 
         })
@@ -89,9 +95,76 @@ export default function FriendProfile({ route, navigation }) {
                     console.log("running");
                 })
             })
+            // socket.on("friend:request", (data) => {
+            //     console.log(data);
+            // })
+
+
         }, [])
     );
 
+
+    useEffect(() => {
+        socket.on('friend:request', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.friendRequest.requester && data.friendRequest.status != "accecpt") {
+                console.log("isSendRequest socket");
+                setIsSendRequest(true)
+            }
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status != "accecpt") {
+                console.log("recipient socket");
+                setIsRecipient(true)
+                setFriend(data.friendRequest)
+
+            }
+            return;
+        })
+        // friend:accept
+        socket.on('friend:accept', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.friendRequest.requester && data.friendRequest.status === "accepted") {
+                console.log("is friend socket");
+                setIsFriend(true)
+            }
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
+                console.log("recipient socket");
+                setIsFriend(true)
+
+            }
+            return;
+        })
+        socket.on('friend:reject', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.userId) {
+                console.log("reject socket");
+                setIsSendRequest(false)
+                setIsRecipient(false)
+
+            }
+
+            return;
+        })
+        socket.on('friend:cancel', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.userId) {
+                console.log("cancel socket");
+                setIsSendRequest(false)
+                setIsRecipient(false)
+
+            }
+
+            return;
+        })
+        socket.on('friend:remove', (data) => {
+            console.log(data);
+            if (myInfor.user._id === data.userId) {
+                console.log("remove socket");
+                setIsFriend(false)
+            }
+
+            return;
+        })
+    }, [])
 
 
     console.log(friend);
@@ -104,7 +177,8 @@ export default function FriendProfile({ route, navigation }) {
 
     const sendRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user._id);
+        console.log(user);
+        console.log(friend);
         fetch(`${BASE_URL}/friends/request/${user._id}`, {
             method: "POST",
             headers: {
@@ -113,28 +187,28 @@ export default function FriendProfile({ route, navigation }) {
             }
         }
         ).then(response => {
-            console.log(response.status);
-            if (!response.ok) {
+            console.log(response);
+
+            if (response.status === 200) {
+                console.log('success');
+                setIsSendRequest(true);
+                getFriendOfUser();
+                Toast.show({
+                    type: 'success',
+                    text1: 'Request sent successfully',
+                    position: 'top',
+                    visibilityTime: 2000,
+                })
+                return;
+
+            }
+            else {
                 console.log('error');
                 setIsSendRequest(false);
                 return;
             }
-            console.log('success');
-            setIsSendRequest(true);
-            getFriendOfUser();
-            Toast.show({
-                type: 'success',
-                text1: 'Request sent successfully',
-                position: 'top',
-                visibilityTime: 2000,
-            })
-            return;
-
-
         }
-
-
-        )
+        ).catch((error) => console.log("fetch error", error))
 
     }
 
@@ -150,11 +224,47 @@ export default function FriendProfile({ route, navigation }) {
             }
         })
             .then(response => {
+                console.log(response);
                 console.log(response.status);
                 if (!response.ok) {
                     console.log('error');
                     return;
                 }
+
+                console.log('cancel success');
+
+                // getFriendOfUser();
+                setIsSendRequest(false);
+                setIsRecipient(false);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Cancel request successfully',
+                    position: 'top',
+                    visibilityTime: 2000,
+                })
+            }
+            )
+
+    }
+    const handleRejectRequest = async () => {
+        const accessToken = await getAccessToken();
+        console.log(user);
+        console.log(friend);
+        fetch(`${BASE_URL}/friends/reject/${friend._id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: "Bearer " + accessToken
+            }
+        })
+            .then(response => {
+                console.log(response);
+                console.log(response.status);
+                if (!response.ok) {
+                    console.log('error');
+                    return;
+                }
+
                 console.log('cancel success');
 
                 // getFriendOfUser();
@@ -209,6 +319,7 @@ export default function FriendProfile({ route, navigation }) {
     const handleAcceptRequest = async () => {
         const accessToken = await getAccessToken();
         console.log(user._id);
+        console.log(friend);
         fetch(`${BASE_URL}/friends/accept/${friend._id}`, {
             method: "POST",
             headers: {
@@ -219,7 +330,7 @@ export default function FriendProfile({ route, navigation }) {
         ).then(response => {
             console.log(response.status);
             if (!response.ok) {
-                console.log('error');
+                console.log(response);
                 setIsFriend(false)
                 return;
             }
@@ -230,21 +341,22 @@ export default function FriendProfile({ route, navigation }) {
             return response.json();
         }).then((data) => {
             console.log(data);
-            if (data.status === "fail") {
-                console.log("fail");
-                return;
-            }
-            else {
-                dispatch(updateFriend(currentFriend))
-                Toast.show({
-                    type: 'success',
-                    text1: 'Add friend successfully',
-                    position: 'top',
-                    visibilityTime: 2000,
-                })
-            }
+            // if (!data.data) {
+            //     console.log("fail");
+            //     return;
+            // }
+            // else {
+            dispatch(updateFriend(currentFriend))
+            Toast.show({
+                type: 'success',
+                text1: 'Add friend successfully',
+                position: 'top',
+                visibilityTime: 2000,
+            })
+        }
 
-        })
+            // }
+        )
 
     }
 
@@ -386,7 +498,7 @@ export default function FriendProfile({ route, navigation }) {
                                             <Pressable style={styles.button} onPress={() => handleAcceptRequest()}>
                                                 <Text style={styles.textStyle}>Accept Request</Text>
                                             </Pressable>
-                                            <Pressable style={styles.button} onPress={() => handleCancelSendRequest()}>
+                                            <Pressable style={styles.button} onPress={() => handleRejectRequest()}>
                                                 <Text style={styles.textStyle}>Reject Request</Text>
                                             </Pressable>
                                             {/* <Pressable style={styles.button} onPress={() => handleSendMessage()}>
