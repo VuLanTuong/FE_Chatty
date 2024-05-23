@@ -14,14 +14,16 @@ import { TextInput } from "react-native-paper";
 import { Badge } from '@rneui/themed';
 import { useSocket } from "../socket.io/socket-context";
 import { fetchAllGroup } from "../../service/conversation.util";
+import Toast from "react-native-toast-message";
 const MessageScreen = ({ navigation }) => {
   const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const allConversationAtRedux = useSelector((state) => state.user.conversation);
 
   const [search, setSearch] = useState("");
-  const options = ['Add Friend', 'Create Group', 'Cancel'];
+  const options = ['Add Friend', 'Create Group', 'Friend Conversation Filtering', 'Group Conversation Filtering', 'Cancel'];
   const [isFriend, setIsFriend] = useState(false);
   const actionSheetRef = useRef();
+  const [onChange, setOnChange] = useState('all');
   const handleAddFriend = () => {
     navigation.navigate('FindFriend')
   }
@@ -263,6 +265,7 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const handleSetConversation = (data) => {
+    console.log(data);
     setConversations(data)
     console.log("set");
   }
@@ -325,13 +328,21 @@ const MessageScreen = ({ navigation }) => {
 
   };
 
-  const checkIsFriend = (id) => {
+  const checkIsFriend = (idTemp) => {
     let isFriendTemp = false;
-    const friend = friends.find(friend => friend.userId === id);
-    if (friend) {
-      isFriendTemp = true;
-      return isFriendTemp;
-    }
+    console.log("friends", friends);
+    idTemp.map((id) => {
+      if (id) {
+        const friend = friends.find(friend => friend.userId === id);
+        if (friend) {
+          console.log("friend", friend);
+          isFriendTemp = true;
+          return isFriendTemp;
+        }
+        console.log("friend", friend);
+      }
+    })
+
     return isFriendTemp;
   }
 
@@ -368,12 +379,16 @@ const MessageScreen = ({ navigation }) => {
           dispatch(setAllConversation(updatedConversation, { position: 'message-open-conversation' }));
           if (data.data.type === "private") {
             console.log("private");
+            console.log(data.data.members);
+
             let idTemp = data.data.members.map((member) => {
               if (member._id !== user._id) {
+                console.log("member", member._id);
                 return member._id;
               }
             });
-            let isFriendTemp = checkIsFriend(idTemp[0]);
+            console.log("idTemp", idTemp);
+            let isFriendTemp = checkIsFriend(idTemp);
             console.log("***8", isFriendTemp);
             navigation.navigate('Chat', { data: data.data, friends: friends, isFriend: isFriendTemp })
             return;
@@ -470,6 +485,39 @@ const MessageScreen = ({ navigation }) => {
   };
 
 
+  const handleFilterFriendConversation = () => {
+    setOnChange('friend')
+    const updatedConversations = allConversationAtRedux.
+      filter(conversation => conversation.type === "private");
+    console.log(updatedConversations);
+    setConversations(updatedConversations);
+
+  }
+
+  const handleFilterGroupConversation = () => {
+    setOnChange('group')
+    const updatedConversations = allConversationAtRedux.
+      filter(conversation => conversation.type === "group");
+    setConversations(updatedConversations);
+
+  }
+
+  useEffect(() => {
+    if (onChange === 'friend') {
+      handleFilterFriendConversation();
+      return;
+    }
+    if (onChange === 'group') {
+      handleFilterGroupConversation();
+      return;
+    }
+    if (onChange === 'all') {
+      setConversations(allConversationAtRedux);
+
+    }
+
+  }, [onChange])
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: "",
@@ -516,8 +564,9 @@ const MessageScreen = ({ navigation }) => {
             <ActionSheet
               ref={actionSheetRef}
               options={options}
-              cancelButtonIndex={2}
+              cancelButtonIndex={4}
               onPress={(index) => {
+
                 // Handle the selected option based on the index
                 switch (index) {
                   case 0:
@@ -525,6 +574,12 @@ const MessageScreen = ({ navigation }) => {
                     break;
                   case 1:
                     handleAddGroup();
+                    break;
+                  case 2:
+                    handleFilterFriendConversation();
+                    break;
+                  case 3:
+                    handleFilterGroupConversation();
                     break;
                   default:
                     break;
@@ -573,7 +628,110 @@ const MessageScreen = ({ navigation }) => {
 
 
   return (
-    <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}>
+    <View>
+      {onChange === 'friend' ?
+        <View style={{
+          // backgroundColor: '#f558a4',
+          height: 30,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-end',
+          width: '50%',
+          alignSelf: 'flex-end',
+          flexDirection: 'row',
+          gap: 10,
+          marginRight: 10,
+          borderRadius: 10,
+          backgroundColor: '#a6a4a4',
+
+        }}
+        >
+          <MaterialCommunityIcons name="filter-check" color="black" size={20} />
+
+          <Text style={styles.textFilter}>Friend Conversation</Text>
+          <Pressable onPress={() => setOnChange("all")}>
+            <MaterialCommunityIcons style={{
+              marginRight: 10,
+              marginBottom: 5,
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 10
+            }} name="close" color="black" size={20} onPress={() => setOnChange('all')} />
+
+          </Pressable>
+
+        </View> :
+
+        onChange === 'group' ?
+          <View style={{
+            // backgroundColor: '#f558a4',
+            height: 30,
+            justifyContent: 'flex-end',
+            alignItems: 'flex-end',
+            width: '50%',
+            alignSelf: 'flex-end',
+            flexDirection: 'row',
+            gap: 10,
+            marginRight: 10,
+            borderRadius: 10,
+            backgroundColor: '#a6a4a4',
+
+
+          }}>
+
+            <MaterialCommunityIcons name="filter-check" color="black" size={20} />
+            <Text style={styles.textFilter}>Group Conversation</Text>
+
+            <MaterialCommunityIcons style={{
+              marginRight: 10,
+              marginBottom: 5,
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 10
+            }} name="close" color="black" size={20} onPress={() => setOnChange('all')} />
+
+
+
+          </View> :
+
+          <View style={{
+            height: 30,
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            marginRight: 10,
+            width: '40%',
+            alignSelf: 'flex-end',
+            borderRadius: 10,
+            backgroundColor: '#a6a4a4',
+            flexDirection: 'row',
+
+          }}>
+            <Pressable style={{
+              height: 30,
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginRight: 20,
+              alignSelf: 'flex-end',
+              borderRadius: 10,
+              backgroundColor: '#a6a4a4',
+              flexDirection: 'row',
+              gap: 10
+
+            }} onPress={handlePress}>
+
+
+              <MaterialCommunityIcons name="filter-off" color="black" size={20} />
+
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                textAlign: 'center',
+                // flex: 1,
+              }}>All Conversation</Text>
+
+            </Pressable>
+          </View>
+      }
+      {/* <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}> */}
       <FlatList
         numColumns={1}
         horizontal={false}
@@ -635,7 +793,9 @@ const MessageScreen = ({ navigation }) => {
       />
 
 
-    </ScrollView>
+      {/* </ScrollView> */}
+
+    </View>
 
 
   );
@@ -697,5 +857,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  textFilter: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+
+
+  }
 });
 export default MessageScreen;

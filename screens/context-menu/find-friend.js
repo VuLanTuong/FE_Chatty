@@ -58,7 +58,11 @@ const FindFriend = ({ navigation }) => {
                 />
             </View>
             <Pressable onPress={() => findFriend()} style={styles.searchButton}>
-                <Text>Search</Text>
+                <Text style={{
+                    fontSize: 20,
+                    color: 'black',
+                    fontWeight: 400
+                }}>Search</Text>
                 <MaterialCommunityIcons name='magnify' color='black' size={25} />
             </Pressable>
         </View>
@@ -95,7 +99,7 @@ const styles = StyleSheet.create({
     },
     input: {
         flex: 1,
-        fontSize: 13,
+        fontSize: 17,
 
     },
     searchButton: {

@@ -5,56 +5,59 @@ import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { findFriendById } from '../../service/friend.util';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { useSocket } from '../socket.io/socket-context';
+import { setNumberOfRequest } from '../../rtk/user-slice';
 
 export function RequestSocket({ navigation }) {
     const [requests, setRequests] = useState([]);
     const [isAcpRequest, setIsAcptrRequest] = useState(false);
     const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const myInfor = useSelector(state => state.user)
+    const { socket } = useSocket()
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        // fetchFriendRequest();
+        socket.on('friend:request', async (data) => {
+            console.log(requests);
+            // fetchFriendRequest().then(() => console.log('fetchFriendRequest'))
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status !== "accecpt") {
+                const mappedObject = {
+                    "_id": data.friendRequest._id,
+                    "avatar": data.requestInfo.avatar,
+                    "name": data.requestInfo.name,
+                    "userId": data.userId
+                };
+                console.log("***request request", requests);
+                setRequests([...requests, mappedObject]);
+                dispatch(setNumberOfRequest(requests.length + 1));
+                fetchFriendRequest()
 
 
-    // .then((response) => response.json())
-    // .then((data) => {
-    //     if (data.status === 'fail') {
-    //         console.log("fail");
-    //         return;
-    //     }
-    //     console.log('response', data);
-    //     console.log(data.data);
-    //     return Promise.resolve(data.data);
-    // })
-    // .catch((error) => {
-    //     console.log('Error:', error);
-    // });
-    // };
+            }
+            return;
+        })
+        socket.on('friend:accept', (data) => {
+            console.log(data);
+            if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
+                dispatch(setNumberOfRequest(requests.length - 1));
+                setRequests(requests.filter(request => request._id !== data.friendRequest._id));
+            }
+            return;
+        })
+        socket.on('friend:cancel', (data) => {
+            console.log("** cancel request", requests);
+            if (myInfor.user._id === data.userId) {
 
-    // const cancelAddFriend = async () => {
-    //     const accessToken = await getAccessToken();
-    //     console.log(user._id);
-    //     fetch(`http://ec2-52-221-252-41.ap-southeast-1.compute.amazonaws.com:8555/api/v1/friends/cancel/${user._id}`, {
-    //         method: "POST",
-    //         headers: {
-    //             "Content-Type": "application/json",
-    //             Authorization: "Bearer " + accessToken
-    //         }
+                // setRequests(requests.filter(request => request._id !== data.friendRequest._id));
+                fetchFriendRequest();
 
 
-    //     })
-    //         .then(response => {
-    //             console.log(response.status);
-    //             if (!response.ok) {
-    //                 console.log('error');
-    //                 setIsSendRequest(true)
-    //                 return;
-    //             }
-    //             console.log('success');
-    //             setIsSendRequest(false);
-
-
-    //         }
-    //         )
-
-    // }
+            }
+            return;
+        })
+    }, [])
     async function fetchFriendRequest() {
         try {
             const accessToken = await getAccessToken();
@@ -67,24 +70,17 @@ export function RequestSocket({ navigation }) {
             });
 
             const data = await response.json();
-            console.log(data);
-
-            const findFriendPromises = data.data.map(async (request) => {
-                console.log(request);
-
-                const friend = await findFriendById(request.userId);
-                console.log(friend);
-                return friend;
-            })
-
-            const friends = await Promise.all(findFriendPromises);
-            console.log(friends);
-            setRequests(friends);
+            console.log("========================================");
+            console.log("fetch friend request", data.data);
+            setRequests(data.data);
+            dispatch(setNumberOfRequest(data.data.length));
         } catch (error) {
             console.log('Error:', error);
             throw error;
         }
     }
+
+    console.log("** request", requests);
 
 
     useEffect(() => {
@@ -144,10 +140,16 @@ export function RequestSocket({ navigation }) {
 
 
 
-    const cancelAddFriend = async (id) => {
+    const cancelAddFriend = async (request) => {
+        let id;
+
+        if (request) {
+            id = request._id;
+        } else {
+            id = request.friendRequest._id;
+        }
         const accessToken = await getAccessToken();
-        console.log("cancel");
-        fetch(`${BASE_URL}/friends/cancel/${id}`, {
+        fetch(`${BASE_URL}/friends/reject/${id}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -161,7 +163,10 @@ export function RequestSocket({ navigation }) {
                     // setIsAcptrRequest(false)
                     return;
                 }
+
                 console.log('cancel');
+                fetchFriendRequest()
+
                 // setIsAcptrRequest(true);
 
 
@@ -181,53 +186,7 @@ export function RequestSocket({ navigation }) {
     }
 
     return (
-        // <View>
-        //     <View style={{ flexDirection: 'row', width: '100%', marginLeft: 10 }}>
-        //         <View style={{
-        //             // flexDirection: 'row',
-        //             // gap: 5,
-        //             // backgroundColor: '#f558a4'
-        //         }}>
-        //             {/* <MaterialCommunityIcons name="back" color="white" size={20} />
-        //             <TextInput
-        //                 placeholder="Friend Request"
-        //                 placeholderTextColor="white"
-        //                 // value={searchKeyword}
-        //                 // onSubmitEditing={() => navigation.navigate('SearchEngine', { keyword: searchKeyword })}
-        //                 // onChangeText={text => setSearchKeyword(text)}
-        //                 style={{ height: 20, fontSize: 17, color: 'white' }}
-        //             /> */}
-
-        //         </View>
-        //     </View>
-        // </View>
-
         <View>
-            <View style={{
-                flexDirection: 'row',
-                width: '100%',
-                marginLeft: 10,
-                height: 40,
-                marginTop: 10,
-                gap: 10
-            }}>
-                <Pressable style={{
-                    flexDirection: 'row'
-                }} onPress={() => {
-                    navigation.navigate('contact')
-                }}>
-                    <MaterialCommunityIcons name="arrow-left-bold" color="black" size={20} />
-                    <Text
-
-                        // value={searchKeyword}
-                        // onSubmitEditing={() => navigation.navigate('SearchEngine', { keyword: searchKeyword })}
-                        // onChangeText={text => setSearchKeyword(text)}
-                        style={{ height: 20, fontSize: 15, color: 'black', fontWeight: 700 }}
-                    >Friend Request</Text>
-
-                </Pressable>
-
-            </View>
 
             {requests.map((request) => (
                 // request = findFriendById(request._id)
@@ -235,18 +194,35 @@ export function RequestSocket({ navigation }) {
                     style={{
                         flexDirection: 'column',
                         gap: 10,
-                        marginLeft: 10
+                        marginTop: 10,
+                        borderWidth: 1,
+                        borderColor: '#e0cade',
+                        width: '80%',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: 120,
+                        alignSelf: 'center',
+                        borderRadius: 10,
+                        backgroundColor: '#f2e9f1'
+
+
                     }}>
+
 
                     <View style={{
                         flexDirection: 'row',
-                        gap: 20
+                        gap: 20,
+                        marginTop: 10,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        alignSelf: 'center'
                     }}>
                         {/* onPress to go to profile of user */}
                         <Pressable style={{
                             flexDirection: 'row',
                             gap: 20
-                        }} onPress={() => viewProfileOfUser(request._id)}>
+
+                        }} onPress={() => viewProfileOfUser(request.userId)}>
                             {/* // api to get avatar */}
                             <Image source={{ uri: request.avatar }} style={{
                                 width: 50,
@@ -265,41 +241,30 @@ export function RequestSocket({ navigation }) {
                                     fontSize: 20
                                 }}>{request.sender}</Text> */}
                                 <Text style={{
-                                    marginTop: 10,
+                                    marginTop: 20,
 
                                     fontSize: 15
                                 }}>{request.name}</Text>
-
-
-
-                                <Text style={{
-                                    padding: 10,
-                                    border: 1,
-                                    width: 250,
-                                    borderRadius: 5
-
-
-                                }}>"{request.introduce}"</Text>
                             </View>
-
-
                         </Pressable>
-
-
                     </View>
                     <View style={{
-                        marginLeft: 10,
                         flexDirection: 'row',
-                        gap: 10
+                        gap: 10,
+                        flex: 1,
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        alignSelf: 'center'
+
                     }}>
                         <Pressable style={{
                             height: 30,
                             width: 120,
                             borderRadius: 5,
                             backgroundColor: '#f558a4',
-                            marginLeft: 60,
+                            // marginLeft: 60,
 
-                        }} onPress={() => handleAddFriend(request.friend._id)}>
+                        }} onPress={() => handleAddFriend(request._id)}>
                             <Text style={{
                                 color: 'white',
                                 marginLeft: 40,
@@ -313,7 +278,7 @@ export function RequestSocket({ navigation }) {
                             backgroundColor: '#969190',
 
 
-                        }} onPress={() => cancelAddFriend(request.friend._id).then(() => {
+                        }} onPress={() => cancelAddFriend(request).then(() => {
                             console.log("cancel success");
                             fetchFriendRequest()
                         })}>

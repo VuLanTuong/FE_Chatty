@@ -88,7 +88,7 @@ export default function OptionGroup({ navigation, route }) {
                     paddingHorizontal: 10
                 }}>
                     <TouchableOpacity
-                        onPress={() => navigation.navigate('Chat', { data: conservationParam })}
+                        onPress={() => navigation.navigate('Chat', { data: conservationParam, isFriend: true })}
                         style={{ marginHorizontal: 15, marginLeft: 0 }}
                     >
                         <AntDesign name="arrowleft" size={24} color="white" />

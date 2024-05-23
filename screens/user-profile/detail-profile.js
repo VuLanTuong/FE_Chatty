@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useLayoutEffect } from "react";
 import {
   View,
   Text,
@@ -55,6 +55,34 @@ export default function DetailProfile({ navigation }) {
   const handleEditPress = () => {
     setIsEditing(true);
   };
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerTitle: "",
+      headerStyle: {
+        backgroundColor: '#f558a4',
+        height: 60,
+
+      },
+      headerLeft: () => (
+        <View style={{
+          height: 60,
+          marginTop: -5,
+          paddingHorizontal: 10,
+          flexDirection: 'row',
+          width: '100%',
+          alignItems: 'center',
+          flex: 1
+        }}>
+          {/* <View style={{ flexDirection: 'row', gap: 10 }}> */}
+          <MaterialCommunityIcons name="arrow-left" color="white" size={20} onPress={() => navigation.goBack()} />
+          {/* </View> */}
+          <Text style={{ fontSize: 16, marginLeft: 20, color: "#fff", fontWeight: "bold" }}>User Information</Text>
+        </View>
+      ),
+
+    })
+  }, [])
 
   const handleSavePress = async () => {
     setIsEditing(false);
@@ -182,7 +210,7 @@ export default function DetailProfile({ navigation }) {
 
   return (
     <View>
-      <View style={styles.header}>
+      {/* <View style={styles.header}>
         <Pressable
           style={styles.backButton}
           onPress={() => navigation.navigate("ProfileScreen")}
@@ -190,7 +218,7 @@ export default function DetailProfile({ navigation }) {
           <MaterialCommunityIcons name="arrow-left" color="white" size={20} />
           <Text style={styles.headerText}>User Information</Text>
         </Pressable>
-      </View>
+      </View> */}
 
       {/* Form to change information */}
       <View style={styles.container}>

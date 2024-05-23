@@ -1116,7 +1116,7 @@ const ChatScreen = ({ navigation, route }) => {
                         style={{
                             // width: "80%",
                         }}
-                        onPress={() => handlePressIcon()}
+                        onLongPress={() => handlePressIcon()}
                     >
 
                         {message.parent !== null ? (

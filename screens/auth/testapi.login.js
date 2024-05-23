@@ -17,7 +17,7 @@ import {
   Checkbox,
 } from "react-native-paper";
 import { useDispatch } from "react-redux";
-import { getConservations, login, setFriend } from "../../rtk/user-slice";
+import { getConservations, login, setFriend, setNumberOfRequest } from "../../rtk/user-slice";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storeToken, getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
@@ -75,9 +75,13 @@ const Login = ({ navigation }) => {
               user: user,
             })
           );
+          fetchFriendRequest();
           fetchAllGroup()
           console.log(user);
-          fetchAllFriend();
+          fetchAllFriend().then(() => {
+            console.log("fetch all friend done");
+
+          })
 
           // const friendList = findFriendById(user._id).then((friend) => {
           //   console.log(friend);
@@ -92,6 +96,29 @@ const Login = ({ navigation }) => {
       }
     });
   }, []);
+
+  async function fetchFriendRequest() {
+    try {
+      const accessToken = await getAccessToken();
+      const response = await fetch(`${BASE_URL}/friends/requests`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + accessToken
+        }
+      });
+
+      const data = await response.json();
+      console.log(data);
+      if (data) {
+        dispatch(setNumberOfRequest(data.data.length))
+      }
+
+    } catch (error) {
+      console.log('Error:', error);
+      throw error;
+    }
+  }
 
   // const handleemail = (text) => {
   //   const numericValue = text.replace(/[^0-9]/g, "");
@@ -167,6 +194,7 @@ const Login = ({ navigation }) => {
               setPassword("");
               setLoginError(false);
               navigation.navigate("Home");
+              fetchFriendRequest();
             } else {
               Toast.show({
                 type: "error",

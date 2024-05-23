@@ -4,7 +4,7 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAllGroup, setCurrentConversation, setFriend } from '../../rtk/user-slice';
+import { setAllGroup, setCurrentConversation, setFriend, setNumberOfRequest } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
@@ -26,15 +26,18 @@ export function ContactScreen({ navigation }) {
 
     const [groups, setGroups] = useState([]);
 
-    const [request, setRequest] = useState(0);
+    const [request, setRequest] = useState(useSelector(state => state.user.numberOfRequest));
     const { socket } = useSocket();
     const myInfor = useSelector(state => state.user)
+
+
 
     useEffect(() => {
         socket.on('friend:request', (data) => {
             console.log(data);
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status != "accecpt") {
                 setRequest(request + 1);
+                dispatch(setNumberOfRequest(request + 1))
 
             }
             return;
@@ -45,6 +48,7 @@ export function ContactScreen({ navigation }) {
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
                 console.log("recipient socket");
                 setRequest(request - 1);
+                dispatch(setNumberOfRequest(request - 1))
             }
             return;
         })
@@ -52,6 +56,7 @@ export function ContactScreen({ navigation }) {
             console.log(data);
             if (myInfor.user._id === data.userId) {
                 setRequest(request - 1);
+                dispatch(setNumberOfRequest(request - 1))
 
             }
 
@@ -61,6 +66,7 @@ export function ContactScreen({ navigation }) {
             console.log(data);
             if (myInfor.user._id === data.userId) {
                 setRequest(request - 1);
+                dispatch(setNumberOfRequest(request - 1))
 
             }
 
@@ -258,7 +264,7 @@ export function ContactScreen({ navigation }) {
     }
     return (
         <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
                 <TouchableOpacity
                     style={{ marginRight: 10 }}
                     onPress={() => handleOptionSelect('friends')}

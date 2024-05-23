@@ -16,7 +16,8 @@ const initialState = {
     friends: [],
     conversation: [],
     currentConversation: {},
-    group: []
+    group: [],
+    numberOfRequest: 0
 };
 
 export const getConservations = createAsyncThunk('conservation/getAll', async (values, { rejectWithValue }) => {
@@ -107,6 +108,10 @@ export const userSlice = createSlice({
             console.log(action.payload);
             state.group = action.payload
         },
+        setNumberOfRequest: (state, action) => {
+            console.log(action.payload);
+            state.numberOfRequest = action.payload
+        }
     },
     extraReducers(builders) {
         builders.addCase(getConservations.fulfilled, (state, action) => {
@@ -120,5 +125,5 @@ export const userSlice = createSlice({
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation, setAllGroup } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation, setAllGroup, setNumberOfRequest } = userSlice.actions;
 export default userSlice.reducer

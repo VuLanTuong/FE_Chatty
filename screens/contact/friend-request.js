@@ -307,6 +307,7 @@ export function FriendRequest({ navigation }) {
                         flexDirection: 'column',
                         gap: 15,
                         marginLeft: 10
+
                     }}>
 
                         <View style={{
