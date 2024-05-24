@@ -21,8 +21,8 @@ export default function ProfileScreen({ navigation }) {
   };
 
   return (
-    <SafeAreaView>
-      <View style={{}}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f558a4" }}>
+      <View style={{ backgroundColor: "#fff", flex: 1 }}>
         <View
           style={{
             backgroundColor: "#f558a4",
@@ -107,6 +107,7 @@ export default function ProfileScreen({ navigation }) {
               style={{
                 marginLeft: 10,
                 marginTop: 10,
+                color: 'black'
               }}
             >
               Change password

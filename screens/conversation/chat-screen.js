@@ -108,7 +108,7 @@ const ChatScreen = ({ navigation, route }) => {
   }
   const getTime = (updateAt) => {
 
-    console.log(typeof (updateAt));
+    // console.log(typeof (updateAt));
     const date = new Date(updateAt);
 
     const hour = date.getHours();
@@ -145,7 +145,7 @@ const ChatScreen = ({ navigation, route }) => {
             <Feather name="video" size={24} color="white" />
           </TouchableOpacity>
           <TouchableOpacity style={{ marginHorizontal: 10 }}
-          onPress={() => navigation.navigate('Option')}>
+            onPress={() => navigation.navigate('Option')}>
             <AntDesign name="profile" size={24} color="white" />
           </TouchableOpacity>
         </View>

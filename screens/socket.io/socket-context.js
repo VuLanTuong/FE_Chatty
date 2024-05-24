@@ -4,7 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { getConservations, getGroup } from "../../rtk/user-slice";
 import { fetchAllGroup } from "../../service/conversation.util";
 
-const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555"
+const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555"
+
 
 
 const SocketContext = createContext()
@@ -16,7 +17,7 @@ export const SocketProvider = ({ children }) => {
     const dispatch = useDispatch();
     useEffect(() => {
 
-        // socket = io(BASE_URL)
+        socket = io(BASE_URL)
         if (currentUser._id) {
             const { email, avatar, name, _id } = currentUser;
 

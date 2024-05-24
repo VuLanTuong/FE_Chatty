@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { getAccessToken } from "../screens/user-profile/getAccessToken";
 import { fetchAllGroup, getAllConversation } from "../service/conversation.util";
+import { fetchFriends } from "../service/friend.util";
 const initialState = {
     user: {
         _id: "", // The user's ID.
@@ -16,14 +17,15 @@ const initialState = {
     friends: [],
     conversation: [],
     currentConversation: {},
-    group: []
+    group: [],
+    numberOfRequest: 0
 };
 
 export const getConservations = createAsyncThunk('conservation/getAll', async (values, { rejectWithValue }) => {
 
     try {
         const data = await getAllConversation();
-        console.log(data);
+        // console.log(data);
         return data;
     } catch (error) {
         return rejectWithValue(error.response.data.message)
@@ -33,8 +35,18 @@ export const getConservations = createAsyncThunk('conservation/getAll', async (v
 export const getGroup = createAsyncThunk('group/getAll', async (values, { rejectWithValue }) => {
 
     try {
-        const data = await fetchAllGroup();
-        console.log(data);
+        const data = await fetchFriends();
+        // console.log(data);
+        return data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message)
+    }
+
+})
+
+export const fetchAllFriend = createAsyncThunk('friends/getAll', async (values, { rejectWithValue }) => {
+    try {
+        const data = await fetchAllFriend();
         return data;
     } catch (error) {
         return rejectWithValue(error.response.data.message)
@@ -49,11 +61,11 @@ export const userSlice = createSlice({
         login: (state, action) => {
 
             state.user = action.payload.user
-            console.log(state.user);
+            // console.log(state.user);
 
         },
         setFriend: (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
             state.friends = action.payload.friends
         },
         changeAvatar: (state, action) => {
@@ -64,7 +76,7 @@ export const userSlice = createSlice({
             let temp = [];
             action.payload.forEach((element) => {
                 const members = element.members;
-                console.log("MEMBERSS:::::::", members);
+                // console.log("MEMBERSS:::::::", members);
                 if (element.type === "group") {
                     let isUserInGroup = false;
                     members.forEach(member => {
@@ -91,22 +103,31 @@ export const userSlice = createSlice({
         },
 
         updateFriend: (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
             state.friends = [...state.friends, action.payload]
         },
         setCurrentConversation: (state, action) => {
             console.log("set current conv");
-            console.log(action.payload);
+            // console.log(action.payload);
             state.currentConversation = action.payload
         },
         updateConversation: (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
             state.conversation = [...state.conversation, action.payload]
         },
         setAllGroup: (state, action) => {
-            console.log(action.payload);
+            // console.log(action.payload);
             state.group = action.payload
         },
+        setNumberOfRequest: (state, action) => {
+            // console.log(state.numberOfRequest);
+            // console.log(action.payload);
+            state.numberOfRequest = action.payload
+        },
+        removeFriend: (state, action) => {
+            // console.log(action.payload);
+            state.friends = state.friends.filter(friend => friend.userId !== action.payload)
+        }
     },
     extraReducers(builders) {
         builders.addCase(getConservations.fulfilled, (state, action) => {
@@ -116,9 +137,14 @@ export const userSlice = createSlice({
             builders.addCase(getGroup.fulfilled, (state, action) => {
                 // console.log(action.payload);
                 state.group = action.payload
+            }),
+            builders.addCase(fetchAllFriend.fulfilled, (state, action) => {
+                console.log(action.payload);
+                console.log(state.friends);
+                state.friends = action.payload
             })
     }
 })
 
-export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation, setAllGroup } = userSlice.actions;
+export const { login, updated, add, deleteComment, setFriend, changeAvatar, setAllConversation, updateFriend, setCurrentConversation, updateConversation, setAllGroup, setNumberOfRequest, removeFriend } = userSlice.actions;
 export default userSlice.reducer

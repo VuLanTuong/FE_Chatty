@@ -8,7 +8,7 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { TouchableOpacity, Platform } from 'react-native';
 
 export default function VerifyEmail({ navigation }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const [email, setEmail] = useState();
     const [newPassword, setNewPassword] = useState('');
@@ -108,7 +108,7 @@ export default function VerifyEmail({ navigation }) {
                         password: newPassword
                     })
                 }).then((response) => {
-                    console.log(response);
+                    // console.log(response);
                     return response.json()
                 }).then((data) => {
                     if (data.status === 'success') {
@@ -141,7 +141,7 @@ export default function VerifyEmail({ navigation }) {
 
 
     const handleSendOTP = async (resend) => {
-        console.log(email);
+        // console.log(email);
         // setModalVisible(!isModalVisible)
         // console.log(isModalVisible);
         if (email) {
@@ -158,7 +158,7 @@ export default function VerifyEmail({ navigation }) {
                 .then((response) => { return response.json() })
                 .then((data) => {
                     if (data.status === 'fail' || data.status === 'error') {
-                        console.log(isModalVisible);
+                        // console.log(isModalVisible);
                         setMessage(data.message)
                         // toggleModal()
                         Toast.show({
@@ -169,8 +169,8 @@ export default function VerifyEmail({ navigation }) {
                         });
                     }
                     else {
-                        console.log(data)
-                        console.log(resend);
+                        // console.log(data)
+                        // console.log(resend);
                         if (!resend) {
                             setModalVisible(!isModalVisible);
                             setMessage(data.message)

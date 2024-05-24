@@ -20,9 +20,10 @@ import { useSocket } from "../socket.io/socket-context";
 import { getConservations, setAllConversation, setCurrentConversation, updateConversation } from "../../rtk/user-slice";
 import ActionSheet from 'react-native-actionsheet';
 import { Platform } from "react-native";
+import { Alert } from "react-native";
 
 export default function MemberList({ navigation, route }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const conservationParam = route.params.data;
     const user = useSelector((state) => state.user.user);
@@ -51,6 +52,29 @@ export default function MemberList({ navigation, route }) {
             setSelectedFriends([...selectedFriends, userId]);
         }
     };
+
+    const modalConfirm = () => {
+
+        if (Platform.OS === 'ios' || Platform.OS === 'android') {
+            Alert.alert('Confirm remove member', 'This action is not undo', [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+                { text: 'OK', onPress: () => handleRemoveMember() },
+            ]);
+
+        }
+
+        // handleUnfriend();
+
+        // console.log("disband group");
+        // console.log(modalVisible);
+        // setModalVisible(!modalVisible)
+
+    }
+
 
     const { socket } = useSocket();
     useEffect(() => {
@@ -96,7 +120,7 @@ export default function MemberList({ navigation, route }) {
 
 
     function groupFriendsByLetter(friendsParams) {
-        console.log(friendsParams);
+        // console.log(friendsParams);
         const friendGroupByName = friendsParams.reduce((result, friend) => {
             const letter = friend.name.charAt(0).toUpperCase();
             if (!result[letter]) {
@@ -166,7 +190,7 @@ export default function MemberList({ navigation, route }) {
             return response.json()
         })
             .then((data) => {
-                console.log(data);
+                // console.log(data);
                 if (data.status === 'fail') {
                     setModalVisible(false);
                     setSelectedFriends([]);
@@ -189,6 +213,7 @@ export default function MemberList({ navigation, route }) {
                     visibilityTime: 2000,
                     position: 'top'
                 })
+                return;
                 // dispatch(updateConversation(data.data))
             }).catch((err) => {
                 console.log(err);
@@ -246,7 +271,7 @@ export default function MemberList({ navigation, route }) {
                     return response.json()
                 })
                     .then((data) => {
-                        console.log(data);
+                        // console.log(data);
                         if (data.status === 'fail') {
                             setModalVisible(false);
                             setSelectedFriends([]);
@@ -270,6 +295,7 @@ export default function MemberList({ navigation, route }) {
                         })
                         setSelectedFriends([]);
                         setIsRemove(false);
+                        return;
                         // dispatch(setAllConversation(updateConservation))
                         // dispatch(setCurrentConversation({...currentConversation}))
                         // dispatch(getConservations())
@@ -391,28 +417,30 @@ export default function MemberList({ navigation, route }) {
     //   };
 
     useEffect(() => {
-        console.log("effect member list");
+        // console.log("effect member list");
         socket.on("message:notification", (data) => {
-            console.log(data);
-            console.log(currentConversation._id);
+            // console.log(data);
+            // console.log(currentConversation._id);
             if (data) {
                 if (currentConversation._id.toString() === data.conservationId.toString()) {
-                    console.log(data.conversation.members);
+                    // console.log(data.conversation.members);
                     groupMembersByLetter(data.conversation.members)
                     dispatch(setCurrentConversation(data.conversation))
                     const updateConservation = allConversationAtRedux.map(conversation => {
                         if (conversation._id.toString() === data.conversation._id.toString()) {
                             console.log("update conversation delete");
                             const updateConservation1 = { ...data.conversation, lastMessage: data.messages[0] }
-                            console.log(updateConservation1);
+                            // console.log(updateConservation1);
 
                             return updateConservation1;
                         }
                         return conversation;
                     })
                     dispatch(setAllConversation(updateConservation, { position: 'member-list-noti' }))
+                    return;
                 }
             }
+            return;
         }),
             // socket.on("conversation:new", (data) => {
             //     console.log(data);
@@ -425,8 +453,8 @@ export default function MemberList({ navigation, route }) {
             //     )
             // }),
             socket.on('conversation:removeMembers', (data) => {
-                console.log(data);
-                console.log(user);
+                // console.log(data);
+                // console.log(user);
 
                 data.members.map((member) => {
                     if (member === user._id) {
@@ -435,11 +463,14 @@ export default function MemberList({ navigation, route }) {
                         if (currentConversation._id.toString() === data.conservationId.toString()) {
                             navigation.navigate('MessageScreen');
                         }
+
                     }
+                    return;
                 })
+                return;
             });
         socket.on("conversation:disband", (data) => {
-            console.log(data);
+            // console.log(data);
             const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
             dispatch(setAllConversation(updatedConversation, { position: 'member-list-disband' }));
             if (currentConversation._id.toString() === data.conservationId.toString()) {
@@ -448,6 +479,13 @@ export default function MemberList({ navigation, route }) {
             }
         })
         groupFriendsByLetter(friendsInRedux);
+
+        return () => {
+            socket.off("message:notification");
+            // socket.off("conversation:new");
+            socket.off("conversation:removeMembers");
+            socket.off("conversation:disband");
+        }
     }, [currentConversation.members, allConversationAtRedux])
 
     const checkLeader = (id) => {
@@ -458,7 +496,7 @@ export default function MemberList({ navigation, route }) {
 
     }
     const handleTransferLeader = async (friend) => {
-        console.log(friend);
+        // console.log(friend);
         //conservations/661a5ce649564aa5a3dec8a0/transfer/65bedb350b324b838f18a699
         if (user._id !== currentConversation.leaders[0]._id) {
             Toast.show({
@@ -554,7 +592,7 @@ export default function MemberList({ navigation, route }) {
                             flexDirection: "column",
                             justifyContent: "center",
                             // alignContent: 'center',
-                            alignItems: 'end',
+                            alignItems: 'flex-end',
 
                         }}>
                             <Checkbox.Android
@@ -628,7 +666,8 @@ export default function MemberList({ navigation, route }) {
                 alignItems: 'center',
                 gap: 15,
                 marginTop: 10,
-                width: Platform.OS === 'web' ? '90%' : '60%',
+                width: Platform.OS === 'web' ? '90%' : '50%',
+                alignSelf: 'center',
 
                 marginLeft: Platform.OS === 'web' ? 20 : 50,
 
@@ -657,7 +696,7 @@ export default function MemberList({ navigation, route }) {
                     <MaterialCommunityIcons name="account-remove" size={30} color="black" />
                 </Pressable>
                 {isRemove ? (
-                    <Pressable onPress={() => handleRemoveMember()}>
+                    <Pressable onPress={() => modalConfirm()}>
                         <MaterialCommunityIcons name="delete" size={30} color="red" />
                     </Pressable>
                 ) : null}
@@ -681,7 +720,8 @@ export default function MemberList({ navigation, route }) {
                             <View style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                gap: 5,
+                                gap: 15,
+                                width: '100%',
                             }}>
                                 <TextInput
                                     placeholder="Search"
@@ -689,13 +729,17 @@ export default function MemberList({ navigation, route }) {
                                         padding: 10,
                                         borderWidth: 1,
                                         borderColor: '#f558a4',
+                                        width: '80%',
                                     }}
                                     value={searchFriend}
+                                    placeholderTextColor={"black"}
                                     onChangeText={(text) => setSearchFriend(text)}
 
                                 />
                                 <Pressable style={{}}>
-                                    <MaterialCommunityIcons name='magnify' color='black' size={30} />
+                                    <MaterialCommunityIcons style={{
+                                        marginTop: 10
+                                    }} name='magnify' color='black' size={30} />
                                 </Pressable>
 
                             </View>
@@ -749,22 +793,23 @@ export default function MemberList({ navigation, route }) {
                                                                     marginTop: 10,
                                                                     fontSize: 20
                                                                 }}>{friend.name}</Text>
-                                                                <View style={{
-                                                                    flex: 1,
-                                                                    flexDirection: "column",
-                                                                    justifyContent: "center",
-                                                                    // alignContent: 'center',
-                                                                    alignItems: 'end',
-
-                                                                }}>
-                                                                    <Checkbox.Android
-                                                                        status={selectedFriends.includes(friend.userId) || listIdsOfMembers.includes(friend.userId) ? 'checked' : 'unchecked'}
-                                                                        disabled={listIdsOfMembers.includes(friend.userId)}
-                                                                        onPress={() => handleCheckboxToggle(friend.userId)}
-                                                                    />
 
 
-                                                                </View>
+
+                                                            </View>
+                                                            <View style={{
+                                                                flex: 1,
+                                                                flexDirection: "column",
+                                                                justifyContent: "center",
+                                                                // alignContent: 'center',
+                                                                alignItems: 'flex-end',
+
+                                                            }}>
+                                                                <Checkbox.Android
+                                                                    status={selectedFriends.includes(friend.userId) || listIdsOfMembers.includes(friend.userId) ? 'checked' : 'unchecked'}
+                                                                    disabled={listIdsOfMembers.includes(friend.userId)}
+                                                                    onPress={() => handleCheckboxToggle(friend.userId)}
+                                                                />
 
 
                                                             </View>

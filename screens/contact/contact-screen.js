@@ -4,7 +4,7 @@ import { Divider } from 'react-native-paper';
 import { ScrollView } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
-import { setAllGroup, setCurrentConversation, setFriend } from '../../rtk/user-slice';
+import { setAllGroup, setCurrentConversation, setFriend, setNumberOfRequest } from '../../rtk/user-slice';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useFocusEffect } from '@react-navigation/native';
 import { findFriendById } from '../../service/friend.util';
@@ -15,7 +15,7 @@ import { useSocket } from '../socket.io/socket-context';
 
 
 export function ContactScreen({ navigation }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const [search, setSearch] = useState("");
 
@@ -26,41 +26,51 @@ export function ContactScreen({ navigation }) {
 
     const [groups, setGroups] = useState([]);
 
-    const [request, setRequest] = useState(0);
+    const [request, setRequest] = useState(useSelector(state => state.user.numberOfRequest));
     const { socket } = useSocket();
     const myInfor = useSelector(state => state.user)
 
+
+
     useEffect(() => {
         socket.on('friend:request', (data) => {
-            console.log(data);
+            // console.log(data);
+            // console.log(request);
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status != "accecpt") {
                 setRequest(request + 1);
+                // let temp = request + 1;
+                // dispatch(setNumberOfRequest(temp))
 
             }
             return;
         })
         socket.on('friend:accept', (data) => {
-            console.log(data);
+            // console.log(data);
 
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
                 console.log("recipient socket");
                 setRequest(request - 1);
+                // let temp = request - 1;
+                // dispatch(setNumberOfRequest(temp))
             }
             return;
         })
         socket.on('friend:reject', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.userId) {
                 setRequest(request - 1);
+                // let temp = request - 1;
+                // dispatch(setNumberOfRequest(temp))
 
             }
 
             return;
         })
         socket.on('friend:cancel', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.userId) {
-                setRequest(request - 1);
+                // setRequest(request - 1);
+                // dispatch(setNumberOfRequest(request - 1))
 
             }
 
@@ -70,7 +80,7 @@ export function ContactScreen({ navigation }) {
     const userProfile = async (id) => {
         console.log(id);
         const friendTemp = await findFriendById(id);
-        console.log(friendTemp);
+        // console.log(friendTemp);
         navigation.navigate('FriendProfile', { friend: friendTemp })
 
     }
@@ -106,6 +116,7 @@ export function ContactScreen({ navigation }) {
                     console.log("fail");
                     throw new Error(`fail to fetch friend list`);
                 }
+                // console.log(data.data);
                 dispatch(setFriend({
                     friends:
                         data.data
@@ -129,7 +140,7 @@ export function ContactScreen({ navigation }) {
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
+                // console.log(data);
                 setGroups(data.data);
                 dispatch(setAllGroup(data.data))
                 console.log("ok");
@@ -145,7 +156,7 @@ export function ContactScreen({ navigation }) {
     );
 
     const friends = useSelector((state) => state.user.friends);
-    console.log(friends);
+    // console.log(friends);
 
     const user = useSelector((state) => state.user.user);
 
@@ -242,7 +253,7 @@ export function ContactScreen({ navigation }) {
         const filteredFriends = friends.filter((friend) => friend.name.toLowerCase().includes(search.toLowerCase()));
         groupedFriends = groupFriendsByLetter(filteredFriends);
         const filteredGroups = groups.filter((group) => group.name.toLowerCase().includes(search.toLowerCase()));
-        console.log(filteredGroups);
+        // console.log(filteredGroups);
         groupedGroups = groupFriendsByLetter(filteredGroups);
 
     }
@@ -256,9 +267,10 @@ export function ContactScreen({ navigation }) {
         dispatch(setCurrentConversation(group))
         navigation.navigate('Chat', { data: group })
     }
+
     return (
         <View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around' }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginTop: 10 }}>
                 <TouchableOpacity
                     style={{ marginRight: 10 }}
                     onPress={() => handleOptionSelect('friends')}
@@ -309,8 +321,7 @@ export function ContactScreen({ navigation }) {
 
                                 </Pressable>
                                 <Badge
-
-                                    value={request > 0 ? request : 0}
+                                    value={request >= 0 ? request : 0}
                                     status="error"
 
                                     containerStyle={styles.badgeContainer}

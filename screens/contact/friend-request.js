@@ -12,7 +12,7 @@ import { useFocusEffect } from '@react-navigation/native';
 export function FriendRequest({ navigation }) {
     const [requests, setRequests] = useState([]);
     const [isAcpRequest, setIsAcptrRequest] = useState(false);
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
     const myInfor = useSelector(state => state.user)
     const { socket } = useSocket()
 
@@ -307,6 +307,7 @@ export function FriendRequest({ navigation }) {
                         flexDirection: 'column',
                         gap: 15,
                         marginLeft: 10
+
                     }}>
 
                         <View style={{

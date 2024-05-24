@@ -16,7 +16,7 @@ export default function ChatSingle(message) {
     console.log(message);
     const getTime = (updateAt) => {
 
-        console.log(typeof (updateAt));
+        // console.log(typeof (updateAt));
         const date = new Date(updateAt);
 
         const hour = date.getHours();

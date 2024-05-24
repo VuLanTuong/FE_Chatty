@@ -11,7 +11,7 @@ import {
 import { TouchableOpacity } from "react-native";
 import { useSelector } from "react-redux";
 import { findFriendById } from "../../service/friend.util";
-export default function option({ navigation, route }) {
+export default function Option({ navigation, route }) {
   const conservationParam = route.params.data;
 
   console.log(conservationParam);
@@ -47,7 +47,26 @@ export default function option({ navigation, route }) {
       }
     })
   }
+  const friendReudx = useSelector((state) => state.user.friends);
+
+  const isFriendRedux = () => {
+    let result;
+    conservationParam.members.map((member) => {
+      if (member._id !== user._id) {
+        const friend = friendReudx.find(f => f.userId === member._id);
+        if (friend) {
+          result = true;
+        } else {
+          result = false;
+        }
+      }
+    }
+    )
+    return result;
+  }
   useLayoutEffect(() => {
+    const isFriend = isFriendRedux();
+    console.log(isFriend);
 
     navigation.setOptions({
       headerTitle: "",
@@ -58,7 +77,7 @@ export default function option({ navigation, route }) {
           paddingHorizontal: 10
         }}>
           <TouchableOpacity
-            onPress={() => navigation.navigate('Chat', { data: conservationParam })}
+            onPress={() => navigation.navigate('Chat', { data: conservationParam, isFriend: isFriend })}
             style={{ marginHorizontal: 15, marginLeft: 0 }}
           >
             <AntDesign name="arrowleft" size={24} color="white" />

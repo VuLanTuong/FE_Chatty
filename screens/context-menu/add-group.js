@@ -18,7 +18,7 @@ import { getConservations } from '../../rtk/user-slice';
 
 const AddGroup = ({ navigation }) => {
     const dispatch = useDispatch()
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const [nameGroup, setNameGroup] = useState("");
     const [selectedFriends, setSelectedFriends] = useState([]);
@@ -230,18 +230,22 @@ const AddGroup = ({ navigation }) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 gap: 15,
-                marginTop: 30,
+                marginTop: 10,
                 width: '80%',
-                margin: 'auto'
+                margin: 'auto',
+                marginLeft: 20,
+
+
             }}>
                 <TextInput
                     placeholder="Search friend..."
                     style={{
                         width: '100%',
                         height: 50,
-                        borderRadius: 10,
+
                         fontSize: 18,
-                        backgroundColor: '#f0f0f0',
+                        backgroundColor: '#dbdbd9',
+                        marginLeft: 20
                     }}
                     value={searchFriend}
                     onChangeText={(text) => setSearchFriend(text)}
@@ -255,7 +259,6 @@ const AddGroup = ({ navigation }) => {
                 flex: 1,
 
             }}>
-
                 <ScrollView style={{
 
                     flex: 1,
@@ -305,12 +308,19 @@ const AddGroup = ({ navigation }) => {
                                         alignItems: 'end',
 
                                     }}>
+
+
+
+                                    </View>
+                                    <View>
                                         <Checkbox.Android
+                                            style={{
+                                                flex: 1,
+                                                alignItems: 'end',
+                                            }}
                                             status={selectedFriends.includes(friend.userId) ? 'checked' : 'unchecked'}
                                             onPress={() => handleCheckboxToggle(friend.userId)}
                                         />
-
-
                                     </View>
 
 

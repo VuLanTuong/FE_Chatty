@@ -56,32 +56,65 @@ function MyTab() {
     <Tab.Navigator
       initialRouteName="Messgae">
       <Tab.Screen options={{
-        headerShown: isIOSPlatform(),
+        headerShown: false,
         headerTitle: '',
         tabBarLabel: 'Message',
         tabBarActiveTintColor: '#f558a4',
-        tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name='message-text' color={'#f558a4'} size={size} />
-        ),
+        tabBarIcon: ({ focused, color, size }) =>
+          focused ? (
+            <MaterialCommunityIcons
+              name="message-text"
+              size={size}
+              color="#f558a4"
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="message-text"
+              size={size}
+              color="gray"
+            />
+          ),
       }} name="Message" component={MessageStack} />
       <Tab.Screen options={{
         headerTitle: '',
         tabBarLabel: 'Contact',
-        headerShown: isIOSPlatform(),
+        headerShown: false,
         tabBarActiveTintColor: '#f558a4',
-        tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name='notebook' color={'#f558a4'} size={size} />
-        ),
+        tabBarIcon: ({ focused, color, size }) =>
+          focused ? (
+            <MaterialCommunityIcons
+              name="notebook"
+              size={size}
+              color="#f558a4"
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="notebook"
+              size={size}
+              color="gray"
+            />
+          ),
       }} name="Contact" component={ContactStack} />
       <Tab.Screen options={{
-        headerShown: isIOSPlatform(),
+        headerShown: false,
         headerTitle: '',
         tabBarLabel: 'Profile',
         tabBarActiveTintColor: '#f558a4',
-        tabBarIcon: ({ color, size }) => (
-          <MaterialCommunityIcons name='account' color={'#f558a4'} size={size} />
-        ),
-        headerShown: isIOSPlatform()
+        tabBarIcon: ({ focused, color, size }) =>
+          focused ? (
+            <MaterialCommunityIcons
+              name="account"
+              size={size}
+              color="#f558a4"
+            />
+          ) : (
+            <MaterialCommunityIcons
+              name="account"
+              size={size}
+              color="gray"
+            />
+          ),
+        headerShown: false
       }} name="Profile" component={ProfileStack} />
     </Tab.Navigator >
 
@@ -94,7 +127,7 @@ function AppNavigator() {
 
   useEffect(() => {
     socket.on('friend:request', (data) => {
-      console.log(data);
+      // console.log(data);
       return;
     })
   })
@@ -293,15 +326,23 @@ const ProfileStack = () => {
       <Stack.Screen
         name="DetailProfile"
         component={DetailProfile}
-        options={{
-          headerShown: false,
-        }}
       />
       <Stack.Screen
         name="ChangePassword"
         component={ChangePassword}
         options={{
-          headerShown: false,
+          headerTitle: 'Change Password',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
         }}
       />
     </Stack.Navigator>

@@ -14,14 +14,16 @@ import { TextInput } from "react-native-paper";
 import { Badge } from '@rneui/themed';
 import { useSocket } from "../socket.io/socket-context";
 import { fetchAllGroup } from "../../service/conversation.util";
+import Toast from "react-native-toast-message";
 const MessageScreen = ({ navigation }) => {
-  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const allConversationAtRedux = useSelector((state) => state.user.conversation);
 
   const [search, setSearch] = useState("");
-  const options = ['Add Friend', 'Create Group', 'Cancel'];
+  const options = ['Add Friend', 'Create Group', 'Friend Conversation Filtering', 'Group Conversation Filtering', 'Cancel'];
   const [isFriend, setIsFriend] = useState(false);
   const actionSheetRef = useRef();
+  const [onChange, setOnChange] = useState('all');
   const handleAddFriend = () => {
     navigation.navigate('FindFriend')
   }
@@ -40,18 +42,18 @@ const MessageScreen = ({ navigation }) => {
 
   const dispatch = useDispatch()
   const allConversation = useSelector((state) => state.user.conversation);
-  console.log(allConversation);
+  // console.log(allConversation);
 
 
   // get current user
   const user = useSelector((state) => state.user.user);
-  console.log(user);
+  // console.log(user);
 
   const scrollViewRef = useRef(null);
   // selector run after use effect
-  console.log(allConversationAtRedux);
+  // console.log(allConversationAtRedux);
   const [allConversationAtRedux1, setAllConversationAtRedux] = useState(useSelector((state) => state.user.conversation));
-  console.log(allConversationAtRedux);
+  // console.log(allConversationAtRedux);
 
   const [conversations, setConversations] = useState(allConversationAtRedux);
 
@@ -77,9 +79,9 @@ const MessageScreen = ({ navigation }) => {
 
 
   const handleConversationUpdate = (data) => {
-    console.log(data.conversation);
+    // console.log(data.conversation);
     const members = data.conversation.members;
-    console.log("MEMBERSS:::::::", members);
+    // console.log("MEMBERSS:::::::", members);
     if (data.conversation.type === "group") {
       let isUserInGroup = false;
       members.forEach(member => {
@@ -158,8 +160,8 @@ const MessageScreen = ({ navigation }) => {
     setConversations(allConversationAtRedux);
     // dispatch(getConservations());
     socket.on('conversation:removeMembers', (data) => {
-      console.log(data);
-      console.log(user);
+      // console.log(data);
+      // console.log(user);
 
       data.members.map((member) => {
         if (member === user._id) {
@@ -187,7 +189,7 @@ const MessageScreen = ({ navigation }) => {
 
     });
     socket.on('message:deleted', (data) => {
-      console.log(data);
+      // console.log(data);
       const updateConservation = allConversationAtRedux.map(conversation => {
         if (conversation._id.toString() === data.conversation._id.toString()) {
           console.log("update conversation delete");
@@ -196,12 +198,12 @@ const MessageScreen = ({ navigation }) => {
         }
         return conversation;
       })
-      console.log(updateConservation);
+      // console.log(updateConservation);
 
       dispatch(setAllConversation(updateConservation, { position: 'message-delete' }))
     }),
       socket.on("conversation:new", (data) => {
-        console.log(data);
+        // console.log(data);
         data.conversation.members.map((member) => {
           if (member._id.toString() === user._id.toString()) {
             console.log("notification");
@@ -211,13 +213,13 @@ const MessageScreen = ({ navigation }) => {
         )
       }),
       socket.on("conversation:disband", (data) => {
-        console.log(data);
+        // console.log(data);
         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
         dispatch(setAllConversation(updatedConversation, { position: 'message-disband' }));
 
       }),
       socket.on("message:notification", (data) => {
-        console.log(data);
+        // console.log(data);
         // if (data.conversation.members.some(member => member._id === user._id)) {
 
         data.conversation.members.map((member) => {
@@ -263,6 +265,7 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const handleSetConversation = (data) => {
+    // console.log(data);
     setConversations(data)
     console.log("set");
   }
@@ -317,21 +320,29 @@ const MessageScreen = ({ navigation }) => {
 
 
   const removeConservationNotContent = () => {
-    console.log(conversations);
+    // console.log(conversations);
     const updatedConversations = conversations.filter(cv => cv.lastMessage !== null);
-    console.log(updatedConversations);
+    // console.log(updatedConversations);
     setConversations(updatedConversations);
     dispatch(setAllConversation(updatedConversations, { position: 'message-remove-conversation-not-content' }))
 
   };
 
-  const checkIsFriend = (id) => {
+  const checkIsFriend = (idTemp) => {
     let isFriendTemp = false;
-    const friend = friends.find(friend => friend.userId === id);
-    if (friend) {
-      isFriendTemp = true;
-      return isFriendTemp;
-    }
+    // console.log("friends", friends);
+    idTemp.map((id) => {
+      if (id) {
+        const friend = friends.find(friend => friend.userId === id);
+        if (friend) {
+          // console.log("friend", friend);
+          isFriendTemp = true;
+          return isFriendTemp;
+        }
+        // console.log("friend", friend);
+      }
+    })
+
     return isFriendTemp;
   }
 
@@ -348,13 +359,13 @@ const MessageScreen = ({ navigation }) => {
         }
       }).then((response) => response.json())
       .then((data) => {
-        console.log(data)
+        // console.log(data)
         if (data.status === "fail") {
           console.log("fail");
           return;
         }
         else {
-          console.log(data.data);
+          // console.log(data.data);
           dispatch(setCurrentConversation(data.data))
 
           const updatedConversation = allConversationAtRedux.map((conversation) => {
@@ -364,17 +375,21 @@ const MessageScreen = ({ navigation }) => {
             }
             return conversation;
           })
-          console.log(updatedConversation);
+          // console.log(updatedConversation);
           dispatch(setAllConversation(updatedConversation, { position: 'message-open-conversation' }));
           if (data.data.type === "private") {
-            console.log("private");
+            // console.log("private");
+            // console.log(data.data.members);
+
             let idTemp = data.data.members.map((member) => {
               if (member._id !== user._id) {
+                // console.log("member", member._id);
                 return member._id;
               }
             });
-            let isFriendTemp = checkIsFriend(idTemp[0]);
-            console.log("***8", isFriendTemp);
+            // console.log("idTemp", idTemp);
+            let isFriendTemp = checkIsFriend(idTemp);
+            // console.log("***8", isFriendTemp);
             navigation.navigate('Chat', { data: data.data, friends: friends, isFriend: isFriendTemp })
             return;
           }
@@ -427,11 +442,11 @@ const MessageScreen = ({ navigation }) => {
 
   // }
 
-  console.log(conversations);
+  // console.log(conversations);
 
   const getTime = (updateAt) => {
 
-    console.log(typeof (updateAt));
+    // console.log(typeof (updateAt));
     const date = new Date(updateAt);
 
     const hour = date.getHours();
@@ -449,7 +464,7 @@ const MessageScreen = ({ navigation }) => {
         }
 
         if (item.lastMessage?.content.length > 20) {
-          console.log(item.lastMessage.content.substring(0, 20) + "...");
+          // console.log(item.lastMessage.content.substring(0, 20) + "...");
           return item.lastMessage.content.substring(0, 20) + "...";
         }
 
@@ -469,6 +484,39 @@ const MessageScreen = ({ navigation }) => {
     actionSheetRef.current.show();
   };
 
+
+  const handleFilterFriendConversation = () => {
+    setOnChange('friend')
+    const updatedConversations = allConversationAtRedux.
+      filter(conversation => conversation.type === "private");
+    // console.log(updatedConversations);
+    setConversations(updatedConversations);
+
+  }
+
+  const handleFilterGroupConversation = () => {
+    setOnChange('group')
+    const updatedConversations = allConversationAtRedux.
+      filter(conversation => conversation.type === "group");
+    setConversations(updatedConversations);
+
+  }
+
+  useEffect(() => {
+    if (onChange === 'friend') {
+      handleFilterFriendConversation();
+      return;
+    }
+    if (onChange === 'group') {
+      handleFilterGroupConversation();
+      return;
+    }
+    if (onChange === 'all') {
+      setConversations(allConversationAtRedux);
+
+    }
+
+  }, [onChange])
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -516,8 +564,9 @@ const MessageScreen = ({ navigation }) => {
             <ActionSheet
               ref={actionSheetRef}
               options={options}
-              cancelButtonIndex={2}
+              cancelButtonIndex={4}
               onPress={(index) => {
+
                 // Handle the selected option based on the index
                 switch (index) {
                   case 0:
@@ -525,6 +574,12 @@ const MessageScreen = ({ navigation }) => {
                     break;
                   case 1:
                     handleAddGroup();
+                    break;
+                  case 2:
+                    handleFilterFriendConversation();
+                    break;
+                  case 3:
+                    handleFilterGroupConversation();
                     break;
                   default:
                     break;
@@ -573,7 +628,110 @@ const MessageScreen = ({ navigation }) => {
 
 
   return (
-    <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}>
+    <View>
+      {onChange === 'friend' ?
+        <View style={{
+          // backgroundColor: '#f558a4',
+          height: 30,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-end',
+          width: '50%',
+          alignSelf: 'flex-end',
+          flexDirection: 'row',
+          gap: 10,
+          marginRight: 10,
+          borderRadius: 10,
+          backgroundColor: '#a6a4a4',
+
+        }}
+        >
+          <MaterialCommunityIcons name="filter-check" color="black" size={20} />
+
+          <Text style={styles.textFilter}>Friend Conversation</Text>
+          <Pressable onPress={() => setOnChange("all")}>
+            <MaterialCommunityIcons style={{
+              marginRight: 10,
+              marginBottom: 5,
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 10
+            }} name="close" color="black" size={20} onPress={() => setOnChange('all')} />
+
+          </Pressable>
+
+        </View> :
+
+        onChange === 'group' ?
+          <View style={{
+            // backgroundColor: '#f558a4',
+            height: 30,
+            justifyContent: 'flex-end',
+            alignItems: 'flex-end',
+            width: '50%',
+            alignSelf: 'flex-end',
+            flexDirection: 'row',
+            gap: 10,
+            marginRight: 10,
+            borderRadius: 10,
+            backgroundColor: '#a6a4a4',
+
+
+          }}>
+
+            <MaterialCommunityIcons name="filter-check" color="black" size={20} />
+            <Text style={styles.textFilter}>Group Conversation</Text>
+
+            <MaterialCommunityIcons style={{
+              marginRight: 10,
+              marginBottom: 5,
+              borderColor: 'black',
+              borderWidth: 1,
+              borderRadius: 10
+            }} name="close" color="black" size={20} onPress={() => setOnChange('all')} />
+
+
+
+          </View> :
+
+          <View style={{
+            height: 30,
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            marginRight: 10,
+            width: '40%',
+            alignSelf: 'flex-end',
+            borderRadius: 10,
+            backgroundColor: '#a6a4a4',
+            flexDirection: 'row',
+
+          }}>
+            <Pressable style={{
+              height: 30,
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              marginRight: 20,
+              alignSelf: 'flex-end',
+              borderRadius: 10,
+              backgroundColor: '#a6a4a4',
+              flexDirection: 'row',
+              gap: 10
+
+            }} onPress={handlePress}>
+
+
+              <MaterialCommunityIcons name="filter-off" color="black" size={20} />
+
+              <Text style={{
+                fontSize: 14,
+                fontWeight: 'bold',
+                textAlign: 'center',
+                // flex: 1,
+              }}>All Conversation</Text>
+
+            </Pressable>
+          </View>
+      }
+      {/* <ScrollView style={styles.container} ref={scrollViewRef} contentContainerStyle={{ flexGrow: 1 }} onContentSizeChange={handleContentSizeChange}> */}
       <FlatList
         numColumns={1}
         horizontal={false}
@@ -635,7 +793,9 @@ const MessageScreen = ({ navigation }) => {
       />
 
 
-    </ScrollView>
+      {/* </ScrollView> */}
+
+    </View>
 
 
   );
@@ -697,5 +857,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
   },
+  textFilter: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 5,
+
+
+  }
 });
 export default MessageScreen;

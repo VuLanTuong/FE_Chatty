@@ -8,7 +8,7 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 
 
 export default function ForgotPassword({ navigation }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const [email, setEmail] = useState();
     const [newPassword, setNewPassword] = useState('');

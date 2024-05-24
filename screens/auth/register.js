@@ -17,9 +17,9 @@ import dayjs from "dayjs";
 // import "react-datepicker/dist/react-datepicker.css";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-const register = ({ navigation, route }) => {
+const Register = ({ navigation, route }) => {
   let emailParams = route.params.email;
-  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
@@ -77,7 +77,7 @@ const register = ({ navigation, route }) => {
     try {
       await AsyncStorage.setItem("access-token", value);
 
-      console.log("saved" + (await AsyncStorage.getItem("access-token")));
+      // console.log("saved" + (await AsyncStorage.getItem("access-token")));
     } catch (e) {
       console.error(e);
     }
@@ -102,7 +102,7 @@ const register = ({ navigation, route }) => {
         }
       )
         .then((response) => {
-          console.log(response);
+          // console.log(response);
           return response.json();
         })
         .then((data) => {
@@ -114,7 +114,7 @@ const register = ({ navigation, route }) => {
               visibilityTime: 2000,
             });
           }
-          console.log(data);
+          // console.log(data);
 
           storeData(data.data.token.access_token);
           dispatch(
@@ -162,7 +162,7 @@ const register = ({ navigation, route }) => {
     })
       .then((response) => { return response.json() })
       .then((data) => {
-        console.log(data)
+        // console.log(data)
         Toast.show({
           type: 'success',
           text1: data.message,
@@ -177,7 +177,7 @@ const register = ({ navigation, route }) => {
   };
 
   const handleSendOTP = async (resend) => {
-    console.log(email);
+    // console.log(email);
     if (email) {
       await fetch(`${BASE_URL}/auth/sendVerifyEmailOtp`, {
         method: "POST",
@@ -190,8 +190,8 @@ const register = ({ navigation, route }) => {
       })
         .then((response) => { return response.json() })
         .then((data) => {
-          console.log(data)
-          console.log(resend);
+          // console.log(data)
+          // console.log(resend);
           if (data.status === 'fail') {
             Toast.show({
               type: 'error',
@@ -537,4 +537,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default register;
+export default Register;
