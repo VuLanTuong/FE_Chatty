@@ -8,7 +8,7 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { TouchableOpacity, Platform } from 'react-native';
 
 export default function ForgotPassword({ navigation, route }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const emailParams = route.params.email;
     const [email, setEmail] = useState(emailParams);
@@ -113,8 +113,8 @@ export default function ForgotPassword({ navigation, route }) {
 
 
     const changePassword = async () => {
-        console.log(email);
-        console.log(typeof (newPassword));
+        // console.log(email);
+        // console.log(typeof (newPassword));
         console.log(confirmNewPassword);
         if (newPassword === confirmNewPassword) {
             if (newPassword.length >= 6) {
@@ -128,7 +128,7 @@ export default function ForgotPassword({ navigation, route }) {
                         password: newPassword
                     })
                 }).then((response) => {
-                    console.log(response);
+                    // console.log(response);
                     return response.json()
                 }).then((data) => {
                     if (data.status === 'success') {
@@ -161,7 +161,7 @@ export default function ForgotPassword({ navigation, route }) {
 
 
     const handleSendOTP = async (resend) => {
-        console.log(email);
+        // console.log(email);
         if (email) {
             setShowButton(false);
 
@@ -176,8 +176,8 @@ export default function ForgotPassword({ navigation, route }) {
             })
                 .then((response) => { return response.json() })
                 .then((data) => {
-                    console.log(data)
-                    console.log(resend);
+                    // console.log(data)
+                    // console.log(resend);
                     if (!resend) {
                         setModalVisible(!isModalVisible);
                         setMessage(data.message)

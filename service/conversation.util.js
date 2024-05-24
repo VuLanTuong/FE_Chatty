@@ -2,7 +2,7 @@ import { useDispatch } from "react-redux";
 import { getAccessToken } from "../screens/user-profile/getAccessToken";
 
 export async function getAllConversation() {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     try {
         const accessToken = await getAccessToken();
@@ -27,7 +27,7 @@ export async function getAllConversation() {
 }
 
 export async function fetchAllGroup() {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     console.log("fetch all group");
     const accessToken = await getAccessToken();

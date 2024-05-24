@@ -107,6 +107,7 @@ export default function ProfileScreen({ navigation }) {
               style={{
                 marginLeft: 10,
                 marginTop: 10,
+                color: 'black'
               }}
             >
               Change password

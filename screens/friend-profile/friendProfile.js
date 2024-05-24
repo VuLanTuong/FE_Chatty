@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { launchImageLibrary } from 'react-native-image-picker';
 import { getAccessToken } from '../user-profile/getAccessToken';
 import { useDispatch } from "react-redux"
-import { setCurrentConversation, setFriend, updateFriend } from "../../rtk/user-slice";
+import { fetchAllFriend, removeFriend, setCurrentConversation, setFriend, updateFriend } from "../../rtk/user-slice";
 import { findFriendById } from '../../service/friend.util';
 import { getAllConversation } from '../../service/conversation.util';
 import Toast from 'react-native-toast-message';
@@ -16,8 +16,8 @@ import { Alert } from "react-native";
 
 export default function FriendProfile({ route, navigation }) {
     const user = route.params.friend;
-    console.log(user);
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    // console.log("user", user);
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     let isFriendTemp = false;
     const dispatch = useDispatch();
@@ -60,6 +60,9 @@ export default function FriendProfile({ route, navigation }) {
             ]);
 
         }
+
+        // handleUnfriend();
+
         // console.log("disband group");
         // console.log(modalVisible);
         // setModalVisible(!modalVisible)
@@ -86,21 +89,20 @@ export default function FriendProfile({ route, navigation }) {
     }
 
     const getFriendOfUser = async () => {
-        console.log(user);
+        // console.log(user);
         findFriendById(user._id).then((friend) => {
-            console.log(friend);
+            // console.log(friend);
             if (friend) {
                 setCurrentFriend(friend)
-                console.log(friend);
-                console.log(friend.friend.status);
-                if (myInfor.user._id === friend.friend.requester && friend.friend.status != "accecpt") {
+                // console.log(friend);
+                // console.log(friend.friend.status);
+                if (myInfor.user._id === friend.friend.requester && friend.friend.status !== "accepted") {
                     console.log("isSendRequest");
                     setIsSendRequest(true)
                     setFriend(friend.friend)
-
                     return;
                 }
-                if (friend.friend.recipient === myInfor.user._id && friend.friend.status != "accecpt") {
+                if (friend.friend.recipient === myInfor.user._id && friend.friend.status !== "accepted") {
                     console.log("recipient");
                     setIsRecipient(true)
                     setFriend(friend.friend)
@@ -150,7 +152,7 @@ export default function FriendProfile({ route, navigation }) {
 
     useEffect(() => {
         socket.on('friend:request', (data) => {
-            console.log("***8 friend request", data.friendRequest);
+            // console.log("***8 friend request", data.friendRequest);
             if (myInfor.user._id === data.friendRequest.requester && data.friendRequest.status != "accecpt") {
                 console.log("isSendRequest socket");
                 setIsSendRequest(true)
@@ -167,20 +169,39 @@ export default function FriendProfile({ route, navigation }) {
         })
         // friend:accept
         socket.on('friend:accept', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.friendRequest.requester && data.friendRequest.status === "accepted") {
                 console.log("is friend socket");
                 setIsFriend(true)
+                const mappedObject = {
+                    "_id": data.friendRequest._id,
+                    "avatar": data.userInfo.avatar,
+                    "name": data.userInfo.name,
+                    "userId": data.userId
+                };
+
+                dispatch(updateFriend(mappedObject))
+                return;
             }
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
                 console.log("recipient socket");
                 setIsFriend(true)
+                const mappedObject = {
+                    "_id": data.friendRequest._id,
+                    "avatar": data.userInfo.avatar,
+                    "name": data.userInfo.name,
+                    "userId": data.userId
+                };
+
+                dispatch(updateFriend(mappedObject))
+                return;
 
             }
+
             return;
         })
         socket.on('friend:reject', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.userId) {
                 console.log("reject socket");
                 setIsSendRequest(false)
@@ -192,7 +213,7 @@ export default function FriendProfile({ route, navigation }) {
             return;
         })
         socket.on('friend:cancel', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.userId) {
                 console.log("cancel socket");
                 setIsSendRequest(false)
@@ -204,12 +225,14 @@ export default function FriendProfile({ route, navigation }) {
             return;
         })
         socket.on('friend:remove', (data) => {
-            console.log(data);
+            // console.log(data);
             if (myInfor.user._id === data.userId) {
                 console.log("remove socket");
                 setIsFriend(false)
                 setIsSendRequest(false)
                 setIsRecipient(false)
+                dispatch(removeFriend(data.userId))
+
             }
 
             return;
@@ -217,18 +240,18 @@ export default function FriendProfile({ route, navigation }) {
     }, [])
 
 
-    console.log(friend);
-    console.log(friend.requester);
-    console.log(isFriend);
-    console.log(isRecipient);
-    console.log(isSendRequest);
+    // console.log(friend);
+    // console.log(friend.requester);
+    // console.log(isFriend);
+    // console.log(isRecipient);
+    // console.log(isSendRequest);
 
 
 
     const sendRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user);
-        console.log(friend);
+        // console.log(user);
+        // console.log(friend);
         fetch(`${BASE_URL}/friends/request/${user._id}`, {
             method: "POST",
             headers: {
@@ -237,7 +260,7 @@ export default function FriendProfile({ route, navigation }) {
             }
         }
         ).then(response => {
-            console.log(response);
+            // console.log(response);
 
             if (response.status === 200) {
                 console.log('success');
@@ -264,8 +287,8 @@ export default function FriendProfile({ route, navigation }) {
 
     const handleCancelSendRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user);
-        console.log(friend);
+        // console.log(user);
+        // console.log(friend);
         fetch(`${BASE_URL}/friends/cancel/${friend._id}`, {
             method: "POST",
             headers: {
@@ -274,8 +297,8 @@ export default function FriendProfile({ route, navigation }) {
             }
         })
             .then(response => {
-                console.log(response);
-                console.log(response.status);
+                // console.log(response);
+                // console.log(response.status);
                 if (!response.ok) {
                     console.log('error');
                     return;
@@ -298,8 +321,8 @@ export default function FriendProfile({ route, navigation }) {
     }
     const handleRejectRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user);
-        console.log(friend);
+        // console.log(user);
+        // console.log(friend);
         fetch(`${BASE_URL}/friends/reject/${friend._id}`, {
             method: "POST",
             headers: {
@@ -308,8 +331,8 @@ export default function FriendProfile({ route, navigation }) {
             }
         })
             .then(response => {
-                console.log(response);
-                console.log(response.status);
+                // console.log(response);
+                // console.log(response.status);
                 if (!response.ok) {
                     console.log('error');
                     return;
@@ -332,7 +355,7 @@ export default function FriendProfile({ route, navigation }) {
     }
 
     const handleUnfriend = async () => {
-        console.log(currentFriend);
+        // console.log(currentFriend);
         const accessToken = await getAccessToken();
         fetch(`${BASE_URL}/friends/remove/${friend._id}`, {
             method: 'post',
@@ -342,7 +365,7 @@ export default function FriendProfile({ route, navigation }) {
             }
         })
             .then(response => {
-                console.log(response.status);
+                // console.log(response.status);
                 console.log('success');
                 if (!response.ok) {
                     console.log("error");
@@ -360,6 +383,7 @@ export default function FriendProfile({ route, navigation }) {
                     position: 'top',
                     visibilityTime: 2000,
                 })
+                dispatch(removeFriend(friend.userId))
                 return;
             })
 
@@ -368,8 +392,8 @@ export default function FriendProfile({ route, navigation }) {
 
     const handleAcceptRequest = async () => {
         const accessToken = await getAccessToken();
-        console.log(user._id);
-        console.log(friend);
+        // console.log(user._id);
+        // console.log(friend);
         fetch(`${BASE_URL}/friends/accept/${friend._id}`, {
             method: "POST",
             headers: {
@@ -378,9 +402,9 @@ export default function FriendProfile({ route, navigation }) {
             }
         }
         ).then(response => {
-            console.log(response.status);
+            // console.log(response.status);
             if (!response.ok) {
-                console.log(response);
+                // console.log(response);
                 setIsFriend(false)
                 return;
             }
@@ -390,7 +414,7 @@ export default function FriendProfile({ route, navigation }) {
 
             return response.json();
         }).then((data) => {
-            console.log(data);
+            // console.log(data);
             // if (!data.data) {
             //     console.log("fail");
             //     return;
@@ -413,9 +437,9 @@ export default function FriendProfile({ route, navigation }) {
 
     const handleSendMessage = async () => {
         const token = await getAccessToken();
-        console.log(token);
-        console.log(user);
-        console.log("user id", user._id);
+        // console.log(token);
+        // console.log(user);
+        // console.log("user id", user._id);
         fetch(`${BASE_URL}/conservations/open/${user._id}`,
             {
                 method: "POST",
@@ -425,13 +449,13 @@ export default function FriendProfile({ route, navigation }) {
                 }
             }).then((response) => response.json())
             .then((data) => {
-                console.log(data)
+                // console.log(data)
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
                 }
                 else {
-                    console.log(data.data._id);
+                    // console.log(data.data._id);
                     dispatch(setCurrentConversation(data.data))
                     navigation.navigate('Chat', { data: data.data, isFriend: true })
 

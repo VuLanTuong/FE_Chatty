@@ -22,7 +22,7 @@ import { Alert } from "react-native";
 import * as ImagePicker from 'expo-image-picker';
 
 export default function OptionGroup({ navigation, route }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const currentConversation = useSelector((state) => state.user.currentConversation);
     const allConversationAtRedux = useSelector((state) => state.user.conversation);
@@ -67,7 +67,7 @@ export default function OptionGroup({ navigation, route }) {
         conservationParam.members.map(async (member) => {
             if (member._id !== user._id) {
                 const friend = await findFriendById(member._id);
-                console.log(friend);
+                // console.log(friend);
                 navigation.navigate('FriendProfile', { friend: friend });
 
             }
@@ -119,7 +119,7 @@ export default function OptionGroup({ navigation, route }) {
             return response.json()
         })
             .then((data) => {
-                console.log(data);
+                // console.log(data);
                 if (data.status === 'fail') {
                     console.log("leave group fail");
                     Toast.show({
@@ -138,7 +138,7 @@ export default function OptionGroup({ navigation, route }) {
                     visibilityTime: 2000,
                     position: 'top'
                 })
-                setOnChange(!onChange);
+                // setOnChange(!onChange);
                 // const updateConversation = allConversationAtRedux.filter(conversation =>
                 // conversation._id.toString() !== conservationParam._id.toString());
                 // dispatch(setAllConversation(updateConversation));
@@ -167,7 +167,7 @@ export default function OptionGroup({ navigation, route }) {
     }
 
     const handleChangeNameGroup = async () => {
-
+        setIsEditName(!isEditName);
         const accessToken = await getAccessToken();
         fetch(`${BASE_URL}/conservations/${conservationParam._id}/changeName`, {
             method: 'post',
@@ -184,27 +184,27 @@ export default function OptionGroup({ navigation, route }) {
             return response.json()
         })
             .then((data) => {
-                console.log(data);
-                if (data.status === 'fail') {
+                // console.log(data);
+                if (data.status !== 'fail') {
                     Toast.show({
-                        type: 'error',
-                        text1: data.message,
+                        type: 'success',
+                        text1: "Change name group successfully",
                         visibilityTime: 2000,
                         position: 'top'
-
                     })
+
                     return;
                 }
-                setOnChange(!onChange);
-
+                // setOnChange(!onChange);
                 Toast.show({
-                    type: 'success',
-                    text1: "Change name group successfully",
+                    type: 'error',
+                    text1: data.message,
                     visibilityTime: 2000,
                     position: 'top'
+
                 })
-                setIsEditName(!isEditName);
-                console.log(currentConversation);
+                // console.log(currentConversation);
+                return;
                 // navigation.navigate('Chat', { data: currentConversation });
             }).catch((err) => {
                 console.log(err);
@@ -216,7 +216,7 @@ export default function OptionGroup({ navigation, route }) {
     useEffect(() => {
         console.log("effect member list");
         socket.on("message:notification", (data) => {
-            console.log(data);
+            // console.log(data);
             if (currentConversation._id.toString() === data.conservationId.toString()) {
                 console.log("set current conversation");
                 dispatch(setCurrentConversation(data.conversation))
@@ -227,13 +227,13 @@ export default function OptionGroup({ navigation, route }) {
                     return conversation;
                 })
                 dispatch(setAllConversation(updateConservation, { position: 'option-for-group-notification' }))
-                console.log("option for group notification");
             }
+            return;
         })
         setNewName(currentConversation.name);
         socket.on('conversation:removeMembers', (data) => {
-            console.log(data);
-            console.log(user);
+            // console.log(data);
+            // console.log(user);
             data.members.map((member) => {
                 if (member === user._id) {
                     const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
@@ -244,19 +244,21 @@ export default function OptionGroup({ navigation, route }) {
                     }
                 }
             })
+            return;
         });
         socket.on("conversation:disband", (data) => {
-            console.log(data);
+            // console.log(data);
             const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
             dispatch(setAllConversation(updatedConversation, { position: 'option-for-group-disband' }));
             if (currentConversation._id.toString() === data.conservationId.toString()) {
                 navigation.navigate('MessageScreen');
 
             }
+            return;
 
         })
 
-    }, [onChange, allConversationAtRedux])
+    }, [])
 
 
 
@@ -288,7 +290,7 @@ export default function OptionGroup({ navigation, route }) {
 
         }
         console.log("disband group");
-        console.log(modalVisible);
+        // console.log(modalVisible);
         setModalVisible(!modalVisible)
 
     }
@@ -342,7 +344,7 @@ export default function OptionGroup({ navigation, route }) {
             return response.json()
         })
             .then((data) => {
-                console.log(data);
+                // console.log(data);
                 if (data.status === 'fail') {
                     console.log("leave group fail");
                     Toast.show({
@@ -375,7 +377,7 @@ export default function OptionGroup({ navigation, route }) {
             quality: 1,
         });
 
-        console.log(result);
+        // console.log(result);
 
         if (!result.canceled) {
 
@@ -388,7 +390,7 @@ export default function OptionGroup({ navigation, route }) {
         }
     };
     const handleUploadPhoto = async (photo) => {
-        console.log(photo);
+        // console.log(photo);
         let formData = new FormData();
 
         formData.append('image', {
@@ -415,24 +417,24 @@ export default function OptionGroup({ navigation, route }) {
                 return response.json();
             })
             .then((data) => {
-                console.log("data", data);
-                if (data.status === 'fail') {
+                // console.log("data", data);
+                if (data.status !== 'fail') {
                     Toast.show({
-                        type: "error",
-                        text1: "Change avatar fail",
+                        type: "success",
+                        text1: "Change avatar successful",
                         position: "top",
                         visibilityTime: 2000,
                     });
+
                     return;
                 }
                 Toast.show({
-                    type: "success",
-                    text1: "Change avatar successful",
+                    type: "error",
+                    text1: "Change avatar fail",
                     position: "top",
                     visibilityTime: 2000,
                 });
-
-
+                return;
 
             })
             .catch((error) => {
@@ -475,7 +477,9 @@ export default function OptionGroup({ navigation, route }) {
                                 width: 300,
                                 justifyContent: 'center'
                             }}>
-                                <Text style={styles.userName}>{currentConversation.name}</Text>
+                                {/* <Text style={styles.userName}>{currentConversation.name}</Text> */}
+                                <Text style={styles.userName}>{newName}</Text>
+
                                 <Pressable onPress={() => isEditNameGroup()}>
                                     <MaterialCommunityIcons style={styles.userName} name="pencil" size={24} color="black" />
                                 </Pressable>

@@ -8,7 +8,7 @@ import { ErrorToast, SuccessToast } from 'react-native-toast-message';
 import Toast from 'react-native-toast-message';
 const FindFriend = ({ navigation }) => {
     const [email, setEmail] = useState('');
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
 
     const findFriend = async () => {

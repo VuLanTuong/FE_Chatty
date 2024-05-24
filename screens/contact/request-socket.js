@@ -7,12 +7,12 @@ import { getAccessToken } from '../user-profile/getAccessToken';
 import { findFriendById } from '../../service/friend.util';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSocket } from '../socket.io/socket-context';
-import { setNumberOfRequest } from '../../rtk/user-slice';
+import { fetchAllFriend, setNumberOfRequest, updateFriend } from '../../rtk/user-slice';
 
 export function RequestSocket({ navigation }) {
     const [requests, setRequests] = useState([]);
     const [isAcpRequest, setIsAcptrRequest] = useState(false);
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
     const myInfor = useSelector(state => state.user)
     const { socket } = useSocket()
     const dispatch = useDispatch();
@@ -39,15 +39,23 @@ export function RequestSocket({ navigation }) {
             return;
         })
         socket.on('friend:accept', (data) => {
-            console.log(data);
+            // console.log(data);
             if (data.friendRequest.recipient === myInfor.user._id && data.friendRequest.status === "accepted") {
                 dispatch(setNumberOfRequest(requests.length - 1));
                 setRequests(requests.filter(request => request._id !== data.friendRequest._id));
+                const mappedObject = {
+                    "_id": data.friendRequest._id,
+                    "avatar": data.userInfo.avatar,
+                    "name": data.userInfo.name,
+                    "userId": data.userId
+                };
+
+                dispatch(updateFriend(mappedObject))
             }
             return;
         })
         socket.on('friend:cancel', (data) => {
-            console.log("** cancel request", requests);
+            // console.log("** cancel request", requests);
             if (myInfor.user._id === data.userId) {
 
                 // setRequests(requests.filter(request => request._id !== data.friendRequest._id));
@@ -70,8 +78,8 @@ export function RequestSocket({ navigation }) {
             });
 
             const data = await response.json();
-            console.log("========================================");
-            console.log("fetch friend request", data.data);
+            // console.log("========================================");
+            // console.log("fetch friend request", data.data);
             setRequests(data.data);
             dispatch(setNumberOfRequest(data.data.length));
         } catch (error) {
@@ -80,7 +88,7 @@ export function RequestSocket({ navigation }) {
         }
     }
 
-    console.log("** request", requests);
+    // console.log("** request", requests);
 
 
     useEffect(() => {
@@ -102,7 +110,7 @@ export function RequestSocket({ navigation }) {
             }
         }
         ).then(response => {
-            console.log(response.status);
+            // console.log(response.status);
             if (!response.ok) {
                 console.log('error');
                 setIsAcptrRequest(false);
@@ -125,7 +133,7 @@ export function RequestSocket({ navigation }) {
 
     const handleAddFriend = async (id) => {
         try {
-            console.log(id);
+            // console.log(id);
             await addFriend(id);
             fetchFriendRequest();
             // const newRequests = requests.filter(request => request._id !== id);
@@ -157,7 +165,7 @@ export function RequestSocket({ navigation }) {
             }
         })
             .then(response => {
-                console.log(response.status);
+                // console.log(response.status);
                 if (!response.ok) {
                     console.log('error');
                     // setIsAcptrRequest(false)
@@ -178,7 +186,7 @@ export function RequestSocket({ navigation }) {
 
     const viewProfileOfUser = async (id) => {
         const friend = await findFriendById(id);
-        console.log(friend);
+        // console.log(friend);
         if (friend) {
             navigation.navigate('FriendProfile', { friend: friend });
         }

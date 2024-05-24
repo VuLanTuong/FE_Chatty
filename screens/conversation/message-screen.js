@@ -16,7 +16,7 @@ import { useSocket } from "../socket.io/socket-context";
 import { fetchAllGroup } from "../../service/conversation.util";
 import Toast from "react-native-toast-message";
 const MessageScreen = ({ navigation }) => {
-  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const allConversationAtRedux = useSelector((state) => state.user.conversation);
 
   const [search, setSearch] = useState("");
@@ -42,18 +42,18 @@ const MessageScreen = ({ navigation }) => {
 
   const dispatch = useDispatch()
   const allConversation = useSelector((state) => state.user.conversation);
-  console.log(allConversation);
+  // console.log(allConversation);
 
 
   // get current user
   const user = useSelector((state) => state.user.user);
-  console.log(user);
+  // console.log(user);
 
   const scrollViewRef = useRef(null);
   // selector run after use effect
-  console.log(allConversationAtRedux);
+  // console.log(allConversationAtRedux);
   const [allConversationAtRedux1, setAllConversationAtRedux] = useState(useSelector((state) => state.user.conversation));
-  console.log(allConversationAtRedux);
+  // console.log(allConversationAtRedux);
 
   const [conversations, setConversations] = useState(allConversationAtRedux);
 
@@ -79,9 +79,9 @@ const MessageScreen = ({ navigation }) => {
 
 
   const handleConversationUpdate = (data) => {
-    console.log(data.conversation);
+    // console.log(data.conversation);
     const members = data.conversation.members;
-    console.log("MEMBERSS:::::::", members);
+    // console.log("MEMBERSS:::::::", members);
     if (data.conversation.type === "group") {
       let isUserInGroup = false;
       members.forEach(member => {
@@ -160,8 +160,8 @@ const MessageScreen = ({ navigation }) => {
     setConversations(allConversationAtRedux);
     // dispatch(getConservations());
     socket.on('conversation:removeMembers', (data) => {
-      console.log(data);
-      console.log(user);
+      // console.log(data);
+      // console.log(user);
 
       data.members.map((member) => {
         if (member === user._id) {
@@ -189,7 +189,7 @@ const MessageScreen = ({ navigation }) => {
 
     });
     socket.on('message:deleted', (data) => {
-      console.log(data);
+      // console.log(data);
       const updateConservation = allConversationAtRedux.map(conversation => {
         if (conversation._id.toString() === data.conversation._id.toString()) {
           console.log("update conversation delete");
@@ -198,12 +198,12 @@ const MessageScreen = ({ navigation }) => {
         }
         return conversation;
       })
-      console.log(updateConservation);
+      // console.log(updateConservation);
 
       dispatch(setAllConversation(updateConservation, { position: 'message-delete' }))
     }),
       socket.on("conversation:new", (data) => {
-        console.log(data);
+        // console.log(data);
         data.conversation.members.map((member) => {
           if (member._id.toString() === user._id.toString()) {
             console.log("notification");
@@ -213,13 +213,13 @@ const MessageScreen = ({ navigation }) => {
         )
       }),
       socket.on("conversation:disband", (data) => {
-        console.log(data);
+        // console.log(data);
         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
         dispatch(setAllConversation(updatedConversation, { position: 'message-disband' }));
 
       }),
       socket.on("message:notification", (data) => {
-        console.log(data);
+        // console.log(data);
         // if (data.conversation.members.some(member => member._id === user._id)) {
 
         data.conversation.members.map((member) => {
@@ -265,7 +265,7 @@ const MessageScreen = ({ navigation }) => {
   }
 
   const handleSetConversation = (data) => {
-    console.log(data);
+    // console.log(data);
     setConversations(data)
     console.log("set");
   }
@@ -320,9 +320,9 @@ const MessageScreen = ({ navigation }) => {
 
 
   const removeConservationNotContent = () => {
-    console.log(conversations);
+    // console.log(conversations);
     const updatedConversations = conversations.filter(cv => cv.lastMessage !== null);
-    console.log(updatedConversations);
+    // console.log(updatedConversations);
     setConversations(updatedConversations);
     dispatch(setAllConversation(updatedConversations, { position: 'message-remove-conversation-not-content' }))
 
@@ -330,16 +330,16 @@ const MessageScreen = ({ navigation }) => {
 
   const checkIsFriend = (idTemp) => {
     let isFriendTemp = false;
-    console.log("friends", friends);
+    // console.log("friends", friends);
     idTemp.map((id) => {
       if (id) {
         const friend = friends.find(friend => friend.userId === id);
         if (friend) {
-          console.log("friend", friend);
+          // console.log("friend", friend);
           isFriendTemp = true;
           return isFriendTemp;
         }
-        console.log("friend", friend);
+        // console.log("friend", friend);
       }
     })
 
@@ -359,13 +359,13 @@ const MessageScreen = ({ navigation }) => {
         }
       }).then((response) => response.json())
       .then((data) => {
-        console.log(data)
+        // console.log(data)
         if (data.status === "fail") {
           console.log("fail");
           return;
         }
         else {
-          console.log(data.data);
+          // console.log(data.data);
           dispatch(setCurrentConversation(data.data))
 
           const updatedConversation = allConversationAtRedux.map((conversation) => {
@@ -375,21 +375,21 @@ const MessageScreen = ({ navigation }) => {
             }
             return conversation;
           })
-          console.log(updatedConversation);
+          // console.log(updatedConversation);
           dispatch(setAllConversation(updatedConversation, { position: 'message-open-conversation' }));
           if (data.data.type === "private") {
-            console.log("private");
-            console.log(data.data.members);
+            // console.log("private");
+            // console.log(data.data.members);
 
             let idTemp = data.data.members.map((member) => {
               if (member._id !== user._id) {
-                console.log("member", member._id);
+                // console.log("member", member._id);
                 return member._id;
               }
             });
-            console.log("idTemp", idTemp);
+            // console.log("idTemp", idTemp);
             let isFriendTemp = checkIsFriend(idTemp);
-            console.log("***8", isFriendTemp);
+            // console.log("***8", isFriendTemp);
             navigation.navigate('Chat', { data: data.data, friends: friends, isFriend: isFriendTemp })
             return;
           }
@@ -442,11 +442,11 @@ const MessageScreen = ({ navigation }) => {
 
   // }
 
-  console.log(conversations);
+  // console.log(conversations);
 
   const getTime = (updateAt) => {
 
-    console.log(typeof (updateAt));
+    // console.log(typeof (updateAt));
     const date = new Date(updateAt);
 
     const hour = date.getHours();
@@ -464,7 +464,7 @@ const MessageScreen = ({ navigation }) => {
         }
 
         if (item.lastMessage?.content.length > 20) {
-          console.log(item.lastMessage.content.substring(0, 20) + "...");
+          // console.log(item.lastMessage.content.substring(0, 20) + "...");
           return item.lastMessage.content.substring(0, 20) + "...";
         }
 
@@ -489,7 +489,7 @@ const MessageScreen = ({ navigation }) => {
     setOnChange('friend')
     const updatedConversations = allConversationAtRedux.
       filter(conversation => conversation.type === "private");
-    console.log(updatedConversations);
+    // console.log(updatedConversations);
     setConversations(updatedConversations);
 
   }

@@ -127,7 +127,7 @@ function AppNavigator() {
 
   useEffect(() => {
     socket.on('friend:request', (data) => {
-      console.log(data);
+      // console.log(data);
       return;
     })
   })
@@ -331,7 +331,18 @@ const ProfileStack = () => {
         name="ChangePassword"
         component={ChangePassword}
         options={{
-          headerShown: false,
+          headerTitle: 'Change Password',
+          headerTintColor: 'white',
+          headerTitleStyle: {
+            fontWeight: 'normal',
+            fontSize: 17,
+          },
+          headerStyle: {
+            backgroundColor: '#f558a4',
+            height: 50,
+
+          }
+
         }}
       />
     </Stack.Navigator>

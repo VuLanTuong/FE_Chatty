@@ -25,7 +25,6 @@ import { useNavigation } from '@react-navigation/native';
 import { getAccessToken } from "../user-profile/getAccessToken";
 import { findFriendById } from "../../service/friend.util";
 import { useFocusEffect } from '@react-navigation/native';
-import HeaderChat from "./header.chat-ui";
 import { useDispatch, useSelector } from "react-redux";
 import { useScrollToTop } from '@react-navigation/native';
 import ActionSheet from 'react-native-actionsheet';
@@ -43,9 +42,9 @@ import VideoScreen from "./video-screen";
 import { Video, ResizeMode } from "expo-av";
 
 const ChatScreen = ({ navigation, route }) => {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
     const isFriendList = route.params.isFriend;
-    console.log("isFriendList", isFriendList);
+    // console.log(isFriendList);
     const [modalVisible, setModalVisible] = useState(false);
     const [modalFileVisible, setModalFileVisible] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
@@ -131,18 +130,18 @@ const ChatScreen = ({ navigation, route }) => {
     useEffect(() => {
         checkIsFriend()
         getAllMessage();
-        console.log("effect");
+        // console.log("effect");
         scrollToBottom(),
             groupFriendsByLetter(allConversationAtRedux);
     }, []);
 
     useEffect(() => {
-        console.log("effect");
+        // console.log("effect");
         if (searchFriend) {
             const filteredFriends = allConversationAtRedux.filter((friend) => {
                 return friend.name.toLowerCase().includes(searchFriend.toLowerCase());
             })
-            console.log(filteredFriends);
+            // console.log(filteredFriends);
             groupFriendsByLetter(filteredFriends);
             return;
 
@@ -213,16 +212,17 @@ const ChatScreen = ({ navigation, route }) => {
 
                     const updateConservation = allConversationAtRedux.map(conversation => {
                         if (conversation._id.toString() === conversationParams._id.toString()) {
-                            console.log("update conversation delete");
+                            // console.log("update conversation delete");
                             // conversation.lastMessage = deleteMessage;
                             return { ...conversation, lastMessage: deleteMessage }
                         }
 
                         return conversation;
                     })
-                    console.log(updateConservation);
+                    // console.log(updateConservation);
 
                     dispatch(setAllConversation(updateConservation))
+                    return;
 
 
                 })
@@ -245,9 +245,10 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     const openModal = (content) => {
-        console.log(content);
+        // console.log(content);
         setContentForward(content);
         setModalVisible(true);
+
     }
 
     const openModalFile = (message) => {
@@ -259,11 +260,11 @@ const ChatScreen = ({ navigation, route }) => {
 
     const handleForward = async () => {
         const token = await getAccessToken();
-        console.log("press forward");
-        console.log(contentForward);
-        // console.log("send text");
+        // console.log("press forward");
         // console.log(contentForward);
-        console.log(selectedFriends);
+        // // console.log("send text");
+        // // console.log(contentForward);
+        // console.log(selectedFriends);
         selectedFriends.map(async (friendId) => {
             await fetch(`${BASE_URL}/conservations/${friendId}`, {
                 method: 'GET',
@@ -273,7 +274,7 @@ const ChatScreen = ({ navigation, route }) => {
                 }
             }).then((response) => response.json())
                 .then((data) => {
-                    console.log(data);
+                    // console.log(data);
                     if (data.status === "fail") {
                         fetch(`${BASE_URL}/conservations/open/${friendId}`,
                             {
@@ -299,18 +300,16 @@ const ChatScreen = ({ navigation, route }) => {
                                     });
                                     const conversationWithFriend = await response.json();
 
-                                    console.log(contentForward);
-                                    console.log(conversationWithFriend);
+                                    // console.log(contentForward);
+                                    // console.log(conversationWithFriend);
                                     handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
                                 }
                             })
-
                             .catch(() => console.log("fetch error"))
-
-
                     }
                     else {
                         handleSendTextMessage(data.data._id, contentForward, data.data);
+
                     }
 
 
@@ -331,6 +330,7 @@ const ChatScreen = ({ navigation, route }) => {
         });
         setSelectedFriends([]);
         setModalVisible(false);
+        return;
     }
 
     const handleForwardFile = async () => {
@@ -369,8 +369,8 @@ const ChatScreen = ({ navigation, route }) => {
                                     });
                                     const conversationWithFriend = await response.json();
 
-                                    console.log(contentForward);
-                                    console.log(conversationWithFriend);
+                                    // console.log(contentForward);
+                                    // console.log(conversationWithFriend);
                                     handleSendFile(data.data._id, messageToForward.attachments, conversationWithFriend.data);
                                     // handleSendTextMessage(data.data._id, contentForward, conversationWithFriend.data);
                                 }
@@ -394,13 +394,14 @@ const ChatScreen = ({ navigation, route }) => {
 
         setModalFileVisible(false);
         setSelectedFriends([]);
+        return;
     }
 
 
 
     const handleSendTextReply = async () => {
-        console.log(replyText);
-        console.log(replyMessage);
+        // console.log(replyText);
+        // console.log(replyMessage);
         const token = await getAccessToken();
         if (replyMessage && replyMessage.content !== "This message has been deleted" && replyText !== '') {
             fetch(`${BASE_URL}/conservations/${conversationParams._id}/messages/replyText/${replyMessage._id}`,
@@ -416,7 +417,7 @@ const ChatScreen = ({ navigation, route }) => {
                     )
                 }).then((response) => response.json())
                 .then((data) => {
-                    console.log(data)
+                    // console.log(data)
                     if (data.status === "fail") {
                         console.log("fail");
                         return;
@@ -429,7 +430,7 @@ const ChatScreen = ({ navigation, route }) => {
                     setReplyMessage()
                     setReplyText('')
                     dispatch(getConservations())
-                    console.log("reply success");
+                    // console.log("reply success");
 
                 }).then(() => setText(''))
                 .catch(() => console.log("fetch error"))
@@ -458,9 +459,10 @@ const ChatScreen = ({ navigation, route }) => {
             return;
         }
         setReplyMessage(message)
-        console.log(message);
-        console.log(message);
+        // console.log(message);
+        // console.log(message);
         setIsReply(true)
+        return;
 
 
 
@@ -475,8 +477,8 @@ const ChatScreen = ({ navigation, route }) => {
     useFocusEffect(
         React.useCallback(() => {
             socket.on('conversation:removeMembers', (data) => {
-                console.log(data);
-                console.log(user);
+                // console.log(data);
+                // console.log(user);
                 data.members.map((member) => {
                     if (member === user._id) {
                         const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
@@ -484,8 +486,11 @@ const ChatScreen = ({ navigation, route }) => {
                         if (currentConversation._id.toString() === data.conservationId.toString()) {
                             navigation.navigate('MessageScreen');
                         }
+                        return;
                     }
+
                 })
+                return;
             });
             socket.on('message:receive', (data) => {
                 if (data.conversation._id.toString() === currentConversation._id.toString()) {
@@ -511,7 +516,7 @@ const ChatScreen = ({ navigation, route }) => {
                         setMessages(updateMessage)
                         const updateConservation = allConversationAtRedux.map(conversation => {
                             if (conversation._id.toString() === data.conversation._id.toString()) {
-                                console.log("update conversation delete");
+                                // console.log("update conversation delete");
                                 // conversation.lastMessage = deleteMessage;
                                 return { ...conversation, lastMessage: deleteMessage }
                             }
@@ -519,14 +524,16 @@ const ChatScreen = ({ navigation, route }) => {
                             return conversation;
                         })
                         dispatch(setAllConversation(updateConservation, { position: 'chat-deleted' }))
+                        return;
                     }
+                    return;
                 }),
                 socket.on("message:notification", (data) => {
                     if (currentConversation._id === data.conservationId) {
                         setNameGroup(data.conversation.name)
-                        console.log(data);
+                        // console.log(data);
                         let currentMessage = data.messages.map((message) => {
-                            console.log(message);
+                            // console.log(message);
                             return message;
 
                         })
@@ -543,14 +550,17 @@ const ChatScreen = ({ navigation, route }) => {
                         dispatch(setCurrentConversation({ ...data.conversation, lastMessage: null }))
                         dispatch(setAllConversation(updateConservation, { position: 'chat-notification' }))
                         console.log("chat screen");
+                        return;
                     }
 
+                    return;
                 }),
                 socket.on("conversation:disband", (data) => {
-                    console.log(data);
+                    // console.log(data);
                     const updatedConversation = allConversationAtRedux.filter(conversation => conversation._id.toString() !== data.conservationId.toString());
                     dispatch(setAllConversation(updatedConversation, { position: 'chat-disband' }));
                     navigation.navigate('MessageScreen');
+                    return;
 
                 })
         }, [messages])
@@ -559,7 +569,7 @@ const ChatScreen = ({ navigation, route }) => {
 
 
     useFocusEffect(React.useCallback(() => {
-        console.log("get all message");
+        // console.log("get all message");
         getAllMessage();
     }, []));
 
@@ -581,6 +591,7 @@ const ChatScreen = ({ navigation, route }) => {
                 }
                 // console.log(data.data);
                 reverseData(data.data)
+                return;
             })
 
             .catch(() => console.log("fetch error"))
@@ -595,8 +606,8 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const handleSendTextMessage = async (id, text, conversation) => {
-        console.log(conversation);
-        console.log(currentConversation);
+        // console.log(conversation);
+        // console.log(currentConversation);
         const token = await getAccessToken();
         if (text !== '') {
             fetch(`${BASE_URL}/conservations/${id}/messages/sendText`,
@@ -612,13 +623,13 @@ const ChatScreen = ({ navigation, route }) => {
                     )
                 }).then((response) => response.json())
                 .then((data) => {
-                    console.log(data)
+                    // console.log(data)
                     if (data.status === "success") {
                         socket.emit('message:send', { ...data.data, conversation: conversation, sender: user._id })
                         //kiem tra dieu kien de set
                         if (conversation._id === currentConversation._id) {
-                            console.log("set roi");
-                            console.log(currentConversation.lastMessage);
+                            // console.log("set roi");
+                            // console.log(currentConversation.lastMessage);
                             if (currentConversation.lastMessage == null) {
                                 getAllMessage().then(() => {
                                     console.log("get all message");
@@ -658,8 +669,8 @@ const ChatScreen = ({ navigation, route }) => {
     const handleSendFile = async (id, file, conversation) => {
         // console.log("send text");
         // console.log(text);
-        console.log(conversation);
-        console.log(currentConversation);
+        // console.log(conversation);
+        // console.log(currentConversation);
         const token = await getAccessToken();
 
         fetch(`${BASE_URL}/conservations/${id}/forwardFiles`,
@@ -675,7 +686,7 @@ const ChatScreen = ({ navigation, route }) => {
                 )
             }).then((response) => response.json())
             .then((data) => {
-                console.log(data)
+                // console.log(data)
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
@@ -685,7 +696,7 @@ const ChatScreen = ({ navigation, route }) => {
                 //kiem tra dieu kien de set
                 if (conversation._id === currentConversation._id) {
                     console.log("set roi");
-                    console.log(currentConversation.lastMessage);
+                    // console.log(currentConversation.lastMessage);
                     if (currentConversation.lastMessage == null) {
                         getAllMessage().then(() => {
                             console.log("get all message");
@@ -847,6 +858,7 @@ const ChatScreen = ({ navigation, route }) => {
     }, [nameGroup, currentConversation.image])
 
     function FileMessageComponent({ message }) {
+
         const actionSheetRef = useRef(null);
         const ref = useRef(null);
         const handlePressIcon = () => {
@@ -871,7 +883,7 @@ const ChatScreen = ({ navigation, route }) => {
         const user = useSelector((state) => state.user.user);
         const formatReplyText = (text) => {
             if (text.content.length > 20) {
-                console.log(text.content.substring(0, 10) + "...");
+                // console.log(text.content.substring(0, 10) + "...");
                 return text.content.substring(0, 10) + "...";
             }
             return text.content;
@@ -1111,6 +1123,7 @@ const ChatScreen = ({ navigation, route }) => {
                         flex: 1,
                         backgroundColor: message.isMine ? "#ffadd5" : "lightgray",
                     }}
+
                 >
                     <Pressable
                         style={{
@@ -1238,7 +1251,7 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     function groupFriendsByLetter(friendsParams) {
-        console.log(friendsParams);
+        // console.log(friendsParams);
         const allContact = [...friendInRedux, ...groupsInRedux]
 
         const friendGroupByName = friendsParams.reduce((result, friend) => {
@@ -1256,6 +1269,7 @@ const ChatScreen = ({ navigation, route }) => {
             sortedFriendGroups[letter] = friendGroupByName[letter];
             setFriends(sortedFriendGroups);
         });
+        // console.log(sortedFriendGroups);
         return sortedFriendGroups;
     };
 
@@ -1279,7 +1293,7 @@ const ChatScreen = ({ navigation, route }) => {
         //     type: "*/*",
 
         // })
-        console.log(result);
+        // console.log(result);
         if (!result.canceled) {
             // const photos = result.assets.map((asset) => ({
             //     uri: asset.uri,
@@ -1297,7 +1311,7 @@ const ChatScreen = ({ navigation, route }) => {
     const handleProfileScreen = async (id) => {
         if (id) {
             const friend = await findFriendById(id);
-            console.log(friend);
+            // console.log(friend);
             navigation.navigate('FriendProfile', { friend: friend });
 
         }
@@ -1379,7 +1393,7 @@ const ChatScreen = ({ navigation, route }) => {
             });
 
         })
-        console.log(file);
+        // console.log(file);
         await fetch(
             `${BASE_URL}/conservations/${currentConversation._id}/messages/sendFiles`,
             {
@@ -1395,7 +1409,7 @@ const ChatScreen = ({ navigation, route }) => {
             }
         )
             .then((response) => {
-                console.log("upload", response.status);
+                // console.log("upload", response.status);
                 return response.json();
 
             })
@@ -1409,7 +1423,7 @@ const ChatScreen = ({ navigation, route }) => {
                     dispatch(getConservations())
                 }
                 else {
-                    console.log(data);
+                    // console.log(data);
                     Toast.show({
                         type: 'error',
                         text1: 'File is too large',
@@ -1449,7 +1463,7 @@ const ChatScreen = ({ navigation, route }) => {
                 }
             }).then((response) => response.json())
             .then((data) => {
-                console.log(data)
+                // console.log(data)
                 if (data.status === "fail") {
                     console.log("fail");
                     return;
@@ -1674,9 +1688,6 @@ const ChatScreen = ({ navigation, route }) => {
                     const showTimestamp =
                         index === 0 ||
                         (new Date(message.updatedAt) - new Date(messages[index - 1].updatedAt)) >= 8 * 60 * 60 * 1000;
-                    console.log("show timnestamp" + showTimestamp);
-                    console.log("message", message);
-                    console.log("Message -1", messages[index - 1]);
                     return (
                         <React.Fragment key={message._id}>
                             {showTimestamp && <Text style={{ alignSelf: 'center', marginVertical: 10 }}>{formatTimeMessage(message)}</Text>}
@@ -1910,7 +1921,8 @@ const ChatScreen = ({ navigation, route }) => {
                             <View style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                gap: 5,
+                                gap: 15,
+                                width: '100%'
                             }}>
                                 <TextInput
                                     placeholder="Search"
@@ -1918,13 +1930,18 @@ const ChatScreen = ({ navigation, route }) => {
                                         padding: 10,
                                         borderWidth: 1,
                                         borderColor: '#f558a4',
+                                        width: '80%',
+                                        fontSize: 18
                                     }}
+                                    placeholderTextColor={"black"}
                                     value={searchFriend}
 
                                     onChangeText={(text) => setSearchFriend(text)}
 
                                 />
-                                <Pressable style={{}}>
+                                <Pressable style={{
+                                    marginTop: 10
+                                }}>
                                     <MaterialCommunityIcons name='magnify' color='black' size={30} />
                                 </Pressable>
 
@@ -1935,10 +1952,15 @@ const ChatScreen = ({ navigation, route }) => {
                                 width: '100%',
                             }}>
                                 {Object.keys(friends).map((letter) => (
-                                    <View style={{
-                                        width: '100%'
-                                    }}>
-                                        <View key={letter} >
+                                    <View
+                                        key={letter}
+                                        style={{
+                                            width: '100%',
+
+                                        }}
+
+                                    >
+                                        <View >
                                             <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
 
                                             {friends[letter].map((friend) => (
@@ -1976,21 +1998,21 @@ const ChatScreen = ({ navigation, route }) => {
                                                                 marginTop: 10,
                                                                 fontSize: 20
                                                             }}>{friend.name}</Text>
-                                                            <View style={{
-                                                                flex: 1,
-                                                                flexDirection: "column",
-                                                                justifyContent: "center",
-                                                                // alignContent: 'center',
-                                                                alignItems: 'end',
-
-                                                            }}>
-                                                                <Checkbox.Android
-                                                                    status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
-                                                                    onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
-                                                                />
 
 
-                                                            </View>
+
+                                                        </View>
+                                                        <View style={{
+                                                            flex: 1,
+                                                            flexDirection: "column",
+                                                            justifyContent: "center",
+                                                            alignItems: 'flex-end',
+
+                                                        }}>
+                                                            <Checkbox.Android
+                                                                status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
+                                                                onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
+                                                            />
 
 
                                                         </View>
@@ -2032,9 +2054,9 @@ const ChatScreen = ({ navigation, route }) => {
                             <View style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                gap: 5,
+                                gap: 15,
+                                width: '100%'
                             }}>
-                                <MaterialCommunityIcons name='magnify' color='black' size={30} />
 
                                 <TextInput
                                     placeholder="Search"
@@ -2042,11 +2064,19 @@ const ChatScreen = ({ navigation, route }) => {
                                         padding: 10,
                                         borderWidth: 1,
                                         borderColor: '#f558a4',
+                                        width: '80%',
+                                        fontSize: 18
                                     }}
+
+                                    placeholderTextColor={"black"}
                                     value={searchFriend}
                                     onChangeText={(text) => setSearchFriend(text)}
 
                                 />
+                                <MaterialCommunityIcons style={{
+                                    marginTop: 10
+                                }} name='magnify' color='black' size={30} />
+
 
 
                             </View>
@@ -2058,7 +2088,8 @@ const ChatScreen = ({ navigation, route }) => {
                                 {Object.keys(friends).map((letter) => (
                                     <View style={{
                                         width: '100%'
-                                    }}>
+
+                                    }} key={letter}>
                                         <View key={letter} >
                                             <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
 
@@ -2097,24 +2128,24 @@ const ChatScreen = ({ navigation, route }) => {
                                                                 marginTop: 10,
                                                                 fontSize: 20
                                                             }}>{friend.name}</Text>
-                                                            <View style={{
-                                                                flex: 1,
-                                                                flexDirection: "column",
-                                                                justifyContent: "center",
-                                                                // alignContent: 'center',
-                                                                alignItems: 'end',
-
-                                                            }}>
-                                                                <Checkbox.Android
-                                                                    status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
-                                                                    onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
-                                                                />
-
-
-                                                            </View>
 
 
                                                         </View>
+                                                        <View style={{
+                                                            flex: 1,
+                                                            flexDirection: "column",
+                                                            justifyContent: "center",
+                                                            alignItems: 'flex-end',
+
+                                                        }}>
+                                                            <Checkbox.Android
+                                                                status={selectedFriends.includes(friend.userId || friend._id) ? 'checked' : 'unchecked'}
+                                                                onPress={() => handleCheckboxToggle(friend.userId || friend._id)}
+                                                            />
+
+
+                                                        </View>
+
                                                     </View>
                                                 </View>
 
@@ -2177,6 +2208,7 @@ const styles = StyleSheet.create({
         padding: 16,
         borderRadius: 8,
         alignItems: 'center',
+
     },
     modalText: {
         fontSize: 18,

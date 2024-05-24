@@ -27,7 +27,7 @@ import { fetchAllGroup } from "../../service/conversation.util";
 
 const Login = ({ navigation }) => {
 
-  const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+  const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [checked, setChecked] = useState(false);
@@ -42,10 +42,24 @@ const Login = ({ navigation }) => {
     setChecked(!checked);
   };
 
+
+  const removeToken = async () => {
+    console.log("log out");
+    try {
+      await AsyncStorage.removeItem("access-token");
+      console.log("removed");
+      console.log(AsyncStorage.getItem("access-token"));
+      navigation.navigate("Login");
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   useEffect(() => {
+    // removeToken();
     const token = getAccessToken().then((token) => {
       if (token) {
-        console.log(token);
+        // console.log(token);
         const user = fetch(
           `${BASE_URL}/users/getMe`,
           {
@@ -59,16 +73,17 @@ const Login = ({ navigation }) => {
           .then((data) => {
             if (data.status === "fail") {
               console.log("fail");
+              // navigation.navigate("Login");
               return;
             }
-            console.log("response", data);
+            // console.log("response", data);
             return data.data;
           })
           .catch((error) => {
             console.log("Error:", error);
           });
         const temp = user.then((user) => {
-          console.log(user);
+          // console.log(user);
 
           dispatch(
             login({
@@ -77,11 +92,8 @@ const Login = ({ navigation }) => {
           );
           fetchFriendRequest();
           fetchAllGroup()
-          console.log(user);
-          fetchAllFriend().then(() => {
-            console.log("fetch all friend done");
-
-          })
+          // console.log(user);
+          fetchAllFriend();
 
           // const friendList = findFriendById(user._id).then((friend) => {
           //   console.log(friend);
@@ -109,7 +121,7 @@ const Login = ({ navigation }) => {
       });
 
       const data = await response.json();
-      console.log(data);
+      // console.log(data);
       if (data) {
         dispatch(setNumberOfRequest(data.data.length))
       }
@@ -141,7 +153,7 @@ const Login = ({ navigation }) => {
     )
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         dispatch(
           setFriend({
             friends: data.data,
@@ -178,7 +190,7 @@ const Login = ({ navigation }) => {
           })
           .then((data) => {
             if (data.status === "success") {
-              console.log(data.data.token.access_token);
+              // console.log(data.data.token.access_token);
               storeToken(data.data.token.access_token);
               Toast.show({
                 type: "success",

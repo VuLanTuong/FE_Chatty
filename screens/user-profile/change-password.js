@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from "react-redux";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ChangePassword({ navigation }) {
-    const BASE_URL = "http://ec2-54-255-220-169.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
+    const BASE_URL = "http://ec2-13-212-80-57.ap-southeast-1.compute.amazonaws.com:8555/api/v1"
 
     const [oldPassword, setOldPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -49,6 +49,17 @@ export default function ChangePassword({ navigation }) {
     const toggleConfirmNewPasswordVisibility = () => {
         setShowConfirmNewPassword((prevState) => !prevState);
     };
+    const removeToken = async () => {
+        console.log("log out");
+        try {
+            await AsyncStorage.removeItem("access-token");
+            console.log("removed");
+            console.log(AsyncStorage.getItem("access-token"));
+            navigation.navigate("Login");
+        } catch (e) {
+            console.error(e);
+        }
+    };
 
     const changePassword = async (oldPassword, newPassword) => {
         const accessToken = await getData();
@@ -72,7 +83,8 @@ export default function ChangePassword({ navigation }) {
                     position: "top",
                     visibilityTime: 4000,
                 });
-                navigation.navigate("ProfileScreen");
+
+                removeToken();
             } else {
                 Toast.show({
                     type: 'error',
@@ -94,7 +106,7 @@ export default function ChangePassword({ navigation }) {
 
     return (
         <View>
-            <View style={styles.header}>
+            {/* <View style={styles.header}>
                 <Pressable
                     style={styles.backButton}
                     onPress={() => navigation.navigate('ProfileScreen')}
@@ -102,7 +114,7 @@ export default function ChangePassword({ navigation }) {
                     <MaterialCommunityIcons name="arrow-left" color="white" size={20} />
                     <Text style={styles.headerText}>Change Password</Text>
                 </Pressable>
-            </View>
+            </View> */}
 
             <View style={styles.inputContainer}>
                 <TextInput
