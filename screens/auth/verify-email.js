@@ -16,7 +16,7 @@ export default function VerifyEmail({ navigation }) {
     const [showNewPassword, setShowNewPassword] = useState(false);
     const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
     const [showButton, setShowButton] = useState(true);
-    const [countdown, setCountdown] = useState(300);
+    const [countdown, setCountdown] = useState(60);
 
     const [isModalVisible, setModalVisible] = useState(false);
 
@@ -31,6 +31,8 @@ export default function VerifyEmail({ navigation }) {
     const toggleModal = () => {
 
         setModalVisible(!isModalVisible);
+        setOtp('');
+        setCountdown(60)
     };
 
     const openModalChangePassword = () => {
@@ -52,7 +54,6 @@ export default function VerifyEmail({ navigation }) {
 
     const handleVerifyOtp = async () => {
 
-        setModalVisible(!isModalVisible)
         await fetch(`${BASE_URL}/auth/verifyEmailOtp`, {
             method: "POST",
             headers: {
@@ -67,18 +68,22 @@ export default function VerifyEmail({ navigation }) {
             .then((data) => {
                 console.log(data)
 
-                Toast.show({
-                    type: 'success',
-                    text1: data.message,
-                    position: 'top',
-                    visibilityTime: 4000,
-                });
+
                 if (data.status === 'success') {
                     toggleModal();
                     // setIsChangePassword(!isChangePassword)
+
+                    // setModalVisible(!isModalVisible)
+
                     navigation.navigate('Register', { email: email })
-
-
+                }
+                else {
+                    Toast.show({
+                        type: 'error',
+                        text1: data.message,
+                        position: 'top',
+                        visibilityTime: 4000,
+                    });
                 }
             })
     };
@@ -176,6 +181,7 @@ export default function VerifyEmail({ navigation }) {
                             setMessage(data.message)
                         }
                         else {
+                            setCountdown(60)
                             setMessage("Resend OTP success \n" + data.message)
                         }
 
@@ -214,6 +220,7 @@ export default function VerifyEmail({ navigation }) {
     useEffect(() => {
         if (countdown <= 0) {
             setShowButton(true);
+
         }
     }, [countdown]);
 
@@ -309,13 +316,13 @@ export default function VerifyEmail({ navigation }) {
                                 height: 50,
                                 borderRadius: 25,
                             }} onPress={() => handleVerifyOtp()}>
-                                <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>Verify OTP</Text>
+                                <Text style={{ color: 'white', textAlign: 'center', marginTop: 15 }}>Verify OTP</Text>
                             </Pressable>
 
                             <Pressable style={
                                 showButton ? styles.buttonEnabled : styles.buttonDisabled
                             } onPress={() => handleSendOTP(true)}>
-                                <Text style={{ color: 'white', textAlign: 'center', marginTop: 10 }}>{formatTime(countdown)}  :  Resend otp</Text>
+                                <Text style={{ color: 'white', textAlign: 'center', marginTop: 15 }}>{formatTime(countdown)}  :  Resend otp</Text>
                             </Pressable>
                         </View>
                         <View style={{

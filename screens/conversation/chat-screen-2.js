@@ -36,7 +36,6 @@ import { useSocket } from "../socket.io/socket-context";
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { getConservations, setAllConversation, setCurrentConversation } from "../../rtk/user-slice";
-import FileMessageComponent from "./file-message-component";
 import { fetchAllGroup } from "../../service/conversation.util";
 import VideoScreen from "./video-screen";
 import { Video, ResizeMode } from "expo-av";
@@ -91,7 +90,7 @@ const ChatScreen = ({ navigation, route }) => {
         conversationParams.members.map((member) => {
             // console.log(member);
             if (member._id !== user._id && friendInRedux.find(friend => friend.userId === member._id)) {
-                console.log("is friend");
+                // console.log("is friend");
                 setIsFriend(true);
                 return true;
             }
@@ -494,9 +493,11 @@ const ChatScreen = ({ navigation, route }) => {
             });
             socket.on('message:receive', (data) => {
                 if (data.conversation._id.toString() === currentConversation._id.toString()) {
-                    if (data.sender._id !== user._id) {
-                        return setMessages([...messages, { ...data, isMine: false }])
+                    if (data.sender._id === user._id) {
+                        return setMessages([...messages, { ...data, isMine: true }])
                     }
+                    return setMessages([...messages, data])
+
                 }
                 return;
             },
@@ -563,15 +564,19 @@ const ChatScreen = ({ navigation, route }) => {
                     return;
 
                 })
+
+            return () => {
+                socket.off('conversation:removeMembers');
+                socket.off('message:receive');
+                socket.off('message:deleted');
+                socket.off('message:notification');
+                socket.off('conversation:disband');
+            }
         }, [messages])
     );
 
 
 
-    useFocusEffect(React.useCallback(() => {
-        // console.log("get all message");
-        getAllMessage();
-    }, []));
 
     const getAllMessage = async () => {
         const token = await getAccessToken();
@@ -589,7 +594,7 @@ const ChatScreen = ({ navigation, route }) => {
                     console.log("fail");
                     return;
                 }
-                // console.log(data.data);
+                console.log("c******");
                 reverseData(data.data)
                 return;
             })
@@ -600,7 +605,6 @@ const ChatScreen = ({ navigation, route }) => {
     }
 
     const reverseData = (data) => {
-
         setMessages(data.reverse())
 
     }
@@ -820,7 +824,7 @@ const ChatScreen = ({ navigation, route }) => {
                                 numberOfLines={2}
                                 ellipsizeMode="tail"
                             >
-                                {nameGroup.length > 25 ? nameGroup.slice(0, 15) + "..." : nameGroup}
+                                {nameGroup.length > 12 ? nameGroup.slice(0, 10) + "..." : nameGroup}
                             </Text>
 
 
@@ -856,6 +860,11 @@ const ChatScreen = ({ navigation, route }) => {
 
         })
     }, [nameGroup, currentConversation.image])
+
+    useFocusEffect(React.useCallback(() => {
+        // console.log("get all message");
+        getAllMessage();
+    }, []));
 
     function FileMessageComponent({ message }) {
 
@@ -946,7 +955,7 @@ const ChatScreen = ({ navigation, route }) => {
                 if (attachment?.type === "application") {
                     return (
                         // <View key={index} style={styles.fileContainer}>
-                        <View key={index} style={styles.fileDetailsContainer}>
+                        <View style={styles.fileDetailsContainer}>
                             {!message.isMine && currentConversation.type === "group" && (
                                 <Text
                                     style={{
@@ -999,7 +1008,7 @@ const ChatScreen = ({ navigation, route }) => {
                             )}
 
                             <Image
-                                key={index}
+
                                 source={{ uri: attachment.url }}
                                 style={styles.image}
                             />
@@ -1075,9 +1084,10 @@ const ChatScreen = ({ navigation, route }) => {
             })
         }
 
+
+
         return (
             <View
-                key={message?._id}
                 style={{
                     flex: 1,
                     flexDirection: "row",
@@ -1549,7 +1559,7 @@ const ChatScreen = ({ navigation, route }) => {
 
         return (
             <View
-                key={message?._id}
+
                 style={{
                     flexDirection: 'row',
                     alignItems: 'flex-end',
@@ -1703,18 +1713,18 @@ const ChatScreen = ({ navigation, route }) => {
                                     margin: 'auto',
                                     gap: 15,
                                     alignSelf: 'center'
-                                }} key={message._id}>
+                                }}>
                                     <Image
                                         source={{ uri: message.avatar }}
                                         style={styles.iconImage}
                                     />
-                                    <Text>{message.content}</Text>
+                                    <Text numberOfLines={2} >{message.content}</Text>
                                 </View>
                             ) : (
                                 message.type === 'file' && message.content !== 'This message has been deleted' ? (
-                                    <FileMessageComponent key={message._id} message={message} />
+                                    <FileMessageComponent message={message} />
                                 ) : (
-                                    <MessageComponent key={message._id} message={message} />
+                                    <MessageComponent message={message} />
                                 )
                             )}
                         </React.Fragment>
@@ -1875,10 +1885,12 @@ const ChatScreen = ({ navigation, route }) => {
                                         onFocus={handleFocus}
                                         onBlur={handleBlur}
                                     />
-                                    <Pressable onPress={() => handleChoosePhoto()} >
+                                    <Pressable style={{
+                                        marginLeft: 5
+                                    }} onPress={() => handleChoosePhoto()} >
                                         <Octicons name="image" size={24} color="black" />
                                     </Pressable>
-                                    <Pressable style={{ marginHorizontal: 5 }} onPress={() => handleChooseFile()}>
+                                    <Pressable style={{ marginHorizontal: 5, marginLeft: 10 }} onPress={() => handleChooseFile()}>
                                         <Octicons name="file" size={24} color="black" />
                                     </Pressable>
                                     <Pressable style={{ marginHorizontal: 10 }} onPress={() => handleSendTextMessage(conversationParams._id, text, currentConversation)}>
@@ -1951,9 +1963,9 @@ const ChatScreen = ({ navigation, route }) => {
                                 flex: 1,
                                 width: '100%',
                             }}>
-                                {Object.keys(friends).map((letter) => (
+                                {Object.keys(friends).map((letter, idx) => (
                                     <View
-                                        key={letter}
+                                        key={idx}
                                         style={{
                                             width: '100%',
 
@@ -2085,12 +2097,12 @@ const ChatScreen = ({ navigation, route }) => {
                                 flex: 1,
                                 width: '100%',
                             }}>
-                                {Object.keys(friends).map((letter) => (
+                                {Object.keys(friends).map((letter, idx) => (
                                     <View style={{
                                         width: '100%'
 
-                                    }} key={letter}>
-                                        <View key={letter} >
+                                    }} key={idx + Date.now()}>
+                                        <View  >
                                             <Text style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20, marginTop: 15 }}>{letter}</Text>
 
                                             {friends[letter].map((friend) => (

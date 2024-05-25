@@ -91,7 +91,7 @@ const MessageScreen = ({ navigation }) => {
       // if (data.conversation.members.any(member => member._id === user._id)) {
       if (isUserInGroup) {
 
-        console.log("running gooooo");
+        // console.log("running gooooo");
         let updatedConversationArray = allConversationAtRedux;
         const newConversation = checkIsMember(data, members);
         if (newConversation !== null) {
@@ -243,6 +243,7 @@ const MessageScreen = ({ navigation }) => {
       })
 
   }, [allConversationAtRedux]);
+  // }, []);
 
 
 

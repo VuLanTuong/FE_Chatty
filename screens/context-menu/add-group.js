@@ -95,6 +95,7 @@ const AddGroup = ({ navigation }) => {
             console.log(friend);
             return friend
         })
+        console.log(avatar);
         if (nameGroup !== "") {
             if (members.length >= 2) {
                 await fetch(`${BASE_URL}/conservations/createGroup`, {
@@ -176,10 +177,11 @@ const AddGroup = ({ navigation }) => {
                 height: 50,
                 marginTop: 20,
                 gap: 20,
+                justifyContent: 'center',
 
 
             }}>
-                <Pressable style={{
+                {/* <Pressable style={{
                     height: 40,
                     width: 40,
                     borderWidth: 1,
@@ -191,7 +193,7 @@ const AddGroup = ({ navigation }) => {
                 }} onPress={() => handleChooseAvatar()}>
                     {avatar ? <Image source={{ uri: avatar }} style={{ width: 40, height: 40, borderRadius: 20 }} /> :
                         <MaterialCommunityIcons name="camera" size={24} color="grey" />}
-                </Pressable>
+                </Pressable> */}
                 <TextInput
                     style={{
                         fontSize: 18,

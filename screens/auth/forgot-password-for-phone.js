@@ -30,6 +30,7 @@ export default function ForgotPassword({ navigation, route }) {
     const [errOtp, setErrOtp] = useState('')
 
     const toggleModal = () => {
+        setOtp('');
         setModalVisible(!isModalVisible);
     };
 
@@ -64,16 +65,19 @@ export default function ForgotPassword({ navigation, route }) {
             .then((response) => { return response.json() })
             .then((data) => {
                 console.log(data)
-                Toast.show({
-                    type: 'success',
-                    text1: data.message,
-                    position: 'top',
-                    visibilityTime: 4000,
-                });
+
                 if (data.status === 'success') {
                     toggleModal();
                     setIsChangePassword(!isChangePassword)
 
+                }
+                else {
+                    Toast.show({
+                        type: 'error',
+                        text1: data.message,
+                        position: 'top',
+                        visibilityTime: 4000,
+                    });
                 }
             })
     };
